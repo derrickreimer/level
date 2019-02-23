@@ -4,7 +4,7 @@ module Post exposing
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
-    , withSpace, withGroup, withInboxState
+    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
     )
 
 {-| A post represents a message posted to group.
@@ -37,7 +37,7 @@ module Post exposing
 
 # Filtering
 
-@docs withSpace, withGroup, withInboxState
+@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
 
 -}
 
@@ -416,3 +416,18 @@ withInboxState filter (Post data) =
 
         _ ->
             True
+
+
+withAnyGroups : List Id -> Post -> Bool
+withAnyGroups matchingIds post =
+    List.any (\testId -> List.member testId matchingIds) (groupIds post)
+
+
+withFollowing : List Id -> Post -> Bool
+withFollowing subscribedGroupIds post =
+    isPrivate post
+        || inboxState post
+        /= Excluded
+        || subscriptionState post
+        == Subscribed
+        || withAnyGroups subscribedGroupIds post

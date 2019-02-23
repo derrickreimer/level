@@ -141,7 +141,7 @@ scaffold globals params viewer space now =
         cachedPosts =
             globals.repo
                 |> Repo.getPostsBySpace (Space.id space) Nothing
-                |> filterPosts (Space.id space) params
+                |> filterPosts globals.repo (Space.id space) params
                 |> List.sortWith Post.desc
                 |> List.take 20
 
@@ -192,17 +192,24 @@ teardown globals model =
     Cmd.none
 
 
-filterPosts : Id -> Params -> List Post -> List Post
-filterPosts spaceId params posts =
-    -- TODO: filter by "is following" when inbox filter == ALL
+filterPosts : Repo -> Id -> Params -> List Post -> List Post
+filterPosts repo spaceId params posts =
+    let
+        subscribedGroupIds =
+            repo
+                |> Repo.getGroupsBySpaceId spaceId
+                |> List.filter Group.withSubscribed
+                |> List.map Group.id
+    in
     posts
         |> List.filter (Post.withSpace spaceId)
         |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
+        |> List.filter (Post.withFollowing subscribedGroupIds)
 
 
-isMemberPost : Model -> Post -> Bool
-isMemberPost model post =
-    not (List.isEmpty (filterPosts model.spaceId model.params [ post ]))
+isMemberPost : Repo -> Model -> Post -> Bool
+isMemberPost repo model post =
+    not (List.isEmpty (filterPosts repo model.spaceId model.params [ post ]))
 
 
 
@@ -445,7 +452,7 @@ update msg globals model =
                         |> PostEditor.reset
 
                 ( newPostViews, postViewCmd ) =
-                    if isMemberPost model resolvedPost.post then
+                    if isMemberPost globals.repo model resolvedPost.post then
                         PostSet.add newGlobals resolvedPost.post model.postViews
 
                     else
@@ -570,7 +577,7 @@ consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
         Event.PostCreated resolvedPost ->
-            if isMemberPost model resolvedPost.post then
+            if isMemberPost globals.repo model resolvedPost.post then
                 ( enqueuePost resolvedPost model, Cmd.none )
 
             else

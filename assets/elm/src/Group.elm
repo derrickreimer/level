@@ -1,4 +1,4 @@
-module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, isWatching, membershipState, name, setIsBookmarked, setMembershipState, spaceId, state)
+module Group exposing (Group, State(..), canManagePermissions, decoder, fragment, id, isBookmarked, isDefault, isPrivate, isWatching, membershipState, name, setIsBookmarked, setMembershipState, spaceId, state, withSubscribed)
 
 import GraphQL exposing (Fragment)
 import GroupMembership exposing (GroupMembershipState(..))
@@ -176,3 +176,15 @@ membershipStateDecoder =
         [ Decode.at [ "membership", "state" ] GroupMembership.stateDecoder
         , Decode.succeed NotSubscribed
         ]
+
+
+
+-- FILTERING
+
+
+withSubscribed : Group -> Bool
+withSubscribed group =
+    membershipState group
+        == GroupMembership.Watching
+        || membershipState group
+        == GroupMembership.Subscribed
