@@ -138,11 +138,11 @@ init params globals =
 scaffold : Globals -> Params -> SpaceUser -> Space -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
 scaffold globals params viewer space now =
     let
-        -- TODO: filter these posts by "is following"
         cachedPosts =
             globals.repo
                 |> Repo.getPostsBySpace (Space.id space) Nothing
-                |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
+                |> filterPosts (Space.id space) params
+                |> List.sortWith Post.desc
                 |> List.take 20
 
         ( postSet, postViewCmds ) =
@@ -190,6 +190,19 @@ setup globals model =
 teardown : Globals -> Model -> Cmd Msg
 teardown globals model =
     Cmd.none
+
+
+filterPosts : Id -> Params -> List Post -> List Post
+filterPosts spaceId params posts =
+    -- TODO: filter by "is following" when inbox filter == ALL
+    posts
+        |> List.filter (Post.withSpace spaceId)
+        |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
+
+
+isMemberPost : Model -> Post -> Bool
+isMemberPost model post =
+    not (List.isEmpty (filterPosts model.spaceId model.params [ post ]))
 
 
 
@@ -431,14 +444,18 @@ update msg globals model =
                     model.postComposer
                         |> PostEditor.reset
 
-                ( postId, _ ) =
-                    ResolvedPostWithReplies.unresolve resolvedPost
+                ( newPostViews, postViewCmd ) =
+                    if isMemberPost model resolvedPost.post then
+                        PostSet.add newGlobals resolvedPost.post model.postViews
 
-                newPostComps =
-                    PostSet.enqueue (Post.id resolvedPost.post) model.postViews
+                    else
+                        ( model.postViews, Cmd.none )
             in
-            ( ( { model | postComposer = newPostComposer, postViews = newPostComps }
-              , postComposerCmd
+            ( ( { model | postComposer = newPostComposer, postViews = newPostViews }
+              , Cmd.batch
+                    [ postComposerCmd
+                    , Cmd.map (PostViewMsg (Post.id resolvedPost.post)) postViewCmd
+                    ]
               )
             , newGlobals
             )
@@ -552,6 +569,13 @@ addPost globals resolvedPost ( model, cmd ) =
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
+        Event.PostCreated resolvedPost ->
+            if isMemberPost model resolvedPost.post then
+                ( enqueuePost resolvedPost model, Cmd.none )
+
+            else
+                ( model, Cmd.none )
+
         Event.ReplyCreated reply ->
             let
                 postId =

@@ -168,8 +168,8 @@ scaffold globals params viewer space group now =
         cachedPosts =
             globals.repo
                 |> Repo.getPostsByGroup (Group.id group) Nothing
+                |> filterPosts (Space.id space) (Group.id group) params
                 |> List.sortWith Post.desc
-                |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
                 |> List.take 20
 
         ( postSet, postViewCmds ) =
@@ -249,6 +249,19 @@ setupSockets groupId =
 teardownSockets : Id -> Cmd Msg
 teardownSockets groupId =
     GroupSubscription.unsubscribe groupId
+
+
+filterPosts : Id -> Id -> Params -> List Post -> List Post
+filterPosts spaceId groupId params posts =
+    posts
+        |> List.filter (Post.withSpace spaceId)
+        |> List.filter (Post.withGroup groupId)
+        |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
+
+
+isMemberPost : Model -> Post -> Bool
+isMemberPost model post =
+    not (List.isEmpty (filterPosts model.spaceId model.groupId model.params [ post ]))
 
 
 
@@ -437,15 +450,37 @@ update msg globals model =
             else
                 noCmd globals model
 
-        NewPostSubmitted (Ok ( newSession, response )) ->
+        NewPostSubmitted (Ok ( newSession, CreatePost.Success resolvedPost )) ->
             let
-                ( newPostComposer, cmd ) =
+                newRepo =
+                    ResolvedPostWithReplies.addToRepo resolvedPost globals.repo
+
+                newGlobals =
+                    { globals | session = newSession, repo = newRepo }
+
+                ( newPostComposer, postComposerCmd ) =
                     model.postComposer
                         |> PostEditor.reset
+
+                ( newPostViews, postViewCmd ) =
+                    if isMemberPost model resolvedPost.post then
+                        PostSet.add newGlobals resolvedPost.post model.postViews
+
+                    else
+                        ( model.postViews, Cmd.none )
             in
-            ( ( { model | postComposer = newPostComposer }, cmd )
-            , { globals | session = newSession }
+            ( ( { model | postComposer = newPostComposer, postViews = newPostViews }
+              , Cmd.batch
+                    [ postComposerCmd
+                    , Cmd.map (PostViewMsg (Post.id resolvedPost.post)) postViewCmd
+                    ]
+              )
+            , newGlobals
             )
+
+        NewPostSubmitted (Ok ( newSession, CreatePost.Invalid _ )) ->
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
+                |> noCmd { globals | session = newSession }
 
         NewPostSubmitted (Err Session.Expired) ->
             redirectToLogin globals model
@@ -952,7 +987,11 @@ consumeEvent globals event model =
                 ( model, Cmd.none )
 
         Event.PostCreated resolvedPost ->
-            ( enqueuePost resolvedPost model, Cmd.none )
+            if isMemberPost model resolvedPost.post then
+                ( enqueuePost resolvedPost model, Cmd.none )
+
+            else
+                ( model, Cmd.none )
 
         Event.ReplyCreated reply ->
             let

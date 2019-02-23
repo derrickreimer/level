@@ -4,7 +4,7 @@ module Post exposing
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
-    , withInboxState
+    , withSpace, withGroup, withInboxState
     )
 
 {-| A post represents a message posted to group.
@@ -37,7 +37,7 @@ module Post exposing
 
 # Filtering
 
-@docs withInboxState
+@docs withSpace, withGroup, withInboxState
 
 -}
 
@@ -393,6 +393,16 @@ desc (Post a) (Post b) =
 
 
 -- FILTERING
+
+
+withSpace : Id -> Post -> Bool
+withSpace matchingId post =
+    spaceId post == matchingId
+
+
+withGroup : Id -> Post -> Bool
+withGroup matchingId post =
+    List.member matchingId (groupIds post)
 
 
 withInboxState : InboxStateFilter -> Post -> Bool
