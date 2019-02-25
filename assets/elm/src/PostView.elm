@@ -1,4 +1,4 @@
-module PostView exposing (Msg(..), PostView, ViewConfig, expandReplyComposer, handleEditorEventReceived, init, markVisibleRepliesAsViewed, postNodeId, refreshFromCache, setup, teardown, update, view)
+module PostView exposing (Msg(..), PostView, ViewConfig, expandReplyComposer, init, postNodeId, refreshFromCache, setup, teardown, update, view)
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -117,8 +117,8 @@ init repo replyLimit post =
         (Post.spaceId post)
         replyViews
         (Post.postedAt post)
-        (PostEditor.init postId)
-        (PostEditor.init postId)
+        (PostEditor.init <| "post-editor-" ++ postId)
+        (PostEditor.init <| "reply-composer-" ++ postId)
         False
 
 
@@ -738,6 +738,10 @@ markVisibleRepliesAsViewed globals postView =
         Cmd.none
 
 
+
+-- EXTERNAL UPDATES
+
+
 expandReplyComposer : Globals -> PostView -> ( ( PostView, Cmd Msg ), Globals )
 expandReplyComposer globals postView =
     let
@@ -778,28 +782,6 @@ refreshFromCache globals postView =
                 |> ReplySet.removeDeleted globals.repo
     in
     ( { postView | replyViews = newReplyViews }, Cmd.none )
-
-
-
--- EVENT HANDLERS
-
-
-handleEditorEventReceived : Decode.Value -> PostView -> PostView
-handleEditorEventReceived value postView =
-    case PostEditor.decodeEvent value of
-        PostEditor.LocalDataFetched id body ->
-            if id == PostEditor.getId postView.replyComposer then
-                let
-                    newReplyComposer =
-                        PostEditor.setBody body postView.replyComposer
-                in
-                { postView | replyComposer = newReplyComposer }
-
-            else
-                postView
-
-        PostEditor.Unknown ->
-            postView
 
 
 

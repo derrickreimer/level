@@ -181,7 +181,6 @@ recordReplyViews globals model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
-    | PostEditorEventReceived Decode.Value
     | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -210,17 +209,6 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
-
-        PostEditorEventReceived value ->
-            let
-                newPostComp =
-                    PostView.handleEditorEventReceived value model.postView
-            in
-            ( ( { model | postView = newPostComp }
-              , Cmd.none
-              )
-            , globals
-            )
 
         PostViewMsg postViewMsg ->
             let
@@ -467,7 +455,6 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ every 1000 Tick
-        , PostEditor.receive PostEditorEventReceived
         ]
 
 
