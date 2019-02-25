@@ -431,11 +431,11 @@ groupsView repo params space groups =
         case Route.Groups.getState params of
             Route.Groups.Open ->
                 div [ class "p-2 text-center" ]
-                    [ text "Wowza! This space does not have any groups yet." ]
+                    [ text "Wowza! This team does not have any channels yet." ]
 
             Route.Groups.Closed ->
                 div [ class "p-2 text-center" ]
-                    [ text "There are no closed groups to show." ]
+                    [ text "There are no closed channels to show." ]
 
     else
         div [ class "leading-semi-loose" ]
