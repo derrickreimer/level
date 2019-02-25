@@ -1485,7 +1485,7 @@ desktopPostView globals spaceUsers groups model data postView =
         ]
         [ viewIf isSelected <|
             div
-                [ class "tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
+                [ class "hidden tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
                 , attribute "data-tooltip" "Currently selected"
                 ]
                 []
