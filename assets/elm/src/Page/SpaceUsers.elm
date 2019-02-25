@@ -204,6 +204,7 @@ resolvedDesktopView globals model data =
         spaceUsers =
             globals.repo
                 |> Repo.getSpaceUsersBySpaceId model.spaceId
+                |> List.filter (\su -> SpaceUser.state su == SpaceUser.Active)
                 |> List.sortBy SpaceUser.lastName
     in
     Layout.SpaceDesktop.layout config
@@ -260,6 +261,7 @@ resolvedMobileView globals model data =
         spaceUsers =
             globals.repo
                 |> Repo.getSpaceUsersBySpaceId model.spaceId
+                |> List.filter (\su -> SpaceUser.state su == SpaceUser.Active)
                 |> List.sortBy SpaceUser.lastName
     in
     Layout.SpaceMobile.layout config

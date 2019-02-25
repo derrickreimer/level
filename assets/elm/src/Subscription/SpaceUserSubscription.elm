@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -28,6 +28,102 @@ unsubscribe spaceUserId =
 
 
 -- DECODERS
+
+
+postCreatedDecoder : Decode.Decoder ResolvedPostWithReplies
+postCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostCreated"
+        "post"
+        ResolvedPostWithReplies.decoder
+
+
+postUpdatedDecoder : Decode.Decoder Post
+postUpdatedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostUpdated"
+        "post"
+        Post.decoder
+
+
+replyCreatedDecoder : Decode.Decoder Reply
+replyCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "ReplyCreated"
+        "reply"
+        Reply.decoder
+
+
+replyUpdatedDecoder : Decode.Decoder Reply
+replyUpdatedDecoder =
+    Subscription.decoder "spaceUser"
+        "ReplyUpdated"
+        "reply"
+        Reply.decoder
+
+
+replyDeletedDecoder : Decode.Decoder Reply
+replyDeletedDecoder =
+    Subscription.decoder "spaceUser"
+        "ReplyDeleted"
+        "reply"
+        Reply.decoder
+
+
+postClosedDecoder : Decode.Decoder Post
+postClosedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostClosed"
+        "post"
+        Post.decoder
+
+
+postReopenedDecoder : Decode.Decoder Post
+postReopenedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostReopened"
+        "post"
+        Post.decoder
+
+
+postDeletedDecoder : Decode.Decoder Post
+postDeletedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostDeleted"
+        "post"
+        Post.decoder
+
+
+postReactionCreatedDecoder : Decode.Decoder Post
+postReactionCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostReactionCreated"
+        "post"
+        Post.decoder
+
+
+postReactionDeletedDecoder : Decode.Decoder Post
+postReactionDeletedDecoder =
+    Subscription.decoder "spaceUser"
+        "PostReactionDeleted"
+        "post"
+        Post.decoder
+
+
+replyReactionCreatedDecoder : Decode.Decoder Reply
+replyReactionCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "ReplyReactionCreated"
+        "reply"
+        Reply.decoder
+
+
+replyReactionDeletedDecoder : Decode.Decoder Reply
+replyReactionDeletedDecoder =
+    Subscription.decoder "spaceUser"
+        "ReplyReactionDeleted"
+        "reply"
+        Reply.decoder
 
 
 groupBookmarkedDecoder : Decode.Decoder Group
@@ -128,6 +224,64 @@ document =
         ) {
           spaceUserSubscription(spaceUserId: $spaceUserId) {
             __typename
+            ... on PostCreatedPayload {
+              post {
+                ...PostFields
+                replies(last: 5) {
+                  ...ReplyConnectionFields
+                }
+              }
+            }
+            ... on ReplyCreatedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on ReplyUpdatedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on ReplyDeletedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on PostClosedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostReopenedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostDeletedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostReactionCreatedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on PostReactionDeletedPayload {
+              post {
+                ...PostFields
+              }
+            }
+            ... on ReplyReactionCreatedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
+            ... on ReplyReactionDeletedPayload {
+              reply {
+                ...ReplyFields
+              }
+            }
             ... on GroupBookmarkedPayload {
               group {
                 ...GroupFields

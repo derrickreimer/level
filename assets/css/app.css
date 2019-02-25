@@ -178,7 +178,7 @@ h6 {
  */
 
 .composer {
-  @apply block relative p-3 bg-grey-light w-full rounded-lg;
+  @apply block relative; /* p-3 bg-grey-light w-full rounded-xl; */
 }
 
 .composer:focus,
@@ -423,7 +423,7 @@ a.tagged-group:hover {
  */
 
 .tribute-container {
-  @apply absolute block pin-b pin-l p-1 overflow-auto z-30 shadow-md bg-white rounded-lg w-full;
+  @apply absolute block pin-b pin-l p-1 overflow-auto z-40 shadow-md bg-white rounded-lg w-full;
   height: auto;
   max-height: 300px;
   transform: translateY(100%);

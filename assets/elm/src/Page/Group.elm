@@ -1,7 +1,6 @@
 module Page.Group exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
-import Component.Post
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
@@ -16,10 +15,12 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
+import InboxStateFilter
 import Json.Decode as Decode
 import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.BookmarkGroup as BookmarkGroup
 import Mutation.CloseGroup as CloseGroup
@@ -33,12 +34,16 @@ import Mutation.UnbookmarkGroup as UnbookmarkGroup
 import Mutation.UnsubscribeFromGroup as UnsubscribeFromGroup
 import Mutation.UpdateGroup as UpdateGroup
 import Mutation.WatchGroup as WatchGroup
+import PageError exposing (PageError)
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostSet exposing (PostSet)
+import PostStateFilter
+import PostView exposing (PostView)
 import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
-import Query.GroupInit as GroupInit
+import Query.GroupPosts as GroupPosts
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -57,6 +62,7 @@ import Subscription.GroupSubscription as GroupSubscription
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import ValidationError exposing (ValidationError)
 import Vendor.Keys as Keys exposing (enter, esc, onKeydown, preventDefault)
 import View.Helpers exposing (selectValue, setFocus, smartFormatTime, viewIf, viewUnless)
@@ -72,9 +78,9 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , groupId : Id
-    , featuredMemberIds : List Id
-    , postComps : Connection Component.Post.Model
-    , now : ( Zone, Posix )
+    , featuredMemberIds : Lazy (List Id)
+    , postViews : PostSet
+    , now : TimeWithZone
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
@@ -91,7 +97,7 @@ type alias Data =
     { viewer : SpaceUser
     , space : Space
     , group : Group
-    , featuredMembers : List SpaceUser
+    , featuredMembers : Lazy (List SpaceUser)
     }
 
 
@@ -101,7 +107,7 @@ resolveData repo model =
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
         (Repo.getGroup model.groupId repo)
-        (Just <| Repo.getSpaceUsers model.featuredMemberIds repo)
+        (Just <| Lazy.map (\ids -> Repo.getSpaceUsers ids repo) model.featuredMemberIds)
 
 
 
@@ -122,46 +128,80 @@ title repo model =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( ( Model, Cmd Msg ), Globals )
 init params globals =
-    globals.session
-        |> GroupInit.request params 10
-        |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel params globals)
-
-
-buildModel : Params -> Globals -> ( ( Session, GroupInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
     let
-        postComps =
-            Connection.map (buildPostComponent resp.spaceId) resp.postWithRepliesIds
+        maybeUserId =
+            Session.getUserId globals.session
+
+        maybeSpace =
+            Repo.getSpaceBySlug (Route.Group.getSpaceSlug params) globals.repo
+
+        maybeViewer =
+            case ( maybeSpace, maybeUserId ) of
+                ( Just space, Just userId ) ->
+                    Repo.getSpaceUserByUserId (Space.id space) userId globals.repo
+
+                _ ->
+                    Nothing
+
+        maybeGroup =
+            case maybeSpace of
+                Just space ->
+                    Repo.getGroupByName (Space.id space) (Route.Group.getGroupName params) globals.repo
+
+                Nothing ->
+                    Nothing
+    in
+    case ( maybeViewer, maybeSpace, maybeGroup ) of
+        ( Just viewer, Just space, Just group ) ->
+            TimeWithZone.now
+                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space group now))
+
+        _ ->
+            Task.fail PageError.NotFound
+
+
+scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space group now =
+    let
+        cachedPosts =
+            globals.repo
+                |> Repo.getPostsByGroup (Group.id group) Nothing
+                |> filterPosts (Space.id space) (Group.id group) params
+                |> List.sortWith Post.desc
+                |> List.take 20
+
+        ( postSet, postViewCmds ) =
+            if List.isEmpty cachedPosts then
+                ( PostSet.empty, [] )
+
+            else
+                PostSet.loadCached globals cachedPosts PostSet.empty
+
+        cmds =
+            postViewCmds
+                |> List.map (\( id, viewCmd ) -> Cmd.map (PostViewMsg id) viewCmd)
+                |> Cmd.batch
 
         model =
             Model
                 params
-                resp.viewerId
-                resp.spaceId
-                resp.groupId
-                resp.featuredMemberIds
-                postComps
+                (SpaceUser.id viewer)
+                (Space.id space)
+                (Group.id group)
+                NotLoaded
+                postSet
                 now
                 (FieldEditor.init "name-editor" "")
-                (PostEditor.init ("post-composer-" ++ resp.groupId))
+                (PostEditor.init ("post-composer-" ++ Group.id group))
                 (FieldEditor.init "search-editor" "")
-                resp.isWatching
+                (Group.isWatching group)
                 False
                 False
                 False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
-
-
-buildPostComponent : Id -> ( Id, Connection Id ) -> Component.Post.Model
-buildPostComponent spaceId ( postId, replyIds ) =
-    Component.Post.init spaceId postId replyIds
+    ( ( model, cmds ), globals )
 
 
 setup : Globals -> Model -> Cmd Msg
@@ -174,13 +214,19 @@ setup globals model =
                 ]
 
         postsCmd =
-            Connection.toList model.postComps
-                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.setup globals post))
-                |> Cmd.batch
+            globals.session
+                |> GroupPosts.request model.params 20 Nothing
+                |> Task.attempt (PostsFetched model.groupId 20)
+
+        featuredMembersCmd =
+            globals.session
+                |> FeaturedMemberships.request model.groupId
+                |> Task.attempt FeaturedMembershipsRefreshed
     in
     Cmd.batch
         [ pageCmd
         , postsCmd
+        , featuredMembersCmd
         , Scroll.toDocumentTop NoOp
         ]
 
@@ -192,8 +238,8 @@ teardown globals model =
             teardownSockets model.groupId
 
         postsCmd =
-            Connection.toList model.postComps
-                |> List.map (\post -> Cmd.map (PostComponentMsg post.id) (Component.Post.teardown globals post))
+            PostSet.toList model.postViews
+                |> List.map (\post -> Cmd.map (PostViewMsg post.id) (PostView.teardown globals post))
                 |> Cmd.batch
     in
     Cmd.batch [ pageCmd, postsCmd ]
@@ -209,6 +255,19 @@ teardownSockets groupId =
     GroupSubscription.unsubscribe groupId
 
 
+filterPosts : Id -> Id -> Params -> List Post -> List Post
+filterPosts spaceId groupId params posts =
+    posts
+        |> List.filter (Post.withSpace spaceId)
+        |> List.filter (Post.withGroup groupId)
+        |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
+
+
+isMemberPost : Model -> Post -> Bool
+isMemberPost model post =
+    not (List.isEmpty (filterPosts model.spaceId model.groupId model.params [ post ]))
+
+
 
 -- UPDATE
 
@@ -217,7 +276,8 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
-    | SetCurrentTime Posix Zone
+    | LoadMoreClicked
+    | PostsFetched Id Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -240,7 +300,7 @@ type Msg
     | NameEditorSubmit
     | NameEditorSubmitted (Result Session.Error ( Session, UpdateGroup.Response ))
     | FeaturedMembershipsRefreshed (Result Session.Error ( Session, FeaturedMemberships.Response ))
-    | PostComponentMsg String Component.Post.Msg
+    | PostViewMsg String PostView.Msg
     | Bookmark
     | Bookmarked (Result Session.Error ( Session, BookmarkGroup.Response ))
     | Unbookmark
@@ -261,6 +321,7 @@ type Msg
     | PostSelected Id
     | FocusOnComposer
     | PushSubscribeClicked
+    | FlushQueueClicked
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -277,10 +338,51 @@ update msg globals model =
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
-        SetCurrentTime posix zone ->
-            noCmd globals { model | now = ( zone, posix ) }
+        LoadMoreClicked ->
+            let
+                newPostViews =
+                    model.postViews
+                        |> PostSet.setLoadingMore
+
+                cmd =
+                    case PostSet.lastPostedAt model.postViews of
+                        Just lastPostedAt ->
+                            globals.session
+                                |> GroupPosts.request model.params 20 (Just lastPostedAt)
+                                |> Task.attempt (PostsFetched model.groupId 20)
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
+
+        PostsFetched groupId limit (Ok ( newSession, resp )) ->
+            if groupId == model.groupId then
+                let
+                    newGlobals =
+                        { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
+
+                    ( newModel, setupCmds ) =
+                        List.foldr (addPost newGlobals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+
+                    newPostComps =
+                        newModel.postViews
+                            |> PostSet.setLoaded
+                            |> PostSet.sortByPostedAt
+                            |> PostSet.setHasMore (Connection.length resp.resolvedPosts >= limit)
+                in
+                ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
+
+            else
+                ( ( model, Cmd.none ), globals )
+
+        PostsFetched _ _ (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        PostsFetched _ _ _ ->
+            ( ( model, Cmd.none ), globals )
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
@@ -358,15 +460,37 @@ update msg globals model =
             else
                 noCmd globals model
 
-        NewPostSubmitted (Ok ( newSession, response )) ->
+        NewPostSubmitted (Ok ( newSession, CreatePost.Success resolvedPost )) ->
             let
-                ( newPostComposer, cmd ) =
+                newRepo =
+                    ResolvedPostWithReplies.addToRepo resolvedPost globals.repo
+
+                newGlobals =
+                    { globals | session = newSession, repo = newRepo }
+
+                ( newPostComposer, postComposerCmd ) =
                     model.postComposer
                         |> PostEditor.reset
+
+                ( newPostViews, postViewCmd ) =
+                    if isMemberPost model resolvedPost.post then
+                        PostSet.add newGlobals resolvedPost.post model.postViews
+
+                    else
+                        ( model.postViews, Cmd.none )
             in
-            ( ( { model | postComposer = newPostComposer }, cmd )
-            , { globals | session = newSession }
+            ( ( { model | postComposer = newPostComposer, postViews = newPostViews }
+              , Cmd.batch
+                    [ postComposerCmd
+                    , Cmd.map (PostViewMsg (Post.id resolvedPost.post)) postViewCmd
+                    ]
+              )
+            , newGlobals
             )
+
+        NewPostSubmitted (Ok ( newSession, CreatePost.Invalid _ )) ->
+            { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
+                |> noCmd { globals | session = newSession }
 
         NewPostSubmitted (Err Session.Expired) ->
             redirectToLogin globals model
@@ -583,7 +707,7 @@ update msg globals model =
                 newRepo =
                     Repo.union resp.repo globals.repo
             in
-            ( ( { model | featuredMemberIds = resp.spaceUserIds }, Cmd.none )
+            ( ( { model | featuredMemberIds = Loaded resp.spaceUserIds }, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -593,15 +717,15 @@ update msg globals model =
         FeaturedMembershipsRefreshed (Err _) ->
             noCmd globals model
 
-        PostComponentMsg postId componentMsg ->
-            case Connection.get .id postId model.postComps of
-                Just postComp ->
+        PostViewMsg postId postViewMsg ->
+            case PostSet.get postId model.postViews of
+                Just postView ->
                     let
-                        ( ( newPostComp, cmd ), newGlobals ) =
-                            Component.Post.update componentMsg globals postComp
+                        ( ( newPostView, cmd ), newGlobals ) =
+                            PostView.update postViewMsg globals postView
                     in
-                    ( ( { model | postComps = Connection.update .id newPostComp model.postComps }
-                      , Cmd.map (PostComponentMsg postId) cmd
+                    ( ( { model | postViews = PostSet.update newPostView model.postViews }
+                      , Cmd.map (PostViewMsg postId) cmd
                       )
                     , newGlobals
                     )
@@ -757,15 +881,28 @@ update msg globals model =
         PostSelected postId ->
             let
                 newPostComps =
-                    Connection.selectBy .id postId model.postComps
+                    PostSet.select postId model.postViews
             in
-            ( ( { model | postComps = newPostComps }, Cmd.none ), globals )
+            ( ( { model | postViews = newPostComps }, Cmd.none ), globals )
 
         FocusOnComposer ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
 
         PushSubscribeClicked ->
             ( ( model, ServiceWorker.pushSubscribe ), globals )
+
+        FlushQueueClicked ->
+            let
+                ( newPostViews, cmd ) =
+                    model.postViews
+                        |> PostSet.flushQueue globals
+                        |> PostSet.mapCommands PostViewMsg
+            in
+            ( ( { model | postViews = newPostViews }
+              , Cmd.batch [ cmd, Scroll.toDocumentTop NoOp ]
+              )
+            , globals
+            )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -796,22 +933,50 @@ expandSearchEditor globals model =
     )
 
 
+enqueuePost : ResolvedPostWithReplies -> Model -> Model
+enqueuePost resolvedPost model =
+    if Post.spaceId resolvedPost.post == model.spaceId then
+        let
+            newPostComps =
+                PostSet.enqueue (Post.id resolvedPost.post) model.postViews
+        in
+        { model | postViews = newPostComps }
+
+    else
+        model
+
+
+addPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals resolvedPost ( model, cmd ) =
+    if Post.spaceId resolvedPost.post == model.spaceId then
+        let
+            ( newPostComps, newCmd ) =
+                PostSet.add globals resolvedPost.post model.postViews
+        in
+        ( { model | postViews = newPostComps }
+        , Cmd.batch [ cmd, Cmd.map (PostViewMsg (Post.id resolvedPost.post)) newCmd ]
+        )
+
+    else
+        ( model, cmd )
+
+
 removePost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 removePost globals post ( model, cmd ) =
-    case Connection.get .id (Post.id post) model.postComps of
-        Just postComp ->
+    case PostSet.get (Post.id post) model.postViews of
+        Just postView ->
             let
-                newPostComps =
-                    Connection.remove .id (Post.id post) model.postComps
+                newPostViews =
+                    PostSet.remove (Post.id post) model.postViews
 
                 teardownCmd =
-                    Cmd.map (PostComponentMsg postComp.id)
-                        (Component.Post.teardown globals postComp)
+                    Cmd.map (PostViewMsg postView.id)
+                        (PostView.teardown globals postView)
 
                 newCmd =
                     Cmd.batch [ cmd, teardownCmd ]
             in
-            ( { model | postComps = newPostComps }, newCmd )
+            ( { model | postViews = newPostViews }, newCmd )
 
         Nothing ->
             ( model, cmd )
@@ -845,24 +1010,8 @@ consumeEvent globals event model =
                 ( model, Cmd.none )
 
         Event.PostCreated resolvedPost ->
-            let
-                ( postId, replyIds ) =
-                    ResolvedPostWithReplies.unresolve resolvedPost
-
-                postComp =
-                    Component.Post.init
-                        model.spaceId
-                        postId
-                        replyIds
-            in
-            if
-                Route.Group.getState model.params
-                    == Route.Group.Open
-                    && List.member model.groupId (Post.groupIds resolvedPost.post)
-            then
-                ( { model | postComps = Connection.prepend .id postComp model.postComps }
-                , Cmd.map (PostComponentMsg postId) (Component.Post.setup globals postComp)
-                )
+            if isMemberPost model resolvedPost.post then
+                ( enqueuePost resolvedPost model, Cmd.none )
 
             else
                 ( model, Cmd.none )
@@ -872,18 +1021,66 @@ consumeEvent globals event model =
                 postId =
                     Reply.postId reply
             in
-            case Connection.get .id postId model.postComps of
-                Just postComp ->
+            case PostSet.get postId model.postViews of
+                Just postView ->
                     let
-                        ( newPostComp, cmd ) =
-                            Component.Post.handleReplyCreated reply postComp
+                        ( newPostView, cmd ) =
+                            PostView.refreshFromCache globals postView
                     in
-                    ( { model | postComps = Connection.update .id newPostComp model.postComps }
-                    , Cmd.map (PostComponentMsg postId) cmd
+                    ( { model | postViews = PostSet.update newPostView model.postViews }
+                    , Cmd.map (PostViewMsg postId) cmd
                     )
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Event.ReplyDeleted reply ->
+            let
+                postId =
+                    Reply.postId reply
+            in
+            case PostSet.get postId model.postViews of
+                Just postView ->
+                    let
+                        ( newPostView, cmd ) =
+                            PostView.refreshFromCache globals postView
+                    in
+                    ( { model | postViews = PostSet.update newPostView model.postViews }
+                    , Cmd.map (PostViewMsg postId) cmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Event.PostsMarkedAsUnread resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsMarkedAsRead resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else
+                ( model, Cmd.none )
+
+        Event.PostsDismissed resolvedPosts ->
+            if Route.Group.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+
+            else if Route.Group.getInboxState model.params == InboxStateFilter.Dismissed then
+                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+
+            else
+                ( model, Cmd.none )
 
         Event.PostDeleted post ->
             removePost globals post ( model, Cmd.none )
@@ -901,40 +1098,40 @@ consumeKeyboardEvent globals event model =
         ( "k", [] ) ->
             let
                 newPostComps =
-                    Connection.selectPrev model.postComps
+                    PostSet.selectPrev model.postViews
 
                 cmd =
-                    case Connection.selected newPostComps of
+                    case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postComps = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostComps }, cmd ), globals )
 
         ( "j", [] ) ->
             let
                 newPostComps =
-                    Connection.selectNext model.postComps
+                    PostSet.selectNext model.postViews
 
                 cmd =
-                    case Connection.selected newPostComps of
+                    case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (Component.Post.postNodeId currentPost.postId) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postComps = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostComps }, cmd ), globals )
 
         ( "e", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postViews of
                 Just currentPost ->
                     let
                         cmd =
                             globals.session
-                                |> DismissPosts.request model.spaceId [ currentPost.postId ]
+                                |> DismissPosts.request model.spaceId [ currentPost.id ]
                                 |> Task.attempt PostsDismissed
                     in
                     ( ( model, cmd ), globals )
@@ -943,12 +1140,12 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "e", [ Meta ] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postViews of
                 Just currentPost ->
                     let
                         cmd =
                             globals.session
-                                |> MarkAsRead.request model.spaceId [ currentPost.postId ]
+                                |> MarkAsRead.request model.spaceId [ currentPost.id ]
                                 |> Task.attempt PostsMarkedAsRead
                     in
                     ( ( model, cmd ), globals )
@@ -957,12 +1154,12 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "y", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postViews of
                 Just currentPost ->
                     let
                         cmd =
                             globals.session
-                                |> ClosePost.request model.spaceId currentPost.postId
+                                |> ClosePost.request model.spaceId currentPost.id
                                 |> Task.attempt PostClosed
                     in
                     ( ( model, cmd ), globals )
@@ -971,17 +1168,17 @@ consumeKeyboardEvent globals event model =
                     ( ( model, Cmd.none ), globals )
 
         ( "r", [] ) ->
-            case Connection.selected model.postComps of
+            case PostSet.selected model.postViews of
                 Just currentPost ->
                     let
                         ( ( newCurrentPost, compCmd ), newGlobals ) =
-                            Component.Post.expandReplyComposer globals currentPost
+                            PostView.expandReplyComposer globals currentPost
 
                         newPostComps =
-                            Connection.update .id newCurrentPost model.postComps
+                            PostSet.update newCurrentPost model.postViews
                     in
-                    ( ( { model | postComps = newPostComps }
-                      , Cmd.map (PostComponentMsg currentPost.id) compCmd
+                    ( ( { model | postViews = newPostComps }
+                      , Cmd.map (PostViewMsg currentPost.id) compCmd
                       )
                     , globals
                     )
@@ -1066,17 +1263,30 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky mb-4 pt-1 bg-white z-20", style "top" "56px" ]
-                [ div [ class "mx-3 flex items-baseline trans-border-b-grey" ]
-                    [ filterTab Device.Desktop "Open" Route.Group.Open (openParams model.params) model.params
-                    , filterTab Device.Desktop "Resolved" Route.Group.Closed (closedParams model.params) model.params
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "56px" ]
+                [ div [ class "flex items-baseline trans-border-b-grey" ]
+                    [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
+                    , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
+                , desktopFlushQueueButton model
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-                div [ class "mx-3 p-8 pb-16" ]
-                    [ paginationView model.params model.postComps
+            , viewIf (PostSet.isLoaded model.postViews && PostSet.hasMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
+            , viewIf (PostSet.isLoadingMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
                     ]
             , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
@@ -1166,6 +1376,24 @@ searchEditorView editor =
         }
 
 
+desktopFlushQueueButton : Model -> Html Msg
+desktopFlushQueueButton model =
+    let
+        depth =
+            PostSet.queueDepth model.postViews
+    in
+    viewIf (depth > 0) <|
+        div
+            [ class "absolute"
+            , style "left" "50%"
+            , style "top" "65px"
+            , style "transform" "translateX(-50%)"
+            ]
+            [ button [ class "btn btn-blue btn-sm shadow", onClick FlushQueueClicked ]
+                [ text <| "Show " ++ String.fromInt depth ++ " new post(s)" ]
+            ]
+
+
 desktopPostComposerView : Globals -> Model -> Data -> Html Msg
 desktopPostComposerView globals model data =
     let
@@ -1187,12 +1415,12 @@ desktopPostComposerView globals model data =
     PostEditor.wrapper config
         [ label [ class "composer" ]
             [ div [ class "flex" ]
-                [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
-                , div [ class "flex-grow pt-2" ]
+                [ div [ class "flex-no-shrink mt-2 mr-3 z-10" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
+                , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder <| "Post in #" ++ Group.name data.group ++ "..."
+                        , placeholder <| "Write to #" ++ Group.name data.group ++ "..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit ) ]
                         , readonly (PostEditor.isSubmitting editor)
@@ -1237,17 +1465,21 @@ desktopPostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
-            [ text "You're all caught up!" ]
+    case ( PostSet.isScaffolded model.postViews, PostSet.isEmpty model.postViews ) of
+        ( True, False ) ->
+            div [] (PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postViews)
 
-    else
-        div [] <|
-            Connection.mapList (desktopPostView globals spaceUsers groups model data) model.postComps
+        ( True, True ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "You're all caught up!" ]
+
+        ( False, _ ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "Loading..." ]
 
 
-desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
-desktopPostView globals spaceUsers groups model data component =
+desktopPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> PostView -> Html Msg
+desktopPostView globals spaceUsers groups model data postView =
     let
         config =
             { globals = globals
@@ -1257,26 +1489,18 @@ desktopPostView globals spaceUsers groups model data component =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
+            , isSelected = PostSet.selected model.postViews == Just postView
             }
-
-        isSelected =
-            Connection.selected model.postComps == Just component
     in
     div
         [ classList
             [ ( "relative mb-3 p-3", True )
             ]
-        , onClick (PostSelected component.id)
+        , onClick (PostSelected postView.id)
         ]
-        [ viewIf isSelected <|
-            div
-                [ class "tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
-                , attribute "data-tooltip" "Currently selected"
-                ]
-                []
-        , component
-            |> Component.Post.view config
-            |> Html.map (PostComponentMsg component.id)
+        [ postView
+            |> PostView.view config
+            |> Html.map (PostViewMsg postView.id)
         ]
 
 
@@ -1303,8 +1527,8 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
-            [ filterTab Device.Mobile "Open" Route.Group.Open (openParams model.params) model.params
-            , filterTab Device.Mobile "Resolved" Route.Group.Closed (closedParams model.params) model.params
+            [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
+            , filterTab Device.Mobile "Everything" (feedParams model.params) model.params
             ]
         , viewIf (Group.state data.group == Group.Closed) <|
             p [ class "flex items-center px-4 py-3 mb-4 bg-red-lightest border-b-2 border-red text-red font-bold" ]
@@ -1314,11 +1538,24 @@ resolvedMobileView globals model data =
                     ]
                 ]
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
+        , mobileFlushQueueButton model
         , div [ class "p-3 pt-0" ]
             [ mobilePostsView globals model data
-            , viewUnless (Connection.isEmptyAndExpanded model.postComps) <|
-                div [ class "mx-3 p-8 pb-16 border-t" ]
-                    [ paginationView model.params model.postComps
+            , viewIf (PostSet.isScaffolded model.postViews && PostSet.hasMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
+            , viewIf (PostSet.isLoadingMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
                     ]
             ]
         , a
@@ -1335,6 +1572,21 @@ resolvedMobileView globals model data =
         ]
 
 
+mobileFlushQueueButton : Model -> Html Msg
+mobileFlushQueueButton model =
+    let
+        depth =
+            PostSet.queueDepth model.postViews
+    in
+    viewIf (depth > 0) <|
+        div
+            [ class "py-3 text-center"
+            ]
+            [ button [ class "btn btn-blue btn-sm shadow", onClick FlushQueueClicked ]
+                [ text <| "Show " ++ String.fromInt depth ++ " new post(s)" ]
+            ]
+
+
 mobilePostsView : Globals -> Model -> Data -> Html Msg
 mobilePostsView globals model data =
     let
@@ -1344,17 +1596,21 @@ mobilePostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    if Connection.isEmptyAndExpanded model.postComps then
-        div [ class "pt-16 pb-16 font-headline text-center text-lg" ]
-            [ text "You’re all caught up!" ]
+    case ( PostSet.isScaffolded model.postViews, PostSet.isEmpty model.postViews ) of
+        ( True, False ) ->
+            div [] (PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postViews)
 
-    else
-        div [] <|
-            Connection.mapList (mobilePostView globals spaceUsers groups model data) model.postComps
+        ( True, True ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "You're all caught up!" ]
+
+        ( False, _ ) ->
+            div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]
+                [ text "Loading..." ]
 
 
-mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> Component.Post.Model -> Html Msg
-mobilePostView globals spaceUsers groups model data component =
+mobilePostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> PostView -> Html Msg
+mobilePostView globals spaceUsers groups model data postView =
     let
         config =
             { globals = globals
@@ -1364,12 +1620,13 @@ mobilePostView globals spaceUsers groups model data component =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
+            , isSelected = False
             }
     in
     div [ class "py-4" ]
-        [ component
-            |> Component.Post.view config
-            |> Html.map (PostComponentMsg component.id)
+        [ postView
+            |> PostView.view config
+            |> Html.map (PostViewMsg postView.id)
         ]
 
 
@@ -1377,28 +1634,24 @@ mobilePostView globals spaceUsers groups model data component =
 -- SHARED
 
 
-filterTab : Device -> String -> Route.Group.State -> Params -> Params -> Html Msg
-filterTab device label state linkParams currentParams =
+filterTab : Device -> String -> Params -> Params -> Html Msg
+filterTab device label linkParams currentParams =
     let
         isCurrent =
-            Route.Group.getState currentParams == state
+            Route.Group.getState currentParams
+                == Route.Group.getState linkParams
+                && Route.Group.getInboxState currentParams
+                == Route.Group.getInboxState linkParams
     in
     a
         [ Route.href (Route.Group linkParams)
         , classList
             [ ( "flex-1 block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
-            , ( "text-dusty-blue", not isCurrent )
-            , ( "border-turquoise text-turquoise-dark", isCurrent )
+            , ( "text-dusty-blue-dark", not isCurrent )
+            , ( "border-blue text-blue", isCurrent )
             ]
         ]
         [ text label ]
-
-
-paginationView : Params -> Connection a -> Html Msg
-paginationView params connection =
-    Pagination.view connection
-        (\beforeCursor -> Route.Group (Route.Group.setCursors (Just beforeCursor) Nothing params))
-        (\afterCursor -> Route.Group (Route.Group.setCursors Nothing (Just afterCursor) params))
 
 
 bookmarkButtonView : Bool -> Html Msg
@@ -1420,7 +1673,7 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-sidebarView : Space -> Group -> List SpaceUser -> Model -> List (Html Msg)
+sidebarView : Space -> Group -> Lazy (List SpaceUser) -> Model -> List (Html Msg)
 sidebarView space group featuredMembers model =
     let
         settingsParams =
@@ -1467,13 +1720,18 @@ sidebarView space group featuredMembers model =
     ]
 
 
-memberListView : Space -> List SpaceUser -> Html Msg
+memberListView : Space -> Lazy (List SpaceUser) -> Html Msg
 memberListView space featuredMembers =
-    if List.isEmpty featuredMembers then
-        div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
+    case featuredMembers of
+        Loaded members ->
+            if List.isEmpty members then
+                div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
 
-    else
-        div [ class "pb-4" ] <| List.map (memberItemView space) featuredMembers
+            else
+                div [ class "pb-4" ] <| List.map (memberItemView space) members
+
+        NotLoaded ->
+            div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Loading..." ]
 
 
 memberItemView : Space -> SpaceUser -> Html Msg
@@ -1516,15 +1774,16 @@ subscribeButtonView state =
 -- INTERNAL
 
 
-openParams : Params -> Params
-openParams params =
+undismissedParams : Params -> Params
+undismissedParams params =
     params
-        |> Route.Group.setCursors Nothing Nothing
-        |> Route.Group.setState Route.Group.Open
+        |> Route.Group.clearFilters
+        |> Route.Group.setState PostStateFilter.All
+        |> Route.Group.setInboxState InboxStateFilter.Undismissed
 
 
-closedParams : Params -> Params
-closedParams params =
+feedParams : Params -> Params
+feedParams params =
     params
-        |> Route.Group.setCursors Nothing Nothing
-        |> Route.Group.setState Route.Group.Closed
+        |> Route.Group.clearFilters
+        |> Route.Group.setState PostStateFilter.All

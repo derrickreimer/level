@@ -1,4 +1,4 @@
-module Query.Replies exposing (Response, request)
+module Query.Replies exposing (Response, request, variables)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -11,26 +11,28 @@ import ResolvedReply exposing (ResolvedReply)
 import Session exposing (Session)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import Time exposing (Posix)
 
 
 type alias Response =
-    { replyIds : Connection Id
+    { resolvedReplies : Connection ResolvedReply
     , repo : Repo
     }
 
 
 type alias Data =
-    Connection ResolvedReply
+    { resolvedReplies : Connection ResolvedReply
+    }
 
 
 document : Document
 document =
     GraphQL.toDocument
         """
-        query PostInit(
+        query Replies(
           $spaceId: ID!
           $postId: ID!
-          $before: Cursor!
+          $before: Timestamp!
           $limit: Int!
         ) {
           space(id: $spaceId) {
@@ -46,21 +48,22 @@ document =
         ]
 
 
-variables : Id -> Id -> String -> Int -> Maybe Encode.Value
-variables spaceId postId before limit =
+variables : Id -> Id -> Int -> Posix -> Maybe Encode.Value
+variables spaceId postId limit before =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "postId", Id.encoder postId )
-            , ( "before", Encode.string before )
             , ( "limit", Encode.int limit )
+            , ( "before", Encode.int (Time.posixToMillis before) )
             ]
 
 
 decoder : Decoder Data
 decoder =
     Decode.at [ "data", "space", "post", "replies" ] <|
-        Connection.decoder ResolvedReply.decoder
+        Decode.map Data
+            (Connection.decoder ResolvedReply.decoder)
 
 
 addRepliesToRepo : Connection ResolvedReply -> Repo -> Repo
@@ -73,14 +76,14 @@ buildResponse ( session, data ) =
     let
         resp =
             Response
-                (Connection.map (Reply.id << .reply) data)
-                (addRepliesToRepo data Repo.empty)
+                data.resolvedReplies
+                (addRepliesToRepo data.resolvedReplies Repo.empty)
     in
     ( session, resp )
 
 
-request : Id -> Id -> String -> Int -> Session -> Task Session.Error ( Session, Response )
-request spaceId postId before limit session =
-    GraphQL.request document (variables spaceId postId before limit) decoder
+request : Maybe Encode.Value -> Session -> Task Session.Error ( Session, Response )
+request maybeVariables session =
+    GraphQL.request document maybeVariables decoder
         |> Session.request session
         |> Task.map buildResponse

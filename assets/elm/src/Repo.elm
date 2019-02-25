@@ -7,8 +7,8 @@ module Repo exposing
     , getSpaceBot, setSpaceBot
     , getActor, setActor
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
-    , getPost, getPosts, setPost, setPosts
-    , getReply, getReplies, setReply, setReplies
+    , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
+    , getReply, getReplies, setReply, setReplies, getRepliesByPost
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -56,12 +56,12 @@ module Repo exposing
 
 # Posts
 
-@docs getPost, getPosts, setPost, setPosts
+@docs getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
 
 
 # Replies
 
-@docs getReply, getReplies, setReply, setReplies
+@docs getReply, getReplies, setReply, setReplies, getRepliesByPost
 
 -}
 
@@ -74,6 +74,7 @@ import Reply exposing (Reply)
 import Space exposing (Space)
 import SpaceBot exposing (SpaceBot)
 import SpaceUser exposing (SpaceUser)
+import Time exposing (Posix)
 import User exposing (User)
 
 
@@ -329,6 +330,42 @@ setPosts posts repo =
     List.foldr setPost repo posts
 
 
+getPostsBySpace : Id -> Maybe Posix -> Repo -> List Post
+getPostsBySpace spaceId maybeBefore (Repo data) =
+    let
+        basePosts =
+            data.posts
+                |> Dict.values
+                |> List.filter (\post -> Post.spaceId post == spaceId)
+                |> List.sortWith Post.desc
+    in
+    case maybeBefore of
+        Nothing ->
+            basePosts
+
+        Just before ->
+            basePosts
+                |> List.filter (\post -> Time.posixToMillis (Post.postedAt post) < Time.posixToMillis before)
+
+
+getPostsByGroup : Id -> Maybe Posix -> Repo -> List Post
+getPostsByGroup groupId maybeBefore (Repo data) =
+    let
+        basePosts =
+            data.posts
+                |> Dict.values
+                |> List.filter (\post -> List.member groupId (Post.groupIds post))
+                |> List.sortWith Post.desc
+    in
+    case maybeBefore of
+        Nothing ->
+            basePosts
+
+        Just before ->
+            basePosts
+                |> List.filter (\post -> Time.posixToMillis (Post.postedAt post) < Time.posixToMillis before)
+
+
 
 -- REPLIES
 
@@ -338,7 +375,7 @@ getReply id (Repo data) =
     Dict.get id data.replies
 
 
-getReplies : List String -> Repo -> List Reply
+getReplies : List Id -> Repo -> List Reply
 getReplies ids repo =
     List.filterMap (\id -> getReply id repo) ids
 
@@ -351,3 +388,32 @@ setReply reply (Repo data) =
 setReplies : List Reply -> Repo -> Repo
 setReplies replies repo =
     List.foldr setReply repo replies
+
+
+getRepliesByPost : Id -> Maybe Posix -> Maybe Posix -> Repo -> List Reply
+getRepliesByPost postId maybeBefore maybeAfter (Repo data) =
+    let
+        baseReplies =
+            data.replies
+                |> Dict.values
+                |> List.filter (\reply -> Reply.postId reply == postId)
+
+        repliesWithBefore =
+            case maybeBefore of
+                Nothing ->
+                    baseReplies
+
+                Just before ->
+                    baseReplies
+                        |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) < Time.posixToMillis before)
+
+        repliesWithBeforeAndAfter =
+            case maybeAfter of
+                Nothing ->
+                    repliesWithBefore
+
+                Just after ->
+                    repliesWithBefore
+                        |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) > Time.posixToMillis after)
+    in
+    repliesWithBeforeAndAfter

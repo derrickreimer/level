@@ -271,9 +271,8 @@ defmodule LevelWeb.Schema.Objects do
     field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
-      arg :order_by, :post_order
+      arg :before, :timestamp
+      arg :after, :timestamp
 
       @desc "Filtering criteria for posts."
       arg :filter, :post_filters
@@ -322,9 +321,8 @@ defmodule LevelWeb.Schema.Objects do
     field :posts, non_null(:post_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
-      arg :order_by, :post_order
+      arg :before, :timestamp
+      arg :after, :timestamp
 
       @desc "Filtering criteria for posts."
       arg :filter, :post_filters
@@ -450,8 +448,8 @@ defmodule LevelWeb.Schema.Objects do
     field :replies, non_null(:reply_connection) do
       arg :first, :integer
       arg :last, :integer
-      arg :before, :cursor
-      arg :after, :cursor
+      arg :before, :timestamp
+      arg :after, :timestamp
       arg :order_by, :reply_order
       resolve &Resolvers.replies/3
     end
@@ -470,6 +468,16 @@ defmodule LevelWeb.Schema.Objects do
     field :is_private, non_null(:boolean) do
       resolve fn post, _, _ ->
         Posts.private?(post)
+      end
+    end
+
+    field :last_activity_at, non_null(:timestamp) do
+      resolve fn
+        %Post{last_activity_at: last_activity_at}, _, _ when not is_nil(last_activity_at) ->
+          {:ok, last_activity_at}
+
+        post, _, _ ->
+          Posts.last_activity_at(post)
       end
     end
 

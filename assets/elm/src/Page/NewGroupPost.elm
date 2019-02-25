@@ -1,7 +1,7 @@
 module Page.NewGroupPost exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
-import Component.Post
+import PostView
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)

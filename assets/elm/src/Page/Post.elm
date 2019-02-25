@@ -1,7 +1,6 @@
 module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
 import Browser.Navigation as Nav
-import Component.Post
 import Connection
 import Device exposing (Device)
 import Event exposing (Event)
@@ -24,10 +23,12 @@ import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
 import Post exposing (Post)
 import PostEditor
+import PostView exposing (PostView)
 import Presence exposing (Presence, PresenceList)
 import Query.GetSpaceUser as GetSpaceUser
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
+import ReplySet
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Scroll
@@ -37,6 +38,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import View.Helpers exposing (viewIf)
 import View.PresenceList
 
@@ -50,8 +52,8 @@ type alias Model =
     , postId : Id
     , viewerId : Id
     , spaceId : Id
-    , postComp : Component.Post.Model
-    , now : ( Zone, Posix )
+    , postView : PostView
+    , now : TimeWithZone
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
@@ -87,8 +89,8 @@ title model =
 
 
 viewingTopic : Model -> String
-viewingTopic { postComp } =
-    "posts:" ++ postComp.id
+viewingTopic { postView } =
+    "posts:" ++ postView.id
 
 
 
@@ -103,42 +105,39 @@ init spaceSlug postId globals =
         |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : String -> Globals -> ( ( Session, PostInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
-        ( postId, replyIds ) =
-            resp.postWithRepliesId
+        newRepo =
+            Repo.union resp.repo globals.repo
 
-        postComp =
-            Component.Post.init
-                resp.spaceId
-                postId
-                replyIds
+        newGlobals =
+            { globals | repo = newRepo, session = newSession }
+
+        postView =
+            PostView.init newGlobals.repo 20 resp.resolvedPost.post
 
         model =
             Model
                 spaceSlug
-                postId
+                postView.id
                 resp.viewerId
                 resp.spaceId
-                postComp
+                postView
                 now
                 NotLoaded
                 False
                 False
                 False
                 False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    ( newGlobals, model )
 
 
 setup : Globals -> Model -> Cmd Msg
-setup globals ({ postComp } as model) =
+setup globals ({ postView } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.setup globals postComp)
+        [ Cmd.map PostViewMsg (PostView.setup globals postView)
         , recordView globals.session model
         , recordReplyViews globals model
         , Presence.join (viewingTopic model)
@@ -146,9 +145,9 @@ setup globals ({ postComp } as model) =
 
 
 teardown : Globals -> Model -> Cmd Msg
-teardown globals ({ postComp } as model) =
+teardown globals ({ postView } as model) =
     Cmd.batch
-        [ Cmd.map PostComponentMsg (Component.Post.teardown globals postComp)
+        [ Cmd.map PostViewMsg (PostView.teardown globals postView)
         , Presence.leave (viewingTopic model)
         ]
 
@@ -156,7 +155,7 @@ teardown globals ({ postComp } as model) =
 recordView : Session -> Model -> Cmd Msg
 recordView session model =
     session
-        |> RecordPostView.request model.spaceId model.postComp.id Nothing
+        |> RecordPostView.request model.spaceId model.postView.id Nothing
         |> Task.attempt ViewRecorded
 
 
@@ -165,7 +164,7 @@ recordReplyViews globals model =
     let
         unviewedReplyIds =
             globals.repo
-                |> Repo.getReplies (Connection.toList model.postComp.replyIds)
+                |> Repo.getReplies (ReplySet.map .id model.postView.replyViews)
                 |> List.filter (\reply -> not (Reply.hasViewed reply))
                 |> List.map Reply.id
     in
@@ -185,12 +184,10 @@ recordReplyViews globals model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
-    | PostEditorEventReceived Decode.Value
-    | PostComponentMsg Component.Post.Msg
+    | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | Tick Posix
-    | SetCurrentTime Posix Zone
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
@@ -216,24 +213,13 @@ update msg globals model =
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
-        PostEditorEventReceived value ->
-            let
-                newPostComp =
-                    Component.Post.handleEditorEventReceived value model.postComp
-            in
-            ( ( { model | postComp = newPostComp }
-              , Cmd.none
-              )
-            , globals
-            )
-
-        PostComponentMsg componentMsg ->
+        PostViewMsg postViewMsg ->
             let
                 ( ( newPostComp, cmd ), newGlobals ) =
-                    Component.Post.update componentMsg globals model.postComp
+                    PostView.update postViewMsg globals model.postView
             in
-            ( ( { model | postComp = newPostComp }
-              , Cmd.map PostComponentMsg cmd
+            ( ( { model | postView = newPostComp }
+              , Cmd.map PostViewMsg cmd
               )
             , newGlobals
             )
@@ -257,11 +243,7 @@ update msg globals model =
             noCmd globals model
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            { model | now = ( zone, posix ) }
-                |> noCmd globals
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
@@ -410,7 +392,7 @@ consumeEvent globals event model =
         Event.ReplyCreated reply ->
             let
                 ( newPostComp, cmd ) =
-                    Component.Post.handleReplyCreated reply model.postComp
+                    PostView.refreshFromCache globals model.postView
 
                 viewCmd =
                     globals.session
@@ -420,8 +402,8 @@ consumeEvent globals event model =
                 scrollCmd =
                     Scroll.toBottom Scroll.Document
             in
-            ( { model | postComp = newPostComp }
-            , Cmd.batch [ Cmd.map PostComponentMsg cmd, viewCmd, scrollCmd ]
+            ( { model | postView = newPostComp }
+            , Cmd.batch [ Cmd.map PostViewMsg cmd, viewCmd, scrollCmd ]
             )
 
         _ ->
@@ -476,7 +458,6 @@ subscriptions : Sub Msg
 subscriptions =
     Sub.batch
         [ every 1000 Tick
-        , PostEditor.receive PostEditorEventReceived
         ]
 
 
@@ -527,6 +508,7 @@ resolvedDesktopView globals model data =
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
+            , isSelected = False
             }
     in
     Layout.SpaceDesktop.layout config
@@ -541,9 +523,9 @@ resolvedDesktopView globals model data =
                     , inboxStateButton model.isChangingInboxState data.post
                     , postStateButton model.isChangingState data.post
                     ]
-                , model.postComp
-                    |> Component.Post.view postConfig
-                    |> Html.map PostComponentMsg
+                , model.postView
+                    |> PostView.view postConfig
+                    |> Html.map PostViewMsg
                 ]
             , Layout.SpaceDesktop.rightSidebar <|
                 sidebarView globals.repo model data
@@ -580,14 +562,15 @@ resolvedMobileView globals model data =
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
+            , isSelected = False
             }
     in
     Layout.SpaceMobile.layout config
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "px-3 pt-5" ]
-                [ model.postComp
-                    |> Component.Post.view postConfig
-                    |> Html.map PostComponentMsg
+                [ model.postView
+                    |> PostView.view postConfig
+                    |> Html.map PostViewMsg
                 ]
             , viewIf model.showSidebar <|
                 Layout.SpaceMobile.rightSidebar config

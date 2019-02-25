@@ -40,6 +40,7 @@ import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
 import TaskHelpers
 import Time exposing (Posix, Zone, every)
+import TimeWithZone exposing (TimeWithZone)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
 import View.Helpers exposing (onPassiveClick)
@@ -56,7 +57,7 @@ type alias Model =
     , spaceId : Id
     , searchResults : OffsetConnection SearchResult
     , queryEditor : FieldEditor String
-    , now : ( Zone, Posix )
+    , now : TimeWithZone
     }
 
 
@@ -96,7 +97,7 @@ init params globals =
         |> Task.map (buildModel params globals)
 
 
-buildModel : Params -> Globals -> ( ( Session, SearchInit.Response ), ( Zone, Posix ) ) -> ( Globals, Model )
+buildModel : Params -> Globals -> ( ( Session, SearchInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel params globals ( ( newSession, resp ), now ) =
     let
         editor =
@@ -142,7 +143,6 @@ type Msg
     | SearchEditorChanged String
     | SearchSubmitted
     | Tick Posix
-    | SetCurrentTime Posix Zone
     | ClickedToExpand Route
     | InternalLinkClicked String
     | NoOp
@@ -155,10 +155,7 @@ update msg globals model =
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
         Tick posix ->
-            ( ( model, Task.perform (SetCurrentTime posix) Time.here ), globals )
-
-        SetCurrentTime posix zone ->
-            noCmd globals { model | now = ( zone, posix ) }
+            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SearchEditorChanged newValue ->
             ( ( { model | queryEditor = FieldEditor.setValue newValue model.queryEditor }, Cmd.none ), globals )
@@ -285,7 +282,7 @@ queryEditorView editor =
         }
 
 
-resultsView : Repo -> Params -> ( Zone, Posix ) -> Data -> Html Msg
+resultsView : Repo -> Params -> TimeWithZone -> Data -> Html Msg
 resultsView repo params now data =
     if OffsetConnection.isEmptyAndExpanded data.resolvedSearchResults then
         div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
@@ -298,7 +295,7 @@ resultsView repo params now data =
             |> div []
 
 
-resultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedSearchResult -> Html Msg
+resultView : Repo -> Params -> TimeWithZone -> Data -> ResolvedSearchResult -> Html Msg
 resultView repo params now data taggedResult =
     case taggedResult of
         ResolvedSearchResult.Post result ->
@@ -308,7 +305,7 @@ resultView repo params now data taggedResult =
             replyResultView repo params now data result
 
 
-postResultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedPostSearchResult -> Html Msg
+postResultView : Repo -> Params -> TimeWithZone -> Data -> ResolvedPostSearchResult -> Html Msg
 postResultView repo params now data resolvedResult =
     let
         postRoute =
@@ -334,7 +331,7 @@ postResultView repo params now data resolvedResult =
         ]
 
 
-replyResultView : Repo -> Params -> ( Zone, Posix ) -> Data -> ResolvedReplySearchResult -> Html Msg
+replyResultView : Repo -> Params -> TimeWithZone -> Data -> ResolvedReplySearchResult -> Html Msg
 replyResultView repo params now data resolvedResult =
     let
         replyRoute =
@@ -372,16 +369,16 @@ authorLabel route author =
         [ text <| Actor.displayName author ]
 
 
-timestampLabel : Route -> ( Zone, Posix ) -> Posix -> Html Msg
-timestampLabel route (( zone, _ ) as now) time =
+timestampLabel : Route -> TimeWithZone -> Posix -> Html Msg
+timestampLabel route now posix =
     a
         [ Route.href route
         , class "no-underline whitespace-no-wrap"
         , rel "tooltip"
         , Html.Attributes.title "Expand post"
         ]
-        [ View.Helpers.time now
-            ( zone, time )
+        [ View.Helpers.timeTag now
+            (TimeWithZone.setPosix posix now)
             [ class "ml-3 text-sm text-dusty-blue" ]
         ]
 

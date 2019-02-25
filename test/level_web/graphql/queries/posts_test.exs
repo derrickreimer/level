@@ -10,7 +10,6 @@ defmodule LevelWeb.GraphQL.PostsTest do
       $following_state: FollowingStateFilter,
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
-      $order_field: PostOrderField,
       $last_activity: LastActivityFilter
     ) {
       space(id: $space_id) {
@@ -21,10 +20,6 @@ defmodule LevelWeb.GraphQL.PostsTest do
             inboxState: $inbox_state,
             state: $state,
             lastActivity: $last_activity
-          },
-          orderBy: {
-            field: $order_field,
-            direction: DESC
           }
         ) {
           edges {

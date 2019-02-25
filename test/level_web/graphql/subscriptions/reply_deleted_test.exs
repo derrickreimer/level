@@ -4,10 +4,10 @@ defmodule LevelWeb.GraphQL.ReplyDeletedTest do
   alias Level.Posts
 
   @operation """
-    subscription PostSubscription(
+    subscription SpaceUserSubscription(
       $id: ID!
     ) {
-      postSubscription(postId: $id) {
+      spaceUserSubscription(spaceUserId: $id) {
         __typename
         ... on ReplyDeletedPayload {
           reply {
@@ -29,7 +29,7 @@ defmodule LevelWeb.GraphQL.ReplyDeletedTest do
     {:ok, %{post: post}} = create_post(space_user, group)
     {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-    ref = push_subscription(socket, @operation, %{"id" => post.id})
+    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, _} = Posts.delete_reply(space_user, reply)
@@ -37,7 +37,7 @@ defmodule LevelWeb.GraphQL.ReplyDeletedTest do
     payload = %{
       result: %{
         data: %{
-          "postSubscription" => %{
+          "spaceUserSubscription" => %{
             "__typename" => "ReplyDeletedPayload",
             "reply" => %{
               "id" => reply.id,

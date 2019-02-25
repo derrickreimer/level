@@ -449,7 +449,7 @@ update msg model =
                             consumeEvent event model
 
                         ( newModel2, cmd2 ) =
-                            sendEventToPage globals event newModel
+                            sendEventToPage (buildGlobals newModel) event newModel
                     in
                     ( newModel2, Cmd.batch [ cmd, cmd2 ] )
 
@@ -570,12 +570,12 @@ type PageInit
     = HomeInit (Result PageError ( Globals, Page.Home.Model ))
     | SpacesInit (Result PageError ( Globals, Page.Spaces.Model ))
     | NewSpaceInit (Result PageError ( Globals, Page.NewSpace.Model ))
-    | PostsInit (Result Session.Error ( Globals, Page.Posts.Model ))
+    | PostsInit (Result PageError ( ( Page.Posts.Model, Cmd Page.Posts.Msg ), Globals ))
     | SpaceUserInit (Result PageError ( Globals, Page.SpaceUser.Model ))
     | SpaceUsersInit (Result PageError ( Globals, Page.SpaceUsers.Model ))
     | InviteUsersInit (Result PageError ( Globals, Page.InviteUsers.Model ))
     | GroupsInit (Result PageError ( Globals, Page.Groups.Model ))
-    | GroupInit (Result Session.Error ( Globals, Page.Group.Model ))
+    | GroupInit (Result PageError ( ( Page.Group.Model, Cmd Page.Group.Msg ), Globals ))
     | NewGroupPostInit (Result PageError ( Globals, Page.NewGroupPost.Model ))
     | NewGroupInit (Result PageError ( Globals, Page.NewGroup.Model ))
     | GroupSettingsInit (Result Session.Error ( Globals, Page.GroupSettings.Model ))
@@ -795,6 +795,19 @@ setupPage pageInit model =
               }
             , Cmd.map toPageMsg (setupFn pageModel)
             )
+
+        performWithCmd setupFn toPage toPageMsg appModel ( ( pageModel, initCmd ), newGlobals ) =
+            ( { appModel
+                | page = toPage pageModel
+                , session = newGlobals.session
+                , repo = Repo.union newGlobals.repo model.repo
+                , isTransitioning = False
+              }
+            , Cmd.batch
+                [ Cmd.map toPageMsg initCmd
+                , Cmd.map toPageMsg (setupFn pageModel)
+                ]
+            )
     in
     case pageInit of
         HomeInit (Ok result) ->
@@ -833,10 +846,13 @@ setupPage pageInit model =
         NewSpaceInit (Err _) ->
             ( model, Cmd.none )
 
-        PostsInit (Ok ( newGlobals, pageModel )) ->
-            perform (Page.Posts.setup newGlobals) Posts PostsMsg model ( newGlobals, pageModel )
+        PostsInit (Ok ( ( pageModel, cmd ), newGlobals )) ->
+            performWithCmd (Page.Posts.setup newGlobals) Posts PostsMsg model ( ( pageModel, cmd ), newGlobals )
 
-        PostsInit (Err Session.Expired) ->
+        PostsInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        PostsInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         PostsInit (Err _) ->
@@ -890,10 +906,13 @@ setupPage pageInit model =
         GroupsInit (Err _) ->
             ( model, Cmd.none )
 
-        GroupInit (Ok ( newGlobals, pageModel )) ->
-            perform (Page.Group.setup newGlobals) Group GroupMsg model ( newGlobals, pageModel )
+        GroupInit (Ok ( ( pageModel, cmd ), newGlobals )) ->
+            performWithCmd (Page.Group.setup newGlobals) Group GroupMsg model ( ( pageModel, cmd ), newGlobals )
 
-        GroupInit (Err Session.Expired) ->
+        GroupInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        GroupInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         GroupInit (Err _) ->
@@ -1162,8 +1181,8 @@ routeFor page =
         GroupSettings { params } ->
             Just <| Route.GroupSettings params
 
-        Post { spaceSlug, postComp } ->
-            Just <| Route.Post spaceSlug postComp.id
+        Post { spaceSlug, postView } ->
+            Just <| Route.Post spaceSlug postView.id
 
         NewPost { params } ->
             Just <| Route.NewPost params
@@ -1232,7 +1251,7 @@ getSpaceSlug page =
         GroupSettings { params } ->
             Just <| Route.GroupSettings.getSpaceSlug params
 
-        Post { spaceSlug, postComp } ->
+        Post { spaceSlug } ->
             Just spaceSlug
 
         NewPost { params } ->

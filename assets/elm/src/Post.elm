@@ -1,8 +1,10 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
     , fragment
     , decoder, decoderWithReplies
+    , asc, desc
+    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
     )
 
 {-| A post represents a message posted to group.
@@ -15,7 +17,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
 
 
 # GraphQL
@@ -27,6 +29,16 @@ module Post exposing
 
 @docs decoder, decoderWithReplies
 
+
+# Sorting
+
+@docs asc, desc
+
+
+# Filtering
+
+@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
+
 -}
 
 import Author exposing (Author)
@@ -35,6 +47,7 @@ import File exposing (File)
 import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import List
@@ -88,7 +101,8 @@ type alias Data =
     , reactionCount : Int
     , reactorIds : List Id
     , isPrivate : Bool
-    , fetchedAt : Int
+    , lastActivityAt : Posix
+    , fetchedAt : Posix
     }
 
 
@@ -106,7 +120,7 @@ spaceId (Post data) =
     data.spaceId
 
 
-fetchedAt : Post -> Int
+fetchedAt : Post -> Posix
 fetchedAt (Post data) =
     data.fetchedAt
 
@@ -188,6 +202,11 @@ isPrivate (Post data) =
     data.isPrivate
 
 
+isInGroup : Id -> Post -> Bool
+isInGroup groupId (Post data) =
+    List.member groupId data.groupIds
+
+
 
 -- GRAPHQL
 
@@ -227,6 +246,7 @@ fragment =
                 }
                 totalCount
               }
+              lastActivityAt
               canEdit
               hasReacted
               isPrivate
@@ -266,7 +286,8 @@ decoder =
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "isPrivate" bool
-            |> required "fetchedAt" int
+            |> required "lastActivityAt" dateDecoder
+            |> required "fetchedAt" dateDecoder
         )
 
 
@@ -339,3 +360,74 @@ inboxStateDecoder =
                     fail "Inbox state not valid"
     in
     Decode.andThen convert string
+
+
+
+-- SORTING
+
+
+asc : Post -> Post -> Order
+asc (Post a) (Post b) =
+    compare (Time.posixToMillis a.postedAt) (Time.posixToMillis b.postedAt)
+
+
+desc : Post -> Post -> Order
+desc (Post a) (Post b) =
+    let
+        ac =
+            Time.posixToMillis a.postedAt
+
+        bc =
+            Time.posixToMillis b.postedAt
+    in
+    case compare ac bc of
+        LT ->
+            GT
+
+        EQ ->
+            EQ
+
+        GT ->
+            LT
+
+
+
+-- FILTERING
+
+
+withSpace : Id -> Post -> Bool
+withSpace matchingId post =
+    spaceId post == matchingId
+
+
+withGroup : Id -> Post -> Bool
+withGroup matchingId post =
+    List.member matchingId (groupIds post)
+
+
+withInboxState : InboxStateFilter -> Post -> Bool
+withInboxState filter (Post data) =
+    case filter of
+        InboxStateFilter.Undismissed ->
+            data.inboxState == Read || data.inboxState == Unread
+
+        InboxStateFilter.Dismissed ->
+            data.inboxState == Dismissed
+
+        _ ->
+            True
+
+
+withAnyGroups : List Id -> Post -> Bool
+withAnyGroups matchingIds post =
+    List.any (\testId -> List.member testId matchingIds) (groupIds post)
+
+
+withFollowing : List Id -> Post -> Bool
+withFollowing subscribedGroupIds post =
+    isPrivate post
+        || inboxState post
+        /= Excluded
+        || subscriptionState post
+        == Subscribed
+        || withAnyGroups subscribedGroupIds post

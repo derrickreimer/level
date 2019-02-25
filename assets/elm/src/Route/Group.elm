@@ -1,21 +1,21 @@
 module Route.Group exposing
-    ( Params, State(..)
-    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, hasSamePath, getState, setState
+    ( Params
+    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters, hasSamePath
     , parser
     , toString
     )
 
-{-| Route building and parsing for the group page.
+{-| Route building and parsing for a channel page.
 
 
 # Types
 
-@docs Params, State
+@docs Params
 
 
 # API
 
-@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, hasSamePath, getState, setState
+@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters, hasSamePath
 
 
 # Parsing
@@ -29,7 +29,9 @@ module Route.Group exposing
 
 -}
 
-import Id exposing (Id)
+import InboxStateFilter exposing (InboxStateFilter)
+import LastActivityFilter exposing (LastActivityFilter)
+import PostStateFilter exposing (PostStateFilter)
 import Url.Builder as Builder exposing (QueryParameter, absolute)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, map, oneOf, s, string)
 import Url.Parser.Query as Query
@@ -44,13 +46,10 @@ type alias Internal =
     , groupName : String
     , after : Maybe String
     , before : Maybe String
-    , state : State
+    , state : PostStateFilter
+    , inboxState : InboxStateFilter
+    , lastActivity : LastActivityFilter
     }
-
-
-type State
-    = Open
-    | Closed
 
 
 
@@ -59,7 +58,16 @@ type State
 
 init : String -> String -> Params
 init spaceSlug groupName =
-    Params (Internal spaceSlug groupName Nothing Nothing Open)
+    Params
+        (Internal
+            spaceSlug
+            groupName
+            Nothing
+            Nothing
+            PostStateFilter.All
+            InboxStateFilter.All
+            LastActivityFilter.All
+        )
 
 
 getSpaceSlug : Params -> String
@@ -67,7 +75,7 @@ getSpaceSlug (Params internal) =
     internal.spaceSlug
 
 
-getGroupName : Params -> Id
+getGroupName : Params -> String
 getGroupName (Params internal) =
     internal.groupName
 
@@ -87,19 +95,48 @@ setCursors before after (Params internal) =
     Params { internal | before = before, after = after }
 
 
-hasSamePath : Params -> Params -> Bool
-hasSamePath p1 p2 =
-    getSpaceSlug p1 == getSpaceSlug p2 && getGroupName p1 == getGroupName p2
-
-
-getState : Params -> State
+getState : Params -> PostStateFilter
 getState (Params internal) =
     internal.state
 
 
-setState : State -> Params -> Params
+setState : PostStateFilter -> Params -> Params
 setState newState (Params internal) =
     Params { internal | state = newState }
+
+
+getInboxState : Params -> InboxStateFilter
+getInboxState (Params internal) =
+    internal.inboxState
+
+
+setInboxState : InboxStateFilter -> Params -> Params
+setInboxState newState (Params internal) =
+    Params { internal | inboxState = newState }
+
+
+getLastActivity : Params -> LastActivityFilter
+getLastActivity (Params internal) =
+    internal.lastActivity
+
+
+setLastActivity : LastActivityFilter -> Params -> Params
+setLastActivity newState (Params internal) =
+    Params { internal | lastActivity = newState }
+
+
+clearFilters : Params -> Params
+clearFilters params =
+    params
+        |> setCursors Nothing Nothing
+        |> setLastActivity LastActivityFilter.All
+        |> setState PostStateFilter.All
+        |> setInboxState InboxStateFilter.All
+
+
+hasSamePath : Params -> Params -> Bool
+hasSamePath (Params a) (Params b) =
+    a.spaceSlug == b.spaceSlug && a.groupName == b.groupName
 
 
 
@@ -109,7 +146,16 @@ setState newState (Params internal) =
 parser : Parser (Params -> a) a
 parser =
     map Params <|
-        map Internal (string </> s "channels" </> string <?> Query.string "after" <?> Query.string "before" <?> Query.map parseState (Query.string "state"))
+        map Internal
+            (string
+                </> s "channels"
+                </> string
+                <?> Query.string "after"
+                <?> Query.string "before"
+                <?> Query.map PostStateFilter.fromQuery (Query.string "state")
+                <?> Query.map InboxStateFilter.fromQuery (Query.string "inbox_state")
+                <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+            )
 
 
 
@@ -125,35 +171,14 @@ toString (Params internal) =
 -- PRIVATE
 
 
-parseState : Maybe String -> State
-parseState value =
-    case value of
-        Just "closed" ->
-            Closed
-
-        Just "open" ->
-            Open
-
-        _ ->
-            Open
-
-
-castState : State -> Maybe String
-castState state =
-    case state of
-        Open ->
-            Nothing
-
-        Closed ->
-            Just "closed"
-
-
 buildQuery : Internal -> List QueryParameter
 buildQuery internal =
     buildStringParams
         [ ( "after", internal.after )
         , ( "before", internal.before )
-        , ( "state", castState internal.state )
+        , ( "state", PostStateFilter.toQuery internal.state )
+        , ( "inbox_state", InboxStateFilter.toQuery internal.inboxState )
+        , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         ]
 
 

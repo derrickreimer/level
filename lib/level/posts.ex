@@ -244,7 +244,8 @@ defmodule Level.Posts do
   end
 
   defp after_delete_post({:ok, post} = result) do
-    _ = Events.post_deleted(post.id, post)
+    {:ok, space_user_ids} = Posts.get_accessor_ids(post)
+    _ = Events.post_deleted(space_user_ids, post)
     result
   end
 
@@ -274,7 +275,8 @@ defmodule Level.Posts do
   end
 
   defp after_delete_reply({:ok, reply} = result) do
-    _ = Events.reply_deleted(reply.post_id, reply)
+    {:ok, space_user_ids} = Posts.get_accessor_ids(reply)
+    _ = Events.reply_deleted(space_user_ids, reply)
     result
   end
 
@@ -575,9 +577,11 @@ defmodule Level.Posts do
   end
 
   defp after_post_closed({:ok, %{post: post}} = result, closer) do
-    _ = Events.post_closed(post.id, post)
+    {:ok, space_user_ids} = get_accessor_ids(post)
+
     _ = dismiss(closer, [post])
     _ = record_closed_notifications(post, closer)
+    _ = Events.post_closed(space_user_ids, post)
 
     result
   end
@@ -611,8 +615,11 @@ defmodule Level.Posts do
   end
 
   defp after_post_reopened({:ok, %{post: post}} = result, reopener) do
-    _ = Events.post_reopened(post.id, post)
+    {:ok, space_user_ids} = get_accessor_ids(post)
+
+    _ = Events.post_reopened(space_user_ids, post)
     _ = record_reopened_notifications(post, reopener)
+
     result
   end
 
@@ -646,8 +653,11 @@ defmodule Level.Posts do
   end
 
   defp after_create_post_reaction({:ok, reaction}, space_user, post) do
+    {:ok, space_user_ids} = get_accessor_ids(post)
+
     _ = PostLog.post_reaction_created(post, space_user)
-    _ = Events.post_reaction_created(post.id, post, reaction)
+    _ = Events.post_reaction_created(space_user_ids, post, reaction)
+
     {:ok, reaction}
   end
 
@@ -677,7 +687,8 @@ defmodule Level.Posts do
   end
 
   defp after_delete_post_reaction({:ok, reaction}, _space_user, post) do
-    _ = Events.post_reaction_deleted(post.id, post, reaction)
+    {:ok, space_user_ids} = get_accessor_ids(post)
+    _ = Events.post_reaction_deleted(space_user_ids, post, reaction)
     {:ok, reaction}
   end
 
@@ -704,8 +715,11 @@ defmodule Level.Posts do
   end
 
   defp after_create_reply_reaction({:ok, reaction}, space_user, reply) do
+    {:ok, space_user_ids} = get_accessor_ids(reply)
+
     _ = PostLog.reply_reaction_created(reply, space_user)
-    _ = Events.reply_reaction_created(reply.post_id, reply, reaction)
+    _ = Events.reply_reaction_created(space_user_ids, reply, reaction)
+
     {:ok, reaction}
   end
 
@@ -738,7 +752,8 @@ defmodule Level.Posts do
   end
 
   defp after_delete_reply_reaction({:ok, reaction}, _space_user, reply) do
-    _ = Events.reply_reaction_deleted(reply.post_id, reply, reaction)
+    {:ok, space_user_ids} = get_accessor_ids(reply)
+    _ = Events.reply_reaction_deleted(space_user_ids, reply, reaction)
     {:ok, reaction}
   end
 
@@ -828,30 +843,92 @@ defmodule Level.Posts do
   end
 
   @doc """
-  Fetches all the users who see the post in their Feed.
+  Fetches all the users who are allowed to see a post or reply.
   """
-  @spec get_followers(Post.t()) :: {:ok, [SpaceUser.t()]} | no_return()
-  def get_followers(%Post{id: post_id, space_id: space_id}) do
+  @spec get_accessor_ids(Post.t()) :: {:ok, [String.t()]} | no_return()
+  def get_accessor_ids(%Post{id: post_id, space_id: space_id} = post) do
     query =
-      from su in SpaceUser,
-        left_join: pg in PostGroup,
-        on: pg.post_id == ^post_id,
-        left_join: gu in GroupUser,
-        on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
-        left_join: pu in PostUser,
-        on: pu.space_user_id == su.id and pu.post_id == ^post_id,
-        where: su.space_id == ^space_id,
-        where:
-          (gu.state in ["SUBSCRIBED", "WATCHING"] and not is_nil(pg.id)) or not is_nil(pu.id),
-        distinct: su.id
+      case private?(post) do
+        {:ok, true} ->
+          from su in SpaceUser,
+            left_join: pg in PostGroup,
+            on: pg.post_id == ^post_id,
+            left_join: gu in GroupUser,
+            on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
+            left_join: pu in PostUser,
+            on: pu.space_user_id == su.id and pu.post_id == ^post_id,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE",
+            where: not is_nil(pu.id) or gu.access == "PRIVATE",
+            distinct: su.id,
+            select: su.id
+
+        _ ->
+          from su in SpaceUser,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE",
+            select: su.id
+      end
 
     query
     |> Repo.all()
-    |> after_get_followers()
+    |> after_get_accessors()
   end
 
-  defp after_get_followers(space_users) do
-    {:ok, space_users}
+  @spec get_accessor_ids(Reply.t()) :: {:ok, [String.t()]} | no_return()
+  def get_accessor_ids(%Reply{post_id: post_id, space_id: space_id} = reply) do
+    reply = Repo.preload(reply, :post)
+
+    query =
+      case private?(reply.post) do
+        {:ok, true} ->
+          from su in SpaceUser,
+            left_join: pg in PostGroup,
+            on: pg.post_id == ^post_id,
+            left_join: gu in GroupUser,
+            on: gu.group_id == pg.group_id and gu.space_user_id == su.id,
+            left_join: pu in PostUser,
+            on: pu.space_user_id == su.id and pu.post_id == ^post_id,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE",
+            where: not is_nil(pu.id) or gu.access == "PRIVATE",
+            distinct: su.id,
+            select: su.id
+
+        _ ->
+          from su in SpaceUser,
+            where: su.space_id == ^space_id,
+            where: su.state == "ACTIVE",
+            select: su.id
+      end
+
+    query
+    |> Repo.all()
+    |> after_get_accessors()
+  end
+
+  defp after_get_accessors(ids) do
+    {:ok, ids}
+  end
+
+  @doc """
+  Calculate the last activity timestamp.
+  """
+  @spec last_activity_at(Post.t()) :: {:ok, DateTime.t()} | no_return()
+  def last_activity_at(%Post{id: post_id} = post) do
+    query =
+      from pl in PostLog,
+        where: pl.post_id == ^post_id,
+        order_by: [desc: pl.occurred_at],
+        limit: 1
+
+    case Repo.one(query) do
+      %PostLog{occurred_at: occurred_at} ->
+        {:ok, occurred_at}
+
+      _ ->
+        {:ok, post.inserted_at}
+    end
   end
 
   # Internal

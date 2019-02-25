@@ -46,23 +46,24 @@ addManyToRepo posts repo =
     List.foldr addToRepo repo posts
 
 
-resolve : Repo -> ( Id, Connection Id ) -> Maybe ResolvedPostWithReplies
-resolve repo ( postId, replyIds ) =
-    let
-        maybePost =
-            Repo.getPost postId repo
-    in
-    case maybePost of
-        Just post ->
-            Maybe.map5 ResolvedPostWithReplies
-                (Just post)
-                (ResolvedAuthor.resolve repo (Post.author post))
-                (Just <| List.filterMap (\id -> Repo.getGroup id repo) (Post.groupIds post))
-                (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
-                (Just <| Connection.filterMap (ResolvedReply.resolve repo) replyIds)
 
-        Nothing ->
-            Nothing
+-- resolve : Repo -> Id -> Int -> Maybe ResolvedPostWithReplies
+-- resolve repo postId replyLimit =
+--     let
+--         maybePost =
+--             Repo.getPost postId repo
+--     in
+--     case maybePost of
+--         Just post ->
+--             Maybe.map5 ResolvedPostWithReplies
+--                 (Just post)
+--                 (ResolvedAuthor.resolve repo (Post.author post))
+--                 (Just <| List.filterMap (\id -> Repo.getGroup id repo) (Post.groupIds post))
+--                 (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
+--                 (Just <| Connection.filterMap (ResolvedReply.resolve repo) replyIds)
+--
+--         Nothing ->
+--             Nothing
 
 
 unresolve : ResolvedPostWithReplies -> ( Id, Connection Id )

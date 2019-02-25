@@ -29,8 +29,8 @@ defmodule Level.Resolvers.PostConnection do
   @type t :: %__MODULE__{
           first: integer() | nil,
           last: integer() | nil,
-          before: String.t() | nil,
-          after: String.t() | nil,
+          before: integer() | nil,
+          after: integer() | nil,
           filter: %{
             following_state: :is_following | :all,
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,

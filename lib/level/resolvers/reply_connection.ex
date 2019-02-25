@@ -22,8 +22,8 @@ defmodule Level.Resolvers.ReplyConnection do
   @type t :: %__MODULE__{
           first: integer() | nil,
           last: integer() | nil,
-          before: String.t() | nil,
-          after: String.t() | nil,
+          before: integer() | nil,
+          after: integer() | nil,
           order_by: %{field: :posted_at, direction: :asc | :desc}
         }
 

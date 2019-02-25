@@ -1,4 +1,4 @@
-module View.Helpers exposing (formatTime, formatTimeOfDay, onPassiveClick, onSameDay, selectValue, setFocus, smartFormatTime, time, unsetFocus, viewIf, viewUnless)
+module View.Helpers exposing (formatTime, formatTimeOfDay, onPassiveClick, onSameDay, selectValue, setFocus, smartFormatTime, timeTag, unsetFocus, viewIf, viewUnless)
 
 import Browser.Dom exposing (blur, focus)
 import Html exposing (..)
@@ -9,6 +9,7 @@ import Json.Encode as Encode
 import Ports
 import Task
 import Time exposing (Month(..), Posix, Weekday(..), Zone)
+import TimeWithZone exposing (TimeWithZone)
 
 
 
@@ -109,17 +110,17 @@ onPassiveClick msg =
     TODO: make this represent in am/pm time instead of military time.
 
 -}
-formatTimeOfDay : ( Zone, Posix ) -> String
-formatTimeOfDay ( zone, posix ) =
+formatTimeOfDay : TimeWithZone -> String
+formatTimeOfDay time =
     let
         ( hour, meridian ) =
-            posix
-                |> Time.toHour zone
+            time
+                |> TimeWithZone.toHour
                 |> toTwelveHour
 
         minute =
-            posix
-                |> Time.toMinute zone
+            time
+                |> TimeWithZone.toMinute
                 |> padMinutes
     in
     String.fromInt hour ++ ":" ++ minute ++ " " ++ meridian
@@ -127,34 +128,34 @@ formatTimeOfDay ( zone, posix ) =
 
 {-| Converts a date into a human-friendly date and time string.
 
-    formatTime False ( zone, posix ) == "Dec 26 at 11:10 am"
+    formatTime False time == "Dec 26 at 11:10 am"
 
-    formatTime True ( zone, posix ) == "Dec 26, 2018 at 11:10 am"
+    formatTime True time == "Dec 26, 2018 at 11:10 am"
 
 -}
-formatTime : Bool -> Bool -> ( Zone, Posix ) -> String
-formatTime withYear withTime ( zone, posix ) =
+formatTime : Bool -> Bool -> TimeWithZone -> String
+formatTime withYear withTime time =
     let
         month =
-            posix
-                |> Time.toMonth zone
+            time
+                |> TimeWithZone.toMonth
                 |> toShortMonth
 
         day =
-            posix
-                |> Time.toDay zone
+            time
+                |> TimeWithZone.toDay
                 |> String.fromInt
 
         year =
-            posix
-                |> Time.toYear zone
+            time
+                |> TimeWithZone.toYear
                 |> String.fromInt
 
         dayString =
             month ++ " " ++ day
 
         timeString =
-            formatTimeOfDay ( zone, posix )
+            formatTimeOfDay time
     in
     dayString
         |> appendIf withYear (", " ++ year)
@@ -228,14 +229,14 @@ toShortMonth month =
 
 {-| Checks to see if two dates are on the same day.
 -}
-onSameDay : ( Zone, Posix ) -> ( Zone, Posix ) -> Bool
-onSameDay ( z1, p1 ) ( z2, p2 ) =
-    Time.toYear z1 p1
-        == Time.toYear z2 p2
-        && Time.toMonth z1 p1
-        == Time.toMonth z2 p2
-        && Time.toDay z1 p1
-        == Time.toDay z2 p2
+onSameDay : TimeWithZone -> TimeWithZone -> Bool
+onSameDay t1 t2 =
+    TimeWithZone.toYear t1
+        == TimeWithZone.toYear t2
+        && TimeWithZone.toMonth t1
+        == TimeWithZone.toMonth t2
+        && TimeWithZone.toDay t1
+        == TimeWithZone.toDay t2
 
 
 {-| Formats the given date intelligently, relative to the current time.
@@ -245,23 +246,23 @@ onSameDay ( z1, p1 ) ( z2, p2 ) =
     smartFormatTime now daysAgo == "May 15 at 5:45pm"
 
 -}
-smartFormatTime : ( Zone, Posix ) -> ( Zone, Posix ) -> String
-smartFormatTime now date =
-    if onSameDay now date then
-        formatTimeOfDay date
+smartFormatTime : TimeWithZone -> TimeWithZone -> String
+smartFormatTime now time =
+    if onSameDay now time then
+        formatTimeOfDay time
 
     else
-        formatTime False False date
+        formatTime False False time
 
 
-time : ( Zone, Posix ) -> ( Zone, Posix ) -> List (Attribute msg) -> Html msg
-time now date attrs =
+timeTag : TimeWithZone -> TimeWithZone -> List (Attribute msg) -> Html msg
+timeTag now time attrs =
     let
         fullTime =
-            formatTime True True date
+            formatTime True True time
 
         smartTime =
-            smartFormatTime now date
+            smartFormatTime now time
     in
     Html.time ([ rel "tooltip", title fullTime ] ++ attrs) [ text smartTime ]
 

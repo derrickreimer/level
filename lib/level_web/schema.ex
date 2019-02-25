@@ -4,7 +4,6 @@ defmodule LevelWeb.Schema do
   use Absinthe.Schema
 
   alias Level.Groups
-  alias Level.Posts
   alias Level.Spaces
 
   import Level.Gettext
@@ -512,21 +511,6 @@ defmodule LevelWeb.Schema do
         case Groups.get_group(user, id) do
           {:ok, group} ->
             {:ok, topic: group.id}
-
-          err ->
-            err
-        end
-      end
-    end
-
-    @desc "Triggered when a post-related event occurs."
-    field :post_subscription, :post_subscription_payload do
-      arg :post_id, non_null(:id)
-
-      config fn %{post_id: id}, %{context: %{current_user: user}} ->
-        case Posts.get_post(user, id) do
-          {:ok, post} ->
-            {:ok, topic: post.id}
 
           err ->
             err
