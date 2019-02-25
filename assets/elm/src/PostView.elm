@@ -849,7 +849,11 @@ resolvedView : ViewConfig -> PostView -> Data -> Html Msg
 resolvedView config postView data =
     div [ id (postNodeId postView.id), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
-            div [ class "mr-2 -ml-3 w-1 h-12 rounded pin-t bg-orange flex-no-shrink" ] []
+            div
+                [ class "tooltip tooltip-top mr-2 -ml-3 w-1 h-12 rounded pin-t bg-orange flex-no-shrink"
+                , attribute "data-tooltip" "Unread in your inbox"
+                ]
+                []
         , div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
