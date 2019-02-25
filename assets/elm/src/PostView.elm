@@ -1222,7 +1222,7 @@ replyButtonView config postView data =
 staticFilesView : List File -> Html msg
 staticFilesView files =
     viewUnless (List.isEmpty files) <|
-        div [ class "flex flex-wrap pb-2" ] <|
+        div [ class "pb-2" ] <|
             List.map staticFileView files
 
 
@@ -1238,7 +1238,7 @@ staticFileView file =
                 , title "Download file"
                 ]
                 [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-                , div [ class "text-sm font-bold truncate" ] [ text <| "Download " ++ File.getName file ]
+                , div [ class "text-sm font-bold truncate" ] [ text <| File.getName file ]
                 ]
 
         _ ->

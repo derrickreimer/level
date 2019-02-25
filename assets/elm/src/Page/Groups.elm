@@ -458,7 +458,7 @@ groupView space group =
     in
     li [ class "flex items-center font-normal font-sans text-lg" ]
         [ label
-            [ class "tooltip tooltip-bottom control checkbox"
+            [ class "flex-none block tooltip tooltip-bottom control checkbox"
             , attribute "data-tooltip" checkboxTooltip
             ]
             [ input
@@ -470,7 +470,7 @@ groupView space group =
                 []
             , span [ class "control-indicator mr-1" ] []
             ]
-        , a [ Route.href groupRoute, class "flex-1 px-2 text-blue no-underline hover:bg-grey-lighter rounded" ]
+        , a [ Route.href groupRoute, class "flex-grow px-2 text-blue no-underline hover:bg-grey-lighter rounded" ]
             [ text <| "#" ++ Group.name group ]
         , viewIf (Group.isBookmarked group) <|
             button
@@ -482,7 +482,7 @@ groupView space group =
                 ]
         , viewUnless (Group.isBookmarked group) <|
             button
-                [ class "tooltip tooltip-bottom ml-2 flex-0 no-outline"
+                [ class "flex-none tooltip tooltip-bottom ml-2 no-outline"
                 , attribute "data-tooltip" "Bookmark"
                 , onClick (Bookmark group)
                 ]
