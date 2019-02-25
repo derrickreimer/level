@@ -1103,7 +1103,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
 
                         Nothing ->
                             Cmd.none
@@ -1118,7 +1118,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
 
                         Nothing ->
                             Cmd.none
@@ -1489,10 +1489,8 @@ desktopPostView globals spaceUsers groups model data postView =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
+            , isSelected = PostSet.selected model.postViews == Just postView
             }
-
-        isSelected =
-            PostSet.selected model.postViews == Just postView
     in
     div
         [ classList
@@ -1500,13 +1498,7 @@ desktopPostView globals spaceUsers groups model data postView =
             ]
         , onClick (PostSelected postView.id)
         ]
-        [ viewIf isSelected <|
-            div
-                [ class "hidden tooltip tooltip-top cursor-default absolute mt-4 w-2 h-2 rounded-full pin-t pin-l bg-green"
-                , attribute "data-tooltip" "Currently selected"
-                ]
-                []
-        , postView
+        [ postView
             |> PostView.view config
             |> Html.map (PostViewMsg postView.id)
         ]
@@ -1628,6 +1620,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
+            , isSelected = False
             }
     in
     div [ class "py-4" ]

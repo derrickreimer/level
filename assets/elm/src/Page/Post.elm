@@ -508,6 +508,7 @@ resolvedDesktopView globals model data =
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
+            , isSelected = False
             }
     in
     Layout.SpaceDesktop.layout config
@@ -561,6 +562,7 @@ resolvedMobileView globals model data =
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
+            , isSelected = False
             }
     in
     Layout.SpaceMobile.layout config

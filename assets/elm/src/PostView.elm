@@ -832,6 +832,7 @@ type alias ViewConfig =
     , spaceUsers : List SpaceUser
     , groups : List Group
     , showGroups : Bool
+    , isSelected : Bool
     }
 
 
@@ -1062,6 +1063,17 @@ editorView viewConfig editor =
 
 repliesView : ViewConfig -> PostView -> Data -> Html Msg
 repliesView config postView data =
+    let
+        replyViewConfig =
+            { globals = config.globals
+            , space = config.space
+            , currentUser = config.currentUser
+            , now = config.now
+            , spaceUsers = config.spaceUsers
+            , groups = config.groups
+            , showGroups = config.showGroups
+            }
+    in
     viewUnless (ReplySet.isEmpty postView.replyViews) <|
         div []
             [ viewIf (ReplySet.hasMore postView.replyViews) <|
@@ -1074,7 +1086,7 @@ repliesView config postView data =
             , div []
                 (ReplySet.map
                     (\replyView ->
-                        ReplyView.view config replyView
+                        ReplyView.view replyViewConfig replyView
                             |> Html.map (ReplyViewMsg replyView.id)
                     )
                     postView.replyViews
@@ -1173,8 +1185,11 @@ replyPromptView config postView data =
                 Post.Deleted ->
                     ( "", NoOp )
     in
-    if not (ReplySet.isEmpty postView.replyViews) then
-        button [ class "flex my-4 items-center text-md", onClick msg ]
+    if config.isSelected || not (ReplySet.isEmpty postView.replyViews) then
+        button
+            [ classList [ ( "flex my-4 p-1 -ml-1 mt-3 items-center text-md rounded-lg", True ), ( "shadow-outline", config.isSelected ) ]
+            , onClick msg
+            ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
             , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
                 [ text prompt

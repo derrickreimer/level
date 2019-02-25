@@ -1015,6 +1015,7 @@ desktopPostView globals spaceUsers groups model data postView =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = True
+            , isSelected = PostSet.selected model.postViews == Just postView
             }
 
         isSelected =
@@ -1022,17 +1023,11 @@ desktopPostView globals spaceUsers groups model data postView =
     in
     div
         [ classList
-            [ ( "relative mb-3 p-3", True )
+            [ ( "relative mb-3 p-3 rounded-xl", True )
             ]
         , onClick (PostSelected postView.id)
         ]
-        [ viewIf isSelected <|
-            div
-                [ class "hidden tooltip tooltip-top cursor-default absolute mt-3 w-2 h-2 rounded-full pin-t pin-l bg-turquoise"
-                , attribute "data-tooltip" "Currently selected"
-                ]
-                []
-        , postView
+        [ postView
             |> PostView.view config
             |> Html.map (PostViewMsg postView.id)
         ]
@@ -1136,6 +1131,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = True
+            , isSelected = False
             }
     in
     div [ class "py-4" ]
