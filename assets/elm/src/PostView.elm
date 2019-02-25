@@ -160,6 +160,7 @@ type Msg
     | Dismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | MoveToInboxClicked
     | PostMovedToInbox (Result Session.Error ( Session, MarkAsRead.Response ))
+    | MarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
@@ -421,6 +422,19 @@ update msg globals postView =
         PostMovedToInbox (Err _) ->
             noCmd globals postView
 
+        MarkedAsRead (Ok ( newSession, _ )) ->
+            ( ( postView, Cmd.none )
+            , { globals
+                | session = newSession
+              }
+            )
+
+        MarkedAsRead (Err Session.Expired) ->
+            redirectToLogin globals postView
+
+        MarkedAsRead (Err _) ->
+            noCmd globals postView
+
         ExpandPostEditor ->
             case resolveData globals.repo postView of
                 Just data ->
@@ -560,7 +574,7 @@ update msg globals postView =
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( postView, Cmd.none ), newGlobals )
+            ( ( postView, markAsRead newGlobals postView ), newGlobals )
 
         PostReactionCreated (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -585,7 +599,7 @@ update msg globals postView =
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( postView, Cmd.none ), newGlobals )
+            ( ( postView, markAsRead newGlobals postView ), newGlobals )
 
         PostReactionDeleted (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -626,13 +640,16 @@ update msg globals postView =
                     globals.repo
                         |> Repo.setPost post
 
+                newGlobals =
+                    { globals | repo = newRepo, session = newSession }
+
                 newReplyComposer =
                     postView.replyComposer
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.collapse
             in
-            ( ( { postView | replyComposer = newReplyComposer }, Cmd.none )
-            , { globals | repo = newRepo, session = newSession }
+            ( ( { postView | replyComposer = newReplyComposer }, markAsRead newGlobals postView )
+            , newGlobals
             )
 
         PostClosed (Ok ( newSession, ClosePost.Invalid errors )) ->
@@ -657,11 +674,11 @@ update msg globals postView =
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.expand
 
-                cmd =
-                    setFocus (PostEditor.getTextareaId newReplyComposer) NoOp
+                ( ( newPostView, cmd ), newGlobals ) =
+                    expandReplyComposer { globals | repo = newRepo, session = newSession } postView
             in
-            ( ( { postView | replyComposer = newReplyComposer }, cmd )
-            , { globals | repo = newRepo, session = newSession }
+            ( ( { newPostView | replyComposer = newReplyComposer }, cmd )
+            , newGlobals
             )
 
         PostReopened (Ok ( newSession, ReopenPost.Invalid errors )) ->
@@ -738,6 +755,22 @@ markVisibleRepliesAsViewed globals postView =
         Cmd.none
 
 
+markAsRead : Globals -> PostView -> Cmd Msg
+markAsRead globals postView =
+    case Repo.getPost postView.id globals.repo of
+        Just post ->
+            if Post.inboxState post == Post.Unread then
+                globals.session
+                    |> MarkAsRead.request postView.spaceId [ postView.id ]
+                    |> Task.attempt MarkedAsRead
+
+            else
+                Cmd.none
+
+        Nothing ->
+            Cmd.none
+
+
 
 -- EXTERNAL UPDATES
 
@@ -749,6 +782,7 @@ expandReplyComposer globals postView =
             Cmd.batch
                 [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                 , markVisibleRepliesAsViewed globals postView
+                , markAsRead globals postView
                 ]
 
         newPostView =
@@ -1073,7 +1107,7 @@ expandedReplyComposerView viewConfig editor =
         [ PostEditor.wrapper config
             [ div [ class "composer p-0" ]
                 [ label [ class "flex" ]
-                    [ div [ class "flex-no-shrink mr-2 pt-1 z-10" ] [ SpaceUser.avatar Avatar.Small viewConfig.currentUser ]
+                    [ div [ class "flex-no-shrink mr-2 pt-2 z-10" ] [ SpaceUser.avatar Avatar.Small viewConfig.currentUser ]
                     , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                         [ textarea
                             [ id (PostEditor.getTextareaId editor)
@@ -1124,7 +1158,7 @@ replyPromptView config postView data =
         ( prompt, msg ) =
             case Post.state data.post of
                 Post.Open ->
-                    ( "Reply or resolve...", ExpandReplyComposer )
+                    ( "Write a reply...", ExpandReplyComposer )
 
                 Post.Closed ->
                     ( "Reopen conversation...", ReopenPostClicked )
