@@ -108,8 +108,14 @@ init spaceSlug postId globals =
 buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
 buildModel spaceSlug globals ( ( newSession, resp ), now ) =
     let
+        newRepo =
+            Repo.union resp.repo globals.repo
+
+        newGlobals =
+            { globals | repo = newRepo, session = newSession }
+
         postView =
-            PostView.init globals.repo 20 resp.resolvedPost.post
+            PostView.init newGlobals.repo 20 resp.resolvedPost.post
 
         model =
             Model
@@ -124,11 +130,8 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 False
                 False
                 False
-
-        newRepo =
-            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    ( newGlobals, model )
 
 
 setup : Globals -> Model -> Cmd Msg
