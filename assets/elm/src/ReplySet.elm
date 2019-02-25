@@ -1,7 +1,7 @@
 module ReplySet exposing
     ( ReplySet, State(..)
     , empty, load, isLoaded, setLoaded
-    , get, update, append, appendMany, prepend, prependMany, removeDeleted
+    , get, update, append, appendMany, prepend, prependMany, removeDeleted, hasMore, setHasMore
     , map, isEmpty, firstPostedAt, lastPostedAt
     , sortByPostedAt
     )
@@ -21,7 +21,7 @@ module ReplySet exposing
 
 # Operations
 
-@docs get, update, append, appendMany, prepend, prependMany, removeDeleted
+@docs get, update, append, appendMany, prepend, prependMany, removeDeleted, hasMore, setHasMore
 
 
 # Inspection
@@ -60,6 +60,7 @@ type State
 type alias Internal =
     { views : List ReplyView
     , state : State
+    , hasMore : Bool
     }
 
 
@@ -69,7 +70,7 @@ type alias Internal =
 
 empty : ReplySet
 empty =
-    ReplySet (Internal [] Loading)
+    ReplySet (Internal [] Loading False)
 
 
 load : Id -> List Reply -> ReplySet -> ReplySet
@@ -78,7 +79,7 @@ load spaceId replies (ReplySet internal) =
         newViews =
             List.map (ReplyView.init spaceId) replies
     in
-    ReplySet { internal | views = newViews, state = Loaded }
+    ReplySet { internal | views = newViews, state = Loaded, hasMore = List.length newViews >= 3 }
 
 
 isLoaded : ReplySet -> Bool
@@ -162,6 +163,16 @@ removeDeleted repo (ReplySet internal) =
                 |> List.filterMap (filterFn repo)
     in
     ReplySet { internal | views = newViews }
+
+
+hasMore : ReplySet -> Bool
+hasMore (ReplySet internal) =
+    internal.hasMore
+
+
+setHasMore : Bool -> ReplySet -> ReplySet
+setHasMore truth (ReplySet internal) =
+    ReplySet { internal | hasMore = truth }
 
 
 

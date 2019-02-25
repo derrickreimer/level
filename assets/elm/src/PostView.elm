@@ -153,7 +153,7 @@ type Msg
     | NewReplyEscaped
     | NewReplySubmitted (Result Session.Error ( Session, CreateReply.Response ))
     | PreviousRepliesRequested
-    | PreviousRepliesFetched (Result Session.Error ( Session, Query.Replies.Response ))
+    | PreviousRepliesFetched Int (Result Session.Error ( Session, Query.Replies.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | SelectionToggled
     | DismissClicked
@@ -318,19 +318,19 @@ update msg globals postView =
                 Just postedAt ->
                     let
                         variables =
-                            Query.Replies.variables postView.spaceId postView.id 10 postedAt
+                            Query.Replies.variables postView.spaceId postView.id 20 postedAt
 
                         cmd =
                             globals.session
                                 |> Query.Replies.request variables
-                                |> Task.attempt PreviousRepliesFetched
+                                |> Task.attempt (PreviousRepliesFetched 20)
                     in
                     ( ( postView, cmd ), globals )
 
                 Nothing ->
                     noCmd globals postView
 
-        PreviousRepliesFetched (Ok ( newSession, resp )) ->
+        PreviousRepliesFetched limit (Ok ( newSession, resp )) ->
             let
                 replies =
                     resp.resolvedReplies
@@ -338,7 +338,9 @@ update msg globals postView =
                         |> Connection.toList
 
                 newReplyViews =
-                    ReplySet.prependMany postView.spaceId replies postView.replyViews
+                    postView.replyViews
+                        |> ReplySet.prependMany postView.spaceId replies
+                        |> ReplySet.setHasMore (List.length replies >= limit)
 
                 newGlobals =
                     { globals
@@ -354,10 +356,10 @@ update msg globals postView =
             in
             ( ( newPostView, viewCmd ), newGlobals )
 
-        PreviousRepliesFetched (Err Session.Expired) ->
+        PreviousRepliesFetched _ (Err Session.Expired) ->
             redirectToLogin globals postView
 
-        PreviousRepliesFetched (Err _) ->
+        PreviousRepliesFetched _ (Err _) ->
             noCmd globals postView
 
         ReplyViewsRecorded (Ok ( newSession, _ )) ->
@@ -1058,12 +1060,13 @@ repliesView : ViewConfig -> PostView -> Data -> Html Msg
 repliesView config postView data =
     viewUnless (ReplySet.isEmpty postView.replyViews) <|
         div []
-            [ button
-                [ class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
-                , onClick PreviousRepliesRequested
-                ]
-                [ text "Load more..."
-                ]
+            [ viewIf (ReplySet.hasMore postView.replyViews) <|
+                button
+                    [ class "flex items-center mt-2 mb-4 text-dusty-blue no-underline whitespace-no-wrap"
+                    , onClick PreviousRepliesRequested
+                    ]
+                    [ text "Load more..."
+                    ]
             , div []
                 (ReplySet.map
                     (\replyView ->
