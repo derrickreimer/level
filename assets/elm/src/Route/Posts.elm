@@ -252,6 +252,9 @@ parseInboxState value =
         Just "all" ->
             InboxStateFilter.All
 
+        Just "unread" ->
+            InboxStateFilter.Unread
+
         _ ->
             InboxStateFilter.Undismissed
 
@@ -261,6 +264,9 @@ castInboxState state =
     case state of
         InboxStateFilter.Undismissed ->
             Nothing
+
+        InboxStateFilter.Unread ->
+            Just "unread"
 
         InboxStateFilter.Dismissed ->
             Just "dismissed"

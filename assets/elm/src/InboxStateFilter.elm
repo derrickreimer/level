@@ -4,6 +4,7 @@ module InboxStateFilter exposing (InboxStateFilter(..), fromQuery, toEnum, toQue
 type InboxStateFilter
     = Undismissed
     | Dismissed
+    | Unread
     | All
 
 
@@ -15,6 +16,9 @@ fromQuery value =
 
         Just "dismissed" ->
             Dismissed
+
+        Just "unread" ->
+            Unread
 
         _ ->
             All
@@ -29,6 +33,9 @@ toQuery value =
         Dismissed ->
             Just "dismissed"
 
+        Unread ->
+            Just "unread"
+
         All ->
             Nothing
 
@@ -41,6 +48,9 @@ toEnum value =
 
         Dismissed ->
             "DISMISSED"
+
+        Unread ->
+            "UNREAD"
 
         All ->
             "ALL"
