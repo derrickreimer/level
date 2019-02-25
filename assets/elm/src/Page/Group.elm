@@ -898,7 +898,11 @@ update msg globals model =
                         |> PostSet.flushQueue globals
                         |> PostSet.mapCommands PostViewMsg
             in
-            ( ( { model | postViews = newPostViews }, cmd ), globals )
+            ( ( { model | postViews = newPostViews }
+              , Cmd.batch [ cmd, Scroll.toDocumentTop NoOp ]
+              )
+            , globals
+            )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -1264,7 +1268,7 @@ resolvedDesktopView globals model data =
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
                     ]
-                , flushQueueButton model
+                , desktopFlushQueueButton model
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
@@ -1372,8 +1376,8 @@ searchEditorView editor =
         }
 
 
-flushQueueButton : Model -> Html Msg
-flushQueueButton model =
+desktopFlushQueueButton : Model -> Html Msg
+desktopFlushQueueButton model =
     let
         depth =
             PostSet.queueDepth model.postViews
@@ -1542,6 +1546,7 @@ resolvedMobileView globals model data =
                     ]
                 ]
         , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
+        , mobileFlushQueueButton model
         , div [ class "p-3 pt-0" ]
             [ mobilePostsView globals model data
             , viewIf (PostSet.isScaffolded model.postViews && PostSet.hasMore model.postViews) <|
@@ -1573,6 +1578,21 @@ resolvedMobileView globals model data =
                 [ div [ class "p-6" ] (sidebarView data.space data.group data.featuredMembers model)
                 ]
         ]
+
+
+mobileFlushQueueButton : Model -> Html Msg
+mobileFlushQueueButton model =
+    let
+        depth =
+            PostSet.queueDepth model.postViews
+    in
+    viewIf (depth > 0) <|
+        div
+            [ class "py-3 text-center"
+            ]
+            [ button [ class "btn btn-blue btn-sm shadow", onClick FlushQueueClicked ]
+                [ text <| "Show " ++ String.fromInt depth ++ " new post(s)" ]
+            ]
 
 
 mobilePostsView : Globals -> Model -> Data -> Html Msg
