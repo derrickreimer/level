@@ -1,4 +1,4 @@
-module Connection exposing (Connection, Subset, append, decoder, diff, empty, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, map, mapList, prepend, prependConnection, remove, selectBy, selectNext, selectPrev, selected, startCursor, toList, update)
+module Connection exposing (Connection, Subset, append, decoder, diff, empty, endCursor, filterMap, first, fragment, get, hasNextPage, hasPreviousPage, head, isEmpty, isEmptyAndExpanded, isExpandable, last, length, map, mapList, prepend, prependConnection, remove, selectBy, selectNext, selectPrev, selected, startCursor, toList, update)
 
 import GraphQL exposing (Fragment)
 import Json.Decode as Decode exposing (Decoder, bool, field, list, maybe, string)
@@ -116,6 +116,18 @@ mapList f connection =
 isEmpty : Connection a -> Bool
 isEmpty (Connection data) =
     data.nodes == Empty
+
+
+length : Connection a -> Int
+length (Connection data) =
+    case data.nodes of
+        Empty ->
+            0
+
+        NonEmpty slist ->
+            slist
+                |> SelectList.toList
+                |> List.length
 
 
 isExpandable : Connection a -> Bool

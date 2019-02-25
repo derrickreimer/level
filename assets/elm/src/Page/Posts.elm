@@ -266,6 +266,10 @@ update msg globals model =
 
         LoadMoreClicked ->
             let
+                newPostViews =
+                    model.postViews
+                        |> PostSet.setLoadingMore
+
                 cmd =
                     case PostSet.lastPostedAt model.postViews of
                         Just lastPostedAt ->
@@ -276,7 +280,7 @@ update msg globals model =
                         Nothing ->
                             Cmd.none
             in
-            ( ( model, cmd ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         PostsFetched limit (Ok ( newSession, resp )) ->
             let
@@ -290,6 +294,7 @@ update msg globals model =
                     newModel.postViews
                         |> PostSet.setLoaded
                         |> PostSet.sortByPostedAt
+                        |> PostSet.setHasMore (Connection.length resp.resolvedPosts >= limit)
             in
             ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
 
@@ -836,13 +841,21 @@ resolvedDesktopView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
-            , viewIf (PostSet.isLoaded model.postViews) <|
+            , viewIf (PostSet.isLoaded model.postViews && PostSet.hasMore model.postViews) <|
                 div [ class "py-8 text-center" ]
                     [ button
                         [ class "btn btn-grey-outline btn-md"
                         , onClick LoadMoreClicked
                         ]
                         [ text "Load more..." ]
+                    ]
+            , viewIf (PostSet.isLoadingMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
                     ]
             ]
         ]
@@ -974,7 +987,7 @@ desktopPostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    case ( PostSet.isLoaded model.postViews, PostSet.isEmpty model.postViews ) of
+    case ( PostSet.isScaffolded model.postViews, PostSet.isEmpty model.postViews ) of
         ( True, False ) ->
             div [] (PostSet.mapList (desktopPostView globals spaceUsers groups model data) model.postViews)
 
@@ -1050,13 +1063,21 @@ resolvedMobileView globals model data =
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , div [ class "p-3 pt-0" ] [ mobilePostsView globals model data ]
-            , viewIf (PostSet.isLoaded model.postViews) <|
+            , viewIf (PostSet.isLoaded model.postViews && PostSet.hasMore model.postViews) <|
                 div [ class "py-8 text-center" ]
                     [ button
                         [ class "btn btn-grey-outline btn-md"
                         , onClick LoadMoreClicked
                         ]
                         [ text "Load more..." ]
+                    ]
+            , viewIf (PostSet.isLoadingMore model.postViews) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
                     ]
             ]
         ]
@@ -1071,7 +1092,7 @@ mobilePostsView globals model data =
         groups =
             Repo.getGroups (Space.groupIds data.space) globals.repo
     in
-    case ( PostSet.isLoaded model.postViews, PostSet.isEmpty model.postViews ) of
+    case ( PostSet.isScaffolded model.postViews, PostSet.isEmpty model.postViews ) of
         ( True, False ) ->
             div [] (PostSet.mapList (mobilePostView globals spaceUsers groups model data) model.postViews)
 

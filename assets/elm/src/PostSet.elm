@@ -1,7 +1,7 @@
 module PostSet exposing
     ( PostSet, State(..)
-    , empty, loadCached, isLoaded, setLoaded
-    , get, update, remove, add, enqueue, flushQueue, mapCommands
+    , empty, loadCached, isScaffolded, isLoaded, isLoadingMore, setLoaded, setLoadingMore
+    , get, update, remove, add, enqueue, flushQueue, mapCommands, hasMore, setHasMore
     , toList, mapList, isEmpty, lastPostedAt, queueDepth
     , select, selectPrev, selectNext, selected
     , sortByPostedAt
@@ -17,12 +17,12 @@ module PostSet exposing
 
 # Initialization
 
-@docs empty, loadCached, isLoaded, setLoaded
+@docs empty, loadCached, isScaffolded, isLoaded, isLoadingMore, setLoaded, setLoadingMore
 
 
 # Operations
 
-@docs get, update, remove, add, enqueue, flushQueue, mapCommands
+@docs get, update, remove, add, enqueue, flushQueue, mapCommands, hasMore, setHasMore
 
 
 # Inspection
@@ -64,14 +64,16 @@ type Views
 
 
 type State
-    = Loading
+    = Scaffolding
     | Loaded
+    | LoadingMore
 
 
 type alias Internal =
     { views : Views
     , queue : Set Id
     , state : State
+    , hasMore : Bool
     }
 
 
@@ -81,7 +83,7 @@ type alias Internal =
 
 empty : PostSet
 empty =
-    PostSet (Internal Empty Set.empty Loading)
+    PostSet (Internal Empty Set.empty Scaffolding True)
 
 
 loadCached : Globals -> List Post -> PostSet -> ( PostSet, List ( Id, Cmd PostView.Msg ) )
@@ -101,7 +103,12 @@ loadCached globals posts (PostSet internal) =
         cmds =
             List.map (\view -> ( view.id, PostView.setup globals view )) newViewList
     in
-    ( PostSet { internal | views = newViews, state = Loaded }, cmds )
+    ( PostSet { internal | views = newViews, state = LoadingMore }, cmds )
+
+
+isScaffolded : PostSet -> Bool
+isScaffolded (PostSet internal) =
+    internal.state /= Scaffolding
 
 
 isLoaded : PostSet -> Bool
@@ -109,9 +116,19 @@ isLoaded (PostSet internal) =
     internal.state == Loaded
 
 
+isLoadingMore : PostSet -> Bool
+isLoadingMore (PostSet internal) =
+    internal.state == LoadingMore
+
+
 setLoaded : PostSet -> PostSet
 setLoaded (PostSet internal) =
     PostSet { internal | state = Loaded }
+
+
+setLoadingMore : PostSet -> PostSet
+setLoadingMore (PostSet internal) =
+    PostSet { internal | state = LoadingMore }
 
 
 
@@ -222,6 +239,16 @@ mapCommands toMsg ( postSet, cmds ) =
                 |> Cmd.batch
     in
     ( postSet, batch )
+
+
+hasMore : PostSet -> Bool
+hasMore (PostSet internal) =
+    internal.hasMore
+
+
+setHasMore : Bool -> PostSet -> PostSet
+setHasMore truth (PostSet internal) =
+    PostSet { internal | hasMore = truth }
 
 
 
