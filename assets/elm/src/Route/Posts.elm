@@ -63,7 +63,7 @@ init spaceSlug =
             Nothing
             Nothing
             PostStateFilter.All
-            InboxStateFilter.All
+            InboxStateFilter.Undismissed
             LastActivityFilter.All
         )
 
