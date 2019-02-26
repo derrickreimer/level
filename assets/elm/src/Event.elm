@@ -20,6 +20,7 @@ import Subscription.UserSubscription as UserSubscription
 
 type Event
     = SpaceJoined ( Space, SpaceUser )
+    | GroupCreated Group
     | GroupBookmarked Group
     | GroupUnbookmarked Group
     | PostCreated ResolvedPostWithReplies
@@ -67,6 +68,8 @@ eventDecoder =
           Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
 
         -- SPACE USER EVENTS
+        , Decode.map GroupCreated SpaceUserSubscription.groupCreatedDecoder
+        , Decode.map GroupUpdated SpaceUserSubscription.groupUpdatedDecoder
         , Decode.map PostCreated SpaceUserSubscription.postCreatedDecoder
         , Decode.map PostUpdated SpaceUserSubscription.postUpdatedDecoder
         , Decode.map ReplyCreated SpaceUserSubscription.replyCreatedDecoder
@@ -91,7 +94,6 @@ eventDecoder =
         , Decode.map RepliesViewed SpaceUserSubscription.repliesViewedDecoder
 
         -- GROUP EVENTS
-        , Decode.map GroupUpdated GroupSubscription.groupUpdatedDecoder
         , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder
         , Decode.map UnsubscribedFromGroup GroupSubscription.unsubscribedFromGroupDecoder
 

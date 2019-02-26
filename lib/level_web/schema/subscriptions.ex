@@ -21,6 +21,7 @@ defmodule LevelWeb.Schema.Subscriptions do
   union :space_user_subscription_payload do
     types [
       :group_created_payload,
+      :group_updated_payload,
       :post_created_payload,
       :post_updated_payload,
       :reply_created_payload,
@@ -51,7 +52,6 @@ defmodule LevelWeb.Schema.Subscriptions do
   @desc "The payload for messages propagated to a group topic."
   union :group_subscription_payload do
     types [
-      :group_updated_payload,
       :subscribed_to_group_payload,
       :watched_group_payload,
       :unsubscribed_from_group_payload

@@ -34,6 +34,10 @@ defmodule Level.Events do
     publish_to_many_space_users(ids, :group_created, %{group: group})
   end
 
+  def group_updated(ids, %Group{} = group) do
+    publish_to_many_space_users(ids, :group_updated, %{group: group})
+  end
+
   def post_created(ids, %Post{} = post) do
     publish_to_many_space_users(ids, :post_created, %{post: post})
   end
@@ -126,10 +130,6 @@ defmodule Level.Events do
 
   def group_membership_updated(id, {%Group{} = group, group_user}) do
     publish_to_group(id, :group_membership_updated, %{group: group, membership: group_user})
-  end
-
-  def group_updated(id, %Group{} = group) do
-    publish_to_group(id, :group_updated, %{group: group})
   end
 
   def subscribed_to_group(id, %Group{} = group, %SpaceUser{} = space_user) do

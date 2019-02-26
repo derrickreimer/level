@@ -1418,6 +1418,16 @@ consumeEvent event ({ page } as model) =
                 ]
             )
 
+        Event.GroupCreated group ->
+            ( { model | repo = Repo.setGroup group model.repo }
+            , Cmd.none
+            )
+
+        Event.GroupUpdated group ->
+            ( { model | repo = Repo.setGroup group model.repo }
+            , Cmd.none
+            )
+
         Event.GroupBookmarked group ->
             ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
@@ -1500,11 +1510,6 @@ consumeEvent event ({ page } as model) =
 
         Event.UserMentioned post ->
             ( { model | repo = Repo.setPost post model.repo }
-            , Cmd.none
-            )
-
-        Event.GroupUpdated group ->
-            ( { model | repo = Repo.setGroup group model.repo }
             , Cmd.none
             )
 

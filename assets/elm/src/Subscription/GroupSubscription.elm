@@ -1,4 +1,4 @@
-module Subscription.GroupSubscription exposing (groupUpdatedDecoder, subscribe, subscribedToGroupDecoder, unsubscribe, unsubscribedFromGroupDecoder)
+module Subscription.GroupSubscription exposing (subscribe, subscribedToGroupDecoder, unsubscribe, unsubscribedFromGroupDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -28,14 +28,6 @@ unsubscribe groupId =
 
 
 -- DECODERS
-
-
-groupUpdatedDecoder : Decode.Decoder Group
-groupUpdatedDecoder =
-    Subscription.decoder "group"
-        "GroupUpdated"
-        "group"
-        Group.decoder
 
 
 subscribedToGroupDecoder : Decode.Decoder Group
@@ -72,11 +64,6 @@ document =
         ) {
           groupSubscription(groupId: $groupId) {
             __typename
-            ... on GroupUpdatedPayload {
-              group {
-                ...GroupFields
-              }
-            }
             ... on SubscribedToGroupPayload {
               group {
                 ...GroupFields

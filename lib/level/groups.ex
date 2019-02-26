@@ -174,8 +174,9 @@ defmodule Level.Groups do
     |> after_update_group()
   end
 
-  defp after_update_group({:ok, %Group{id: id} = group} = result) do
-    Events.group_updated(id, group)
+  defp after_update_group({:ok, group} = result) do
+    {:ok, accessor_ids} = get_accessor_ids(group)
+    _ = Events.group_updated(accessor_ids, group)
     result
   end
 
@@ -343,6 +344,7 @@ defmodule Level.Groups do
     group
     |> Changeset.change(state: "CLOSED")
     |> Repo.update()
+    |> after_update_group()
   end
 
   @doc """
@@ -353,6 +355,7 @@ defmodule Level.Groups do
     group
     |> Changeset.change(state: "OPEN")
     |> Repo.update()
+    |> after_update_group()
   end
 
   @doc """
@@ -366,6 +369,7 @@ defmodule Level.Groups do
         group
         |> Changeset.change(state: "DELETED")
         |> Repo.update()
+        |> after_update_group()
 
       _ ->
         {:error, dgettext("errors", "You are not authorized to perform this action.")}

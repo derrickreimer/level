@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupUnbookmarkedDecoder, mentionsDismissedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupCreatedDecoder, groupUnbookmarkedDecoder, groupUpdatedDecoder, mentionsDismissedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe, userMentionedDecoder)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -28,6 +28,22 @@ unsubscribe spaceUserId =
 
 
 -- DECODERS
+
+
+groupCreatedDecoder : Decode.Decoder Group
+groupCreatedDecoder =
+    Subscription.decoder "spaceUser"
+        "GroupCreated"
+        "group"
+        Group.decoder
+
+
+groupUpdatedDecoder : Decode.Decoder Group
+groupUpdatedDecoder =
+    Subscription.decoder "spaceUser"
+        "GroupUpdated"
+        "group"
+        Group.decoder
 
 
 postCreatedDecoder : Decode.Decoder ResolvedPostWithReplies
@@ -224,6 +240,16 @@ document =
         ) {
           spaceUserSubscription(spaceUserId: $spaceUserId) {
             __typename
+            ... on GroupCreatedPayload {
+              group {
+                ...GroupFields
+              }
+            }
+            ... on GroupUpdatedPayload {
+              group {
+                ...GroupFields
+              }
+            }
             ... on PostCreatedPayload {
               post {
                 ...PostFields

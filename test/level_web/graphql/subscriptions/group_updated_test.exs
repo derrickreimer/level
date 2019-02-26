@@ -4,10 +4,10 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
   alias Level.Groups
 
   @operation """
-    subscription GroupSubscription(
+    subscription SpaceUserSubscription(
       $id: ID!
     ) {
-      groupSubscription(groupId: $id) {
+      spaceUserSubscription(spaceUserId: $id) {
         __typename
         ... on GroupUpdatedPayload {
           group {
@@ -27,7 +27,7 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
   test "receives an event when a group is updated", %{socket: socket, space_user: space_user} do
     {:ok, %{group: group}} = create_group(space_user)
 
-    ref = push_subscription(socket, @operation, %{"id" => group.id})
+    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, group} = Groups.update_group(group, %{name: "new-name"})
@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.GroupUpdatedTest do
     push_data = %{
       result: %{
         data: %{
-          "groupSubscription" => %{
+          "spaceUserSubscription" => %{
             "__typename" => "GroupUpdatedPayload",
             "group" => %{
               "id" => group.id,
