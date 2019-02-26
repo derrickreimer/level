@@ -515,12 +515,12 @@ staticFileView file =
             a
                 [ href url
                 , target "_blank"
-                , class "flex flex-none items-center mr-4 pb-1 no-underline text-dusty-blue hover:text-blue"
+                , class "flex flex-none items-center mr-4 pb-1 no-underline text-dusty-blue-dark hover:text-blue"
                 , rel "tooltip"
                 , title "Download file"
                 ]
                 [ div [ class "mr-2" ] [ File.icon Color.DustyBlue file ]
-                , div [ class "text-sm font-bold truncate" ] [ text <| "Download " ++ File.getName file ]
+                , div [ class "text-md truncate" ] [ text <| File.getName file ]
                 ]
 
         _ ->
