@@ -10,6 +10,7 @@ defmodule Level.Schemas.SpaceUser do
 
   alias Level.Handles
   alias Level.Schemas.File
+  alias Level.Schemas.GroupUser
   alias Level.Schemas.Nudge
   alias Level.Schemas.PostUser
   alias Level.Schemas.Space
@@ -31,6 +32,7 @@ defmodule Level.Schemas.SpaceUser do
     belongs_to :space, Space
     belongs_to :user, User
 
+    has_many :group_users, GroupUser
     has_many :post_users, PostUser
     has_many :files, File
     has_many :nudges, Nudge

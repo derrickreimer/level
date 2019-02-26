@@ -30,6 +30,10 @@ defmodule Level.Events do
 
   # Space user
 
+  def group_created(ids, %Group{} = group) do
+    publish_to_many_space_users(ids, :group_created, %{group: group})
+  end
+
   def post_created(ids, %Post{} = post) do
     publish_to_many_space_users(ids, :post_created, %{post: post})
   end

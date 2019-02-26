@@ -30,7 +30,7 @@ defmodule Level.Groups do
       where: g.space_id == ^space_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == ^space_user_id,
-      where: g.is_private == false or (g.is_private == true and gu.access == "PRIVATE"),
+      where: g.is_private == false or gu.access == "PRIVATE",
       where: g.state != "DELETED"
   end
 
@@ -47,7 +47,7 @@ defmodule Level.Groups do
       on: su.space_id == g.space_id and su.user_id == ^user_id,
       left_join: gu in GroupUser,
       on: gu.group_id == g.id and gu.space_user_id == su.id,
-      where: g.is_private == false or (g.is_private == true and gu.access == "PRIVATE"),
+      where: g.is_private == false or gu.access == "PRIVATE",
       where: g.state != "DELETED"
   end
 
@@ -61,6 +61,28 @@ defmodule Level.Groups do
       where: su.state == "ACTIVE",
       where: gu.group_id == ^group_id,
       select: %{gu | last_name: su.last_name}
+  end
+
+  @doc """
+  Fetches all space user ids who are able to access the group.
+  """
+  @spec get_accessor_ids(Group.t()) :: {:ok, [String.t()]} | no_return()
+  def get_accessor_ids(%Group{id: group_id, is_private: is_private}) do
+    query =
+      if is_private do
+        from su in SpaceUser,
+          join: gu in assoc(su, :group_users),
+          where: gu.group_id == ^group_id,
+          where: su.state == "ACTIVE",
+          where: gu.access == "PRIVATE",
+          select: su.id
+      else
+        from su in SpaceUser,
+          where: su.state == "ACTIVE",
+          select: su.id
+      end
+
+    {:ok, Repo.all(query)}
   end
 
   @doc """
@@ -130,6 +152,10 @@ defmodule Level.Groups do
     subscribe(group, space_user)
     set_owner_role(group, space_user)
     bookmark_group(group, space_user)
+
+    {:ok, accessor_ids} = get_accessor_ids(group)
+    _ = Events.group_created(accessor_ids, group)
+
     {:ok, %{group: group}}
   end
 

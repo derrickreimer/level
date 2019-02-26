@@ -20,6 +20,7 @@ defmodule LevelWeb.Schema.Subscriptions do
   @desc "The payload for messages propagated to a space user topic."
   union :space_user_subscription_payload do
     types [
+      :group_created_payload,
       :post_created_payload,
       :post_updated_payload,
       :reply_created_payload,
@@ -98,6 +99,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :group_unbookmarked_payload do
     @desc "The unbookmarked group."
     field :group, non_null(:group)
+  end
+
+  @desc "The payload for the group created event."
+  object :group_created_payload do
+    @desc "The newly created group."
+    field :group, :group
   end
 
   @desc "The payload for the post created event."
