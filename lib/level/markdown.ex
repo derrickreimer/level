@@ -62,8 +62,8 @@ defmodule Level.Markdown do
   defp mutate_text(text, context) do
     text
     |> autolink()
-    |> highlight_mentions(context)
     |> highlight_hashtags(context)
+    |> highlight_mentions(context)
     |> String.replace(~r/>[ \n\r]+</, ">&#32;<")
     |> Floki.parse()
     |> after_mutate_text()
@@ -78,35 +78,74 @@ defmodule Level.Markdown do
 
   defp build_link(url), do: ~s(<a href="#{url}">#{url}</a>)
 
+  defp highlight_mentions(text, %{space: space, absolute: true} = context) do
+    Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
+      href = absolute_user_url(space, handle)
+      classes = mention_classes(handle, context)
+
+      String.replace(
+        match,
+        "@#{handle}",
+        ~s(<a href="#{href}" class="#{classes}">@#{handle}</a>)
+      )
+    end)
+  end
+
+  defp highlight_mentions(text, %{space: space} = context) do
+    Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
+      href = "/#{space.slug}/users/#{handle}"
+      classes = mention_classes(handle, context)
+
+      String.replace(
+        match,
+        "@#{handle}",
+        ~s(<a href="#{href}" class="#{classes}">@#{handle}</a>)
+      )
+    end)
+  end
+
   defp highlight_mentions(text, context) do
     Regex.replace(Mentions.mention_pattern(), text, fn match, handle ->
-      classes =
-        if context[:user] && context[:user].handle == handle do
-          "user-mention user-mention-current"
-        else
-          "user-mention"
-        end
-
-      String.replace(match, "@#{handle}", ~s(<span class="#{classes}">@#{handle}</span>))
+      String.replace(
+        match,
+        "@#{handle}",
+        ~s(<span class="#{mention_classes(handle, context)}">@#{handle}</span>)
+      )
     end)
+  end
+
+  def mention_classes(handle, %{user: current_user}) do
+    if current_user.handle == handle do
+      "user-mention user-mention-current"
+    else
+      "user-mention"
+    end
+  end
+
+  def mention_classes(_, _) do
+    "user-mention"
   end
 
   defp highlight_hashtags(text, %{space: space, absolute: true}) do
     Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, name ->
+      href = absolute_channel_url(space, name)
+
       String.replace(
         match,
         "##{name}",
-        ~s(<a href="#{absolute_channel_url(space, name)}" class="tagged-group">##{name}</a>)
+        ~s(<a href="#{href}" class="tagged-group">##{name}</a>)
       )
     end)
   end
 
   defp highlight_hashtags(text, %{space: space}) do
     Regex.replace(TaggedGroups.hashtag_pattern(), text, fn match, name ->
+      href = "/#{space.slug}/channels/#{name}"
+
       String.replace(
         match,
         "##{name}",
-        ~s(<a href="/#{space.slug}/channels/#{name}" class="tagged-group">##{name}</a>)
+        ~s(<a href="#{href}" class="tagged-group">##{name}</a>)
       )
     end)
   end
@@ -119,6 +158,10 @@ defmodule Level.Markdown do
         ~s(<span class="tagged-group">##{name}</span>)
       )
     end)
+  end
+
+  defp absolute_user_url(space, name) do
+    Router.Helpers.main_url(LevelWeb.Endpoint, :index, [space.slug, "users", name])
   end
 
   defp absolute_channel_url(space, name) do

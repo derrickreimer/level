@@ -92,5 +92,20 @@ defmodule Level.MarkdownTest do
       assert result ==
                ~s(<p><span>Look at <a href="http://level.test:4001/foo/channels/everyone" class="tagged-group">#everyone</a></span></p>)
     end
+
+    test "relative links to users when space context is given" do
+      {:ok, result, _} = Markdown.to_html("Hey @derrick", %{space: %Space{slug: "foo"}})
+
+      assert result ==
+               ~s(<p><span>Hey <a href="/foo/users/derrick" class="user-mention">@derrick</a></span></p>)
+    end
+
+    test "absolute links to users when absolute is true" do
+      {:ok, result, _} =
+        Markdown.to_html("Look at @john", %{space: %Space{slug: "foo"}, absolute: true})
+
+      assert result ==
+               ~s(<p><span>Look at <a href="http://level.test:4001/foo/users/john" class="user-mention">@john</a></span></p>)
+    end
   end
 end

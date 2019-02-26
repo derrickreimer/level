@@ -414,8 +414,13 @@ a.tagged-group:hover {
   @apply text-blue;
 }
 
+a.user-mention,
 .user-mention {
   @apply text-dusty-blue-dark no-underline;
+}
+
+a.user-mention:hover {
+  @apply text-blue;
 }
 
 /**
