@@ -355,7 +355,7 @@ resolvedView config replyView data =
                 ]
             , viewUnless (PostEditor.isExpanded replyView.editor) <|
                 div []
-                    [ div [ class "markdown pb-1" ]
+                    [ div [ class "markdown pb-1 break-words" ]
                         [ RenderedHtml.node
                             { html = Reply.bodyHtml reply
                             , onInternalLinkClicked = InternalLinkClicked
