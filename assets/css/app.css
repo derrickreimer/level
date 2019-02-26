@@ -376,7 +376,16 @@ post-editor.dragging-over > * {
 }
 
 .markdown blockquote {
-  @apply pl-3 mb-4 border-l-3 border-grey text-dusty-blue-dark;
+  @apply relative px-4 py-1 mb-4 text-dusty-blue-darker;
+}
+
+.markdown blockquote::before {
+  @apply block absolute w-1 h-full pin-l pin-t bg-turquoise rounded-full;
+  content: "";
+}
+
+.markdown blockquote:last-child {
+  @apply mb-4;
 }
 
 /**
