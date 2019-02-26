@@ -6,9 +6,14 @@ defmodule Level.AssetStore.S3Adapter do
   @behaviour Level.AssetStore.Adapter
 
   @impl true
-  def persist(pathname, bucket, data) do
+  def persist(pathname, bucket, data, content_type) do
+    opts = [
+      {:acl, :public_read},
+      {:content_type, content_type || "binary/octet-stream"}
+    ]
+
     bucket
-    |> S3.put_object(pathname, data, [{:acl, :public_read}])
+    |> S3.put_object(pathname, data, opts)
     |> ExAws.request()
     |> handle_request(pathname)
   end

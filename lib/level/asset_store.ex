@@ -18,7 +18,7 @@ defmodule Level.AssetStore do
       {:ok, binary_data} ->
         binary_data
         |> build_avatar_path()
-        |> @adapter.persist(@bucket, binary_data)
+        |> @adapter.persist(@bucket, binary_data, nil)
 
       :error ->
         :error
@@ -36,11 +36,12 @@ defmodule Level.AssetStore do
   @doc """
   Uploads a file.
   """
-  @spec persist_file(String.t(), String.t(), binary()) :: {:ok, String.t()} | {:error, any()}
-  def persist_file(unique_id, filename, binary_data) do
+  @spec persist_file(String.t(), String.t(), binary(), String.t()) ::
+          {:ok, String.t()} | {:error, any()}
+  def persist_file(unique_id, filename, binary_data, content_type) do
     unique_id
     |> build_file_path(filename)
-    |> @adapter.persist(@bucket, binary_data)
+    |> @adapter.persist(@bucket, binary_data, content_type)
   end
 
   @doc """

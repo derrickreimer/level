@@ -51,7 +51,7 @@ defmodule Level.Files do
     Multi.new()
     |> Multi.insert(:file, File.create_changeset(%File{}, params))
     |> Multi.run(:store, fn %{file: %File{id: id, filename: filename}} ->
-      AssetStore.persist_file(id, filename, binary_data)
+      AssetStore.persist_file(id, filename, binary_data, params.content_type)
     end)
     |> Repo.transaction()
   end

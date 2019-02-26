@@ -6,8 +6,12 @@ defmodule Level.AssetStore.Adapter do
   @doc """
   Persist the blob to the store and return the filename.
   """
-  @callback persist(pathname :: String.t(), bucket :: String.t(), blob :: binary()) ::
-              {:ok, pathname :: String.t()} | {:error, any()}
+  @callback persist(
+              pathname :: String.t(),
+              bucket :: String.t(),
+              blob :: binary(),
+              content_type :: String.t()
+            ) :: {:ok, pathname :: String.t()} | {:error, any()}
 
   @doc """
   Builds the public url for an object.
