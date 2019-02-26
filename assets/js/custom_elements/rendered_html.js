@@ -12,18 +12,19 @@ customElements.define(
       this.addEventListener("click", e => {
         let target = e.target;
 
-        if (
-          target.tagName == "A" &&
-          target.origin == document.location.origin
-        ) {
+        if (target.tagName == "A") {
           e.preventDefault();
           e.stopPropagation();
 
-          this.dispatchEvent(
-            new CustomEvent("internalLinkClicked", {
-              detail: { pathname: target.pathname }
-            })
-          );
+          if (target.origin == document.location.origin) {
+            this.dispatchEvent(
+              new CustomEvent("internalLinkClicked", {
+                detail: { pathname: target.pathname }
+              })
+            );
+          } else {
+            window.open(target.href, "_blank");
+          }
         }
       });
     }
