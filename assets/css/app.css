@@ -326,8 +326,16 @@ post-editor.dragging-over > * {
   @apply font-sans text-xl mb-4 mt-6 font-bold;
 }
 
+.markdown h2:first-child {
+  @apply mt-0;
+}
+
 .markdown h3 {
   @apply font-sans text-lg mb-4 mt-6 font-bold;
+}
+
+.markdown h3:first-child {
+  @apply mt-0;
 }
 
 .markdown p {

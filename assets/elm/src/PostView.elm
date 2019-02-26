@@ -879,7 +879,7 @@ resolvedView config postView data =
                 , inboxButton data.post
                 , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 ]
-            , viewIf config.showGroups <|
+            , viewIf (config.showGroups || List.length (Post.groupIds data.post) > 1) <|
                 groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
             , viewUnless (PostEditor.isExpanded postView.editor) <|
                 bodyView config.space data.post
