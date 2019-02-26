@@ -201,8 +201,11 @@ defmodule Level.Posts.CreatePost do
       |> Repo.preload(:space_user)
       |> Enum.map(fn group_user -> group_user.space_user end)
 
-    Enum.each(space_users, fn space_user ->
-      _ = Posts.mark_as_unread(space_user, [post])
+    space_users
+    |> Enum.each(fn space_user ->
+      if space_user.id !== post.space_user_id do
+        _ = Posts.mark_as_unread(space_user, [post])
+      end
     end)
   end
 

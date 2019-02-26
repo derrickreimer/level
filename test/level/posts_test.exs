@@ -258,6 +258,18 @@ defmodule Level.PostsTest do
                Posts.get_user_state(post, another_user)
     end
 
+    test "does not put in author's inbox when author is watching the channel", %{
+      space_user: author,
+      group: group
+    } do
+      Groups.watch(group, author)
+
+      params = valid_post_params()
+      {:ok, %{post: post}} = Posts.create_post(author, group, params)
+
+      assert %{inbox: "EXCLUDED", subscription: "SUBSCRIBED"} = Posts.get_user_state(post, author)
+    end
+
     test "handles channel mentions", %{
       space: space,
       space_user: space_user,
