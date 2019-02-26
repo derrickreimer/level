@@ -28,6 +28,23 @@ defmodule Level.TaggedGroups do
   end
 
   @doc """
+  The pattern for matching the leading hashtag.
+  """
+  def leading_hashtag_pattern do
+    ~r/
+      (?:^\s*)                    # beginning of string and one or more whitespace chars
+      \#((?>[a-z0-9][a-z0-9-]*))  # hashtag
+      (?!\/)                      # without a trailing slash
+      (?=
+        \.+[ \t\W]|               # dots followed by space or non-word character
+        \.+$|                     # dots at end of line
+        [^0-9a-zA-Z_.]|           # non-word character except dot
+        $                         # end of line
+      )
+    /ix
+  end
+
+  @doc """
   Fetches all tagged groups from a body of text.
   """
   @spec get_tagged_groups(SpaceUser.t() | SpaceBot.t(), String.t()) :: [Group.t()]

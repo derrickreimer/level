@@ -107,5 +107,10 @@ defmodule Level.MarkdownTest do
       assert result ==
                ~s(<p><span>Look at <a href="http://level.test:4001/foo/users/john" class="user-mention">@john</a></span></p>)
     end
+
+    test "strips leading hashtags" do
+      {:ok, result, _} = Markdown.to_html("#devs #marketing Hey!")
+      assert result == ~s(<p>Hey!</p>)
+    end
   end
 end

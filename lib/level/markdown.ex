@@ -20,9 +20,19 @@ defmodule Level.Markdown do
   @spec to_html(String.t(), map()) :: {:ok, String.t(), [any()]} | {:error, String.t(), [any()]}
   def to_html(input, context \\ %{}) do
     input
+    |> strip_leading_hashtags()
     |> markdownify()
     |> sanitize()
     |> apply_text_mutations(context)
+  end
+
+  def strip_leading_hashtags(text) do
+    if Regex.match?(TaggedGroups.leading_hashtag_pattern(), text) do
+      new_text = Regex.replace(TaggedGroups.leading_hashtag_pattern(), text, "")
+      strip_leading_hashtags(new_text)
+    else
+      String.trim_leading(text)
+    end
   end
 
   defp markdownify(input) do
