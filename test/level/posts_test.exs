@@ -533,6 +533,22 @@ defmodule Level.PostsTest do
       assert [%Notification{event: "REPLY_CREATED"}] = Notifications.list(mentioned, post)
     end
 
+    test "subscribes channel watchers", %{
+      space: space,
+      space_user: space_user,
+      post: post,
+      group: group
+    } do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+      Groups.watch(group, another_user)
+
+      params = valid_reply_params()
+      {:ok, _} = Posts.create_reply(space_user, post, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, another_user)
+    end
+
     test "does not loop in mentioned people who previously did not have access", %{
       space: space,
       space_user: space_user,

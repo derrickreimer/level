@@ -124,6 +124,7 @@ defmodule Level.Posts.CreateReply do
     _ = subscribe_author(post, author)
     _ = subscribe_mentioned_users(post, result)
     _ = subscribe_mentioned_groups(post, result)
+    _ = subscribe_watchers(post)
     _ = record_reply_view(reply, author)
 
     {:ok, subscribers} = Posts.get_subscribers(post)
@@ -159,6 +160,24 @@ defmodule Level.Posts.CreateReply do
 
       Enum.each(group_users, fn group_user ->
         _ = Posts.subscribe(group_user.space_user, [post])
+      end)
+    end)
+  end
+
+  defp subscribe_watchers(post) do
+    post = Repo.preload(post, :groups)
+
+    post.groups
+    |> Enum.each(fn group ->
+      {:ok, watching_group_users} = Groups.list_all_watchers(group)
+
+      space_users =
+        watching_group_users
+        |> Repo.preload(:space_user)
+        |> Enum.map(fn group_user -> group_user.space_user end)
+
+      Enum.each(space_users, fn space_user ->
+        _ = Posts.subscribe(space_user, [post])
       end)
     end)
   end
