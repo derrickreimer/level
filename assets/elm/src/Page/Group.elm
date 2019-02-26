@@ -216,7 +216,7 @@ setup globals model =
         postsCmd =
             globals.session
                 |> GroupPosts.request model.params 20 Nothing
-                |> Task.attempt (PostsFetched model.groupId 20)
+                |> Task.attempt (PostsFetched model.params 20)
 
         featuredMembersCmd =
             globals.session
@@ -277,7 +277,7 @@ type Msg
     | ToggleKeyboardCommands
     | Tick Posix
     | LoadMoreClicked
-    | PostsFetched Id Int (Result Session.Error ( Session, GroupPosts.Response ))
+    | PostsFetched Params Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -351,15 +351,15 @@ update msg globals model =
                         Just lastPostedAt ->
                             globals.session
                                 |> GroupPosts.request model.params 20 (Just lastPostedAt)
-                                |> Task.attempt (PostsFetched model.groupId 20)
+                                |> Task.attempt (PostsFetched model.params 20)
 
                         Nothing ->
                             Cmd.none
             in
             ( ( { model | postViews = newPostViews }, cmd ), globals )
 
-        PostsFetched groupId limit (Ok ( newSession, resp )) ->
-            if groupId == model.groupId then
+        PostsFetched params limit (Ok ( newSession, resp )) ->
+            if Route.Group.isEqual params model.params then
                 let
                     newGlobals =
                         { globals | session = newSession, repo = Repo.union resp.repo globals.repo }

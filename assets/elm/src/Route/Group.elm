@@ -1,6 +1,7 @@
 module Route.Group exposing
     ( Params
-    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters, hasSamePath
+    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+    , hasSamePath, isEqual
     , parser
     , toString
     )
@@ -15,7 +16,12 @@ module Route.Group exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters, hasSamePath
+@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+
+
+# Comparison
+
+@docs hasSamePath, isEqual
 
 
 # Parsing
@@ -134,9 +140,27 @@ clearFilters params =
         |> setInboxState InboxStateFilter.All
 
 
+
+-- COMPARISON
+
+
 hasSamePath : Params -> Params -> Bool
 hasSamePath (Params a) (Params b) =
     a.spaceSlug == b.spaceSlug && a.groupName == b.groupName
+
+
+isEqual : Params -> Params -> Bool
+isEqual (Params a) (Params b) =
+    a.spaceSlug
+        == b.spaceSlug
+        && a.groupName
+        == b.groupName
+        && a.state
+        == b.state
+        && a.inboxState
+        == b.inboxState
+        && a.lastActivity
+        == b.lastActivity
 
 
 
