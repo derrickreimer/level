@@ -6,6 +6,7 @@ import Json.Decode as Decode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedSpace exposing (ResolvedSpace)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import Subscription.GroupSubscription as GroupSubscription
@@ -19,7 +20,7 @@ import Subscription.UserSubscription as UserSubscription
 
 
 type Event
-    = SpaceJoined ( Space, SpaceUser )
+    = SpaceJoined ( ResolvedSpace, SpaceUser )
     | GroupCreated Group
     | GroupBookmarked Group
     | GroupUnbookmarked Group

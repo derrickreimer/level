@@ -6,8 +6,9 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedSpace exposing (ResolvedSpace)
 import Socket
-import Space exposing (Space)
+import Space
 import SpaceUser exposing (SpaceUser)
 import Subscription
 
@@ -30,12 +31,12 @@ unsubscribe =
 -- DECODERS
 
 
-spaceJoinedDecoder : Decode.Decoder ( Space, SpaceUser )
+spaceJoinedDecoder : Decode.Decoder ( ResolvedSpace, SpaceUser )
 spaceJoinedDecoder =
     Subscription.genericDecoder "user"
         "SpaceJoined"
         (Decode.map2 Tuple.pair
-            (Decode.field "space" Space.decoder)
+            (Decode.field "space" ResolvedSpace.decoder)
             (Decode.field "spaceUser" SpaceUser.decoder)
         )
 

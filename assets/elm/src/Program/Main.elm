@@ -46,6 +46,7 @@ import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedSpace exposing (ResolvedSpace)
 import Response exposing (Response)
 import Route exposing (Route)
 import Route.Apps
@@ -1404,16 +1405,16 @@ pageView globals page =
 consumeEvent : Event -> Model -> ( Model, Cmd Msg )
 consumeEvent event ({ page } as model) =
     case event of
-        Event.SpaceJoined ( space, spaceUser ) ->
+        Event.SpaceJoined ( resolvedSpace, spaceUser ) ->
             let
                 newRepo =
                     model.repo
-                        |> Repo.setSpace space
+                        |> ResolvedSpace.addToRepo resolvedSpace
                         |> Repo.setSpaceUser spaceUser
             in
             ( { model | repo = newRepo }
             , Cmd.batch
-                [ SpaceSubscription.subscribe (Space.id space)
+                [ SpaceSubscription.subscribe (Space.id resolvedSpace.space)
                 , SpaceUserSubscription.subscribe (SpaceUser.id spaceUser)
                 ]
             )
