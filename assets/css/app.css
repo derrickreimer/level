@@ -367,8 +367,8 @@ post-editor.dragging-over > * {
 
 .markdown img,
 .markdown img:last-child {
-  @apply my-2 rounded;
-  /* box-shadow: 0 0 1px 0 rgba(0,0,0,0.4); */
+  @apply my-2 rounded-lg;
+  box-shadow: 0 0 1px 0 rgba(0,0,0,0.4);
 }
 
 .markdown a {
