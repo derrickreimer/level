@@ -1,4 +1,4 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupCreatedDecoder, groupUnbookmarkedDecoder, groupUpdatedDecoder, mentionsDismissedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe, userMentionedDecoder)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupCreatedDecoder, groupUnbookmarkedDecoder, groupUpdatedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -198,22 +198,6 @@ postsDismissedDecoder =
         (Decode.list ResolvedPostWithReplies.decoder)
 
 
-userMentionedDecoder : Decode.Decoder Post
-userMentionedDecoder =
-    Subscription.decoder "spaceUser"
-        "UserMentioned"
-        "post"
-        Post.decoder
-
-
-mentionsDismissedDecoder : Decode.Decoder Post
-mentionsDismissedDecoder =
-    Subscription.decoder "spaceUser"
-        "MentionsDismissed"
-        "post"
-        Post.decoder
-
-
 repliesViewedDecoder : Decode.Decoder (List Reply)
 repliesViewedDecoder =
     Subscription.decoder "spaceUser"
@@ -350,16 +334,6 @@ document =
                 replies(last: 3) {
                   ...ReplyConnectionFields
                 }
-              }
-            }
-            ... on UserMentionedPayload {
-              post {
-                ...PostFields
-              }
-            }
-            ... on MentionsDismissedPayload {
-              post {
-                ...PostFields
               }
             }
             ... on RepliesViewedPayload {

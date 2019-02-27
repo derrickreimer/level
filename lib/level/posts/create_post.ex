@@ -177,7 +177,6 @@ defmodule Level.Posts.CreatePost do
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       _ = Posts.mark_as_unread(mentioned_user, [post])
-      _ = Events.user_mentioned(mentioned_user.id, post)
       _ = Notifications.record_post_created(mentioned_user, post)
     end)
   end

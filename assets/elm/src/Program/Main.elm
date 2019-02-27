@@ -1509,11 +1509,6 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.UserMentioned post ->
-            ( { model | repo = Repo.setPost post model.repo }
-            , Cmd.none
-            )
-
         Event.ReplyCreated reply ->
             ( { model | repo = Repo.setReply reply model.repo }
             , Cmd.none
@@ -1526,11 +1521,6 @@ consumeEvent event ({ page } as model) =
 
         Event.ReplyDeleted reply ->
             ( { model | repo = Repo.setReply reply model.repo }
-            , Cmd.none
-            )
-
-        Event.MentionsDismissed post ->
-            ( { model | repo = Repo.setPost post model.repo }
             , Cmd.none
             )
 

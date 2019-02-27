@@ -6,7 +6,6 @@ defmodule Level.Mutations do
   import Level.Gettext
 
   alias Level.Groups
-  alias Level.Mentions
   alias Level.Nudges
   alias Level.Posts
   alias Level.Schemas.Nudge
@@ -710,25 +709,6 @@ defmodule Level.Mutations do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset)}}
 
-      err ->
-        err
-    end
-  end
-
-  @doc """
-  Dismisses all mentions for a particular post.
-  """
-  @spec dismiss_mentions(map(), info()) ::
-          {:ok, %{success: boolean(), posts: [Posts.Post.t()] | nil, errors: validation_errors()}}
-          | {:error, String.t()}
-  def dismiss_mentions(
-        %{space_id: space_id, post_ids: post_ids},
-        %{context: %{current_user: user}}
-      ) do
-    with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, space_id),
-         {:ok, posts} <- Mentions.dismiss_all(space_user, post_ids) do
-      {:ok, %{success: true, posts: posts, errors: []}}
-    else
       err ->
         err
     end

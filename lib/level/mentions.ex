@@ -5,9 +5,7 @@ defmodule Level.Mentions do
 
   import Ecto.Query
 
-  alias Level.Events
   alias Level.Groups
-  alias Level.Posts
   alias Level.Repo
   alias Level.Schemas.Post
   alias Level.Schemas.Reply
@@ -126,33 +124,5 @@ defmodule Level.Mentions do
     end)
 
     {:ok, mentioned_users}
-  end
-
-  @doc """
-  Dismisses all mentions for given posts.
-  """
-  @spec dismiss_all(SpaceUser.t(), [String.t()]) :: {:ok, [Post.t()]} | no_return()
-  def dismiss_all(%SpaceUser{} = space_user, post_ids) do
-    space_user
-    |> base_query()
-    |> where([m], m.post_id in ^post_ids)
-    |> exclude(:select)
-    |> Repo.update_all(set: [dismissed_at: naive_now()])
-    |> handle_dismiss_all(space_user, post_ids)
-  end
-
-  defp handle_dismiss_all(_, %SpaceUser{id: space_user_id} = space_user, post_ids) do
-    {:ok, posts} = Posts.get_posts(space_user, post_ids)
-
-    Enum.each(posts, fn post ->
-      Events.mentions_dismissed(space_user_id, post)
-    end)
-
-    {:ok, posts}
-  end
-
-  # Fetch the current time in `naive_datetime` format
-  defp naive_now do
-    DateTime.utc_now() |> DateTime.to_naive()
   end
 end

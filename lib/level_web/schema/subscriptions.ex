@@ -41,8 +41,6 @@ defmodule LevelWeb.Schema.Subscriptions do
       :posts_marked_as_unread_payload,
       :posts_marked_as_read_payload,
       :posts_dismissed_payload,
-      :user_mentioned_payload,
-      :mentions_dismissed_payload,
       :replies_viewed_payload
     ]
 
@@ -216,18 +214,6 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :reply_deleted_payload do
     @desc "The deleted reply."
     field :reply, :reply
-  end
-
-  @desc "The payload for the mentioned dismissed event."
-  object :mentions_dismissed_payload do
-    @desc "The post."
-    field :post, :post
-  end
-
-  @desc "The payload for the user mentioned event."
-  object :user_mentioned_payload do
-    @desc "The post."
-    field :post, :post
   end
 
   @desc "The payload for the post reaction created event."

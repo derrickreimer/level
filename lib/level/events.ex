@@ -114,14 +114,6 @@ defmodule Level.Events do
     publish_to_space_user(id, :posts_dismissed, %{posts: posts})
   end
 
-  def user_mentioned(id, %Post{} = post) do
-    publish_to_space_user(id, :user_mentioned, %{post: post})
-  end
-
-  def mentions_dismissed(id, %Post{} = post) do
-    publish_to_space_user(id, :mentions_dismissed, %{post: post})
-  end
-
   def replies_viewed(id, replies) do
     publish_to_space_user(id, :replies_viewed, %{replies: replies})
   end
