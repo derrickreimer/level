@@ -697,8 +697,16 @@ defmodule Level.Posts do
   defp after_create_post_reaction({:ok, reaction}, space_user, post) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = PostLog.post_reaction_created(post, space_user)
-    _ = Events.post_reaction_created(space_user_ids, post, reaction)
+    PostLog.post_reaction_created(post, space_user)
+    Events.post_reaction_created(space_user_ids, post, reaction)
+
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== space_user.id do
+        Notifications.record_post_reaction_created(subscriber, reaction)
+      end
+    end)
 
     {:ok, reaction}
   end
@@ -739,9 +747,9 @@ defmodule Level.Posts do
   @doc """
   Creates a reaction to a reply.
   """
-  @spec create_reply_reaction(SpaceUser.t(), Reply.t()) ::
+  @spec create_reply_reaction(SpaceUser.t(), Post.t(), Reply.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
-  def create_reply_reaction(%SpaceUser{} = space_user, %Reply{} = reply) do
+  def create_reply_reaction(%SpaceUser{} = space_user, post, %Reply{} = reply) do
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
@@ -753,19 +761,27 @@ defmodule Level.Posts do
     %ReplyReaction{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
-    |> after_create_reply_reaction(space_user, reply)
+    |> after_create_reply_reaction(space_user, post, reply)
   end
 
-  defp after_create_reply_reaction({:ok, reaction}, space_user, reply) do
+  defp after_create_reply_reaction({:ok, reaction}, space_user, post, reply) do
     {:ok, space_user_ids} = get_accessor_ids(reply)
 
-    _ = PostLog.reply_reaction_created(reply, space_user)
-    _ = Events.reply_reaction_created(space_user_ids, reply, reaction)
+    PostLog.reply_reaction_created(reply, space_user)
+    Events.reply_reaction_created(space_user_ids, reply, reaction)
+
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== space_user.id do
+        Notifications.record_reply_reaction_created(subscriber, reaction)
+      end
+    end)
 
     {:ok, reaction}
   end
 
-  defp after_create_reply_reaction(err, _, _), do: err
+  defp after_create_reply_reaction(err, _, _, _), do: err
 
   @doc """
   Deletes a reaction to a reply.

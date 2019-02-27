@@ -8,7 +8,9 @@ defmodule Level.Notifications do
   alias Level.Repo
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SpaceUser
 
   @doc """
@@ -68,6 +70,32 @@ defmodule Level.Notifications do
   def record_post_reopened(%SpaceUser{} = space_user, %Post{id: post_id}) do
     data = %{"post_id" => post_id}
     insert_record(space_user, "POST_REOPENED", "post:#{post_id}", data)
+  end
+
+  @doc """
+  Records a post reaction created notification.
+  """
+  @spec record_post_reaction_created(SpaceUser.t(), PostReaction.t()) ::
+          {:ok, Notification.t()} | {:error, String.t()}
+  def record_post_reaction_created(%SpaceUser{} = space_user, %PostReaction{
+        id: id,
+        post_id: post_id
+      }) do
+    data = %{"post_id" => post_id, "post_reaction_id" => id}
+    insert_record(space_user, "POST_REACTION_CREATED", "post:#{post_id}", data)
+  end
+
+  @doc """
+  Records a post reaction created notification.
+  """
+  @spec record_reply_reaction_created(SpaceUser.t(), ReplyReaction.t()) ::
+          {:ok, Notification.t()} | {:error, String.t()}
+  def record_reply_reaction_created(%SpaceUser{} = space_user, %ReplyReaction{
+        id: id,
+        post_id: post_id
+      }) do
+    data = %{"post_id" => post_id, "reply_reaction_id" => id}
+    insert_record(space_user, "REPLY_REACTION_CREATED", "post:#{post_id}", data)
   end
 
   @doc """

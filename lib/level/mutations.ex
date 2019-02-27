@@ -1027,7 +1027,7 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
          {:ok, reply} <- Posts.get_reply(post, args.reply_id),
-         {:ok, reaction} <- Posts.create_reply_reaction(space_user, reply) do
+         {:ok, reaction} <- Posts.create_reply_reaction(space_user, post, reply) do
       {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
     else
       %Ecto.Changeset{} = changeset ->
