@@ -457,7 +457,7 @@ stepView device step model data =
         2 ->
             div []
                 [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "Channels keep messages organized." ]
-                , p [ class "mb-6" ] [ text "Channels are where you go to post messages. You can also tag additional Channels in the body of your message to post it there as well (similar to hashtags on social apps)." ]
+                , p [ class "mb-6" ] [ text "Channels are where you go to post messages around a particular topic. When you subscribe to a Channel, its posts will appear in the timeline on your Home screen." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -466,7 +466,7 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox is your conversational to-do list." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox keeps track of your important conversations." ]
                 , p [ class "mb-6" ] [ text "When someone @-mentions you or new activity occurs on a post you've interacted with, that post will move into your Inbox." ]
                 , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)." ]
                 , div []
@@ -477,8 +477,8 @@ stepView device step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Feed helps you stay in the loop." ]
-                , p [ class "mb-6" ] [ text "Your Feed contains all posts from the Channels you subscribe to. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Everything timeline helps you stay in the loop." ]
+                , p [ class "mb-6" ] [ text "Your timeline contains all posts from the Channels you subscribe to. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
@@ -535,37 +535,6 @@ stepView device step model data =
             text ""
 
 
-backButton : String -> Html Msg
-backButton buttonText =
-    button [ class "flex items-center text-base text-dusty-blue font-bold", onClick BackUp ]
-        [ span [ class "mr-2" ] [ Icons.arrowLeft Icons.On ]
-        , text buttonText
-        ]
-
-
 redirectRoute : Params -> Route
 redirectRoute params =
     Route.Posts (Route.Posts.init (Route.WelcomeTutorial.getSpaceSlug params))
-
-
-inviteView : Maybe String -> Html Msg
-inviteView maybeUrl =
-    case maybeUrl of
-        Just url ->
-            div []
-                [ p [ class "mb-6" ] [ text "Anyone with this link can join the space with member-level permissions. You can always find this link later in the right-hand sidebar of your Inbox." ]
-                , div [ class "mb-6 flex items-center input-field bg-grey-lighter border-none" ]
-                    [ span [ class "mr-4 flex-shrink font-mono text-base overflow-auto" ] [ text url ]
-                    , Clipboard.button "Copy"
-                        url
-                        [ class "btn btn-blue btn-xs flex items-center"
-                        , Clipboard.onCopy LinkCopied
-                        , Clipboard.onCopyFailed LinkCopyFailed
-                        ]
-                    ]
-                ]
-
-        Nothing ->
-            div []
-                [ p [ class "mb-6" ] [ text "Open invitations are disabled." ]
-                ]
