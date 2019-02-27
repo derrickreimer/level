@@ -1187,7 +1187,7 @@ replyPromptView config postView data =
     in
     if config.isSelected || not (ReplySet.isEmpty postView.replyViews) then
         button
-            [ classList [ ( "flex my-4 p-1 -ml-1 mt-3 items-center text-md rounded-lg", True ), ( "shadow-outline", config.isSelected ) ]
+            [ classList [ ( "flex my-4 p-1 pr-4 -ml-1 mt-3 items-center text-md rounded-full", True ), ( "shadow-outline bg-grey-light", config.isSelected ) ]
             , onClick msg
             ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
@@ -1206,7 +1206,7 @@ replyButtonView config postView data =
         button
             [ class "tooltip tooltip-bottom"
             , onClick ExpandReplyComposer
-            , attribute "data-tooltip" "Reply or Resolve"
+            , attribute "data-tooltip" "Reply"
             ]
             [ Icons.reply ]
 
