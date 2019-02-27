@@ -621,9 +621,9 @@ defmodule Level.Posts do
   defp after_post_closed({:ok, %{post: post}} = result, closer) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = dismiss(closer, [post])
-    _ = record_closed_notifications(post, closer)
-    _ = Events.post_closed(space_user_ids, post)
+    dismiss(closer, [post])
+    record_closed_notifications(post, closer)
+    Events.post_closed(space_user_ids, post)
 
     result
   end
@@ -633,7 +633,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== closer.id do
-        _ = Notifications.record_post_closed(subscriber, post)
+        Notifications.record_post_closed(subscriber, post)
       end
     end)
   end
@@ -659,8 +659,8 @@ defmodule Level.Posts do
   defp after_post_reopened({:ok, %{post: post}} = result, reopener) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = Events.post_reopened(space_user_ids, post)
-    _ = record_reopened_notifications(post, reopener)
+    Events.post_reopened(space_user_ids, post)
+    record_reopened_notifications(post, reopener)
 
     result
   end
@@ -670,7 +670,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== reopener.id do
-        _ = Notifications.record_post_reopened(subscriber, post)
+        Notifications.record_post_reopened(subscriber, post)
       end
     end)
   end
@@ -738,7 +738,7 @@ defmodule Level.Posts do
 
   defp after_delete_post_reaction({:ok, reaction}, _space_user, post) do
     {:ok, space_user_ids} = get_accessor_ids(post)
-    _ = Events.post_reaction_deleted(space_user_ids, post, reaction)
+    Events.post_reaction_deleted(space_user_ids, post, reaction)
     {:ok, reaction}
   end
 
@@ -811,7 +811,7 @@ defmodule Level.Posts do
 
   defp after_delete_reply_reaction({:ok, reaction}, _space_user, reply) do
     {:ok, space_user_ids} = get_accessor_ids(reply)
-    _ = Events.reply_reaction_deleted(space_user_ids, reply, reaction)
+    Events.reply_reaction_deleted(space_user_ids, reply, reaction)
     {:ok, reaction}
   end
 

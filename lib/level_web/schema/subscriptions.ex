@@ -41,7 +41,8 @@ defmodule LevelWeb.Schema.Subscriptions do
       :posts_marked_as_unread_payload,
       :posts_marked_as_read_payload,
       :posts_dismissed_payload,
-      :replies_viewed_payload
+      :replies_viewed_payload,
+      :notification_created_payload
     ]
 
     resolve_type &type_resolver/2
@@ -250,6 +251,12 @@ defmodule LevelWeb.Schema.Subscriptions do
 
     @desc "The reaction."
     field :reaction, :reply_reaction
+  end
+
+  @desc "The payload for the notification created event."
+  object :notification_created_payload do
+    @desc "The notification."
+    field :notification, :notification
   end
 
   defp type_resolver(%{type: type}, _) do

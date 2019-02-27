@@ -118,6 +118,10 @@ defmodule Level.Events do
     publish_to_space_user(id, :replies_viewed, %{replies: replies})
   end
 
+  def notification_created(id, notification) do
+    publish_to_space_user(id, :notification_created, %{notification: notification})
+  end
+
   # Group
 
   def group_membership_updated(id, {%Group{} = group, group_user}) do

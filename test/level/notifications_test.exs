@@ -75,13 +75,18 @@ defmodule Level.NotificationsTest do
   describe "record_reply_reaction_created/2" do
     test "inserts a notification record" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
-      reaction = %ReplyReaction{id: "xyz", post_id: "abc"}
+      reaction = %ReplyReaction{id: "xyz", post_id: "abc", reply_id: "bbb"}
       {:ok, notification} = Notifications.record_reply_reaction_created(space_user, reaction)
 
       assert notification.topic == "post:abc"
       assert notification.state == "UNDISMISSED"
       assert notification.event == "REPLY_REACTION_CREATED"
-      assert notification.data == %{"post_id" => "abc", "reply_reaction_id" => "xyz"}
+
+      assert notification.data == %{
+               "post_id" => "abc",
+               "reply_id" => "bbb",
+               "reply_reaction_id" => "xyz"
+             }
     end
   end
 

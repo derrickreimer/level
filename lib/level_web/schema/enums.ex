@@ -140,4 +140,9 @@ defmodule LevelWeb.Schema.Enums do
     value :today
     value :all
   end
+
+  enum :notification_state do
+    value :undismissed, as: "UNDISMISSED"
+    value :dismissed, as: "DISMISSED"
+  end
 end
