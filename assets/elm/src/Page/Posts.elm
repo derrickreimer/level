@@ -287,8 +287,13 @@ update msg globals model =
                 newGlobals =
                     { globals | session = newSession, repo = Repo.union resp.repo globals.repo }
 
+                posts =
+                    resp.resolvedPosts
+                        |> Connection.toList
+                        |> List.map .post
+
                 ( newModel, setupCmds ) =
-                    List.foldr (addPost newGlobals) ( model, Cmd.none ) (Connection.toList resp.resolvedPosts)
+                    List.foldr (addPost newGlobals) ( model, Cmd.none ) posts
 
                 newPostComps =
                     newModel.postViews
@@ -564,12 +569,12 @@ removePost globals post ( model, cmd ) =
             ( model, cmd )
 
 
-enqueuePost : ResolvedPostWithReplies -> Model -> Model
-enqueuePost resolvedPost model =
-    if Post.spaceId resolvedPost.post == model.spaceId then
+enqueuePost : Repo -> Post -> Model -> Model
+enqueuePost repo post model =
+    if isMemberPost repo model post then
         let
             newPostViews =
-                PostSet.enqueue (Post.id resolvedPost.post) model.postViews
+                PostSet.enqueue (Post.id post) model.postViews
         in
         { model | postViews = newPostViews }
 
@@ -577,15 +582,15 @@ enqueuePost resolvedPost model =
         model
 
 
-addPost : Globals -> ResolvedPostWithReplies -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-addPost globals resolvedPost ( model, cmd ) =
-    if Post.spaceId resolvedPost.post == model.spaceId then
+addPost : Globals -> Post -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+addPost globals post ( model, cmd ) =
+    if isMemberPost globals.repo model post then
         let
             ( newPostComps, newCmd ) =
-                PostSet.add globals resolvedPost.post model.postViews
+                PostSet.add globals post model.postViews
         in
         ( { model | postViews = newPostComps }
-        , Cmd.batch [ cmd, Cmd.map (PostViewMsg (Post.id resolvedPost.post)) newCmd ]
+        , Cmd.batch [ cmd, Cmd.map (PostViewMsg (Post.id post)) newCmd ]
         )
 
     else
@@ -600,11 +605,7 @@ consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
     case event of
         Event.PostCreated resolvedPost ->
-            if isMemberPost globals.repo model resolvedPost.post then
-                ( enqueuePost resolvedPost model, Cmd.none )
-
-            else
-                ( model, Cmd.none )
+            ( enqueuePost globals.repo resolvedPost.post model, Cmd.none )
 
         Event.ReplyCreated reply ->
             let
@@ -643,34 +644,46 @@ consumeEvent globals event model =
                     ( model, Cmd.none )
 
         Event.PostsMarkedAsUnread resolvedPosts ->
-            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+            let
+                posts =
+                    List.map .post resolvedPosts
 
-            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+                newModel =
+                    List.foldr (enqueuePost globals.repo) model posts
+            in
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( newModel, Cmd.none ) posts
 
             else
-                ( model, Cmd.none )
+                ( newModel, Cmd.none )
 
         Event.PostsMarkedAsRead resolvedPosts ->
-            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+            let
+                posts =
+                    List.map .post resolvedPosts
 
-            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+                newModel =
+                    List.foldr (enqueuePost globals.repo) model posts
+            in
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
+                List.foldr (removePost globals) ( newModel, Cmd.none ) posts
 
             else
-                ( model, Cmd.none )
+                ( newModel, Cmd.none )
 
         Event.PostsDismissed resolvedPosts ->
-            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
-                List.foldr (removePost globals) ( model, Cmd.none ) (List.map .post resolvedPosts)
+            let
+                posts =
+                    List.map .post resolvedPosts
 
-            else if Route.Posts.getInboxState model.params == InboxStateFilter.Dismissed then
-                ( List.foldr enqueuePost model resolvedPosts, Cmd.none )
+                newModel =
+                    List.foldr (enqueuePost globals.repo) model posts
+            in
+            if Route.Posts.getInboxState model.params == InboxStateFilter.Undismissed then
+                List.foldr (removePost globals) ( newModel, Cmd.none ) posts
 
             else
-                ( model, Cmd.none )
+                ( newModel, Cmd.none )
 
         Event.PostDeleted post ->
             removePost globals post ( model, Cmd.none )
