@@ -3,6 +3,7 @@ module Event exposing (Event(..), decodeEvent)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Json.Decode as Decode
+import Notification exposing (Notification)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -47,6 +48,7 @@ type Event
     | ReplyDeleted Reply
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
+    | NotificationCreated Notification
     | Unknown Decode.Value
 
 
@@ -89,6 +91,7 @@ eventDecoder =
         , Decode.map PostsMarkedAsRead SpaceUserSubscription.postsMarkedAsReadDecoder
         , Decode.map PostsDismissed SpaceUserSubscription.postsDismissedDecoder
         , Decode.map RepliesViewed SpaceUserSubscription.repliesViewedDecoder
+        , Decode.map NotificationCreated SpaceUserSubscription.notificationCreatedDecoder
 
         -- GROUP EVENTS
         , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder

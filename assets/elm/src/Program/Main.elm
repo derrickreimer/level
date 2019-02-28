@@ -1552,6 +1552,9 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.NotificationCreated notification ->
+            ( model, Cmd.none )
+
         Event.Unknown payload ->
             ( model, Cmd.none )
 
