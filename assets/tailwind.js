@@ -443,6 +443,7 @@ module.exports = {
   width: {
     'auto': 'auto',
     'px': '1px',
+    '3px': '3px',
     '1': '0.25rem',
     '2': '0.5rem',
     '3': '0.75rem',
@@ -508,6 +509,7 @@ module.exports = {
     '10': '2.5rem',
     '12': '3rem',
     '16': '4rem',
+    '20': '5rem',
     '24': '6rem',
     '32': '8rem',
     '48': '12rem',
@@ -727,6 +729,7 @@ module.exports = {
     'lg': '0 15px 30px 0 rgba(0,0,0,0.11), 0 5px 15px 0 rgba(0,0,0,0.08)',
     'inner': 'inset 0 2px 4px 0 rgba(0,0,0,0.06)',
     'outline': '0 0 0 2px rgba(52,144,220,0.5)',
+    'white': '0 0 0 3px rgba(255,255,255,1)',
     'none': 'none',
   },
 

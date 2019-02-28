@@ -1116,7 +1116,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 125
 
                         Nothing ->
                             Cmd.none
@@ -1131,7 +1131,7 @@ consumeKeyboardEvent globals event model =
                 cmd =
                     case PostSet.selected newPostComps of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 115
+                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 125
 
                         Nothing ->
                             Cmd.none
@@ -1659,7 +1659,7 @@ filterTab device label linkParams currentParams =
     a
         [ Route.href (Route.Group linkParams)
         , classList
-            [ ( "flex-1 block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
+            [ ( "flex-1 -mb-px block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
             , ( "text-dusty-blue-dark", not isCurrent )
             , ( "border-blue text-blue", isCurrent )
             ]

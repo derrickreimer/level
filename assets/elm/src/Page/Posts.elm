@@ -1170,7 +1170,7 @@ filterTab device label linkParams currentParams =
     a
         [ Route.href (Route.Posts linkParams)
         , classList
-            [ ( "flex-1 block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
+            [ ( "flex-1 -mb-px block text-md py-3 px-4 border-b-3 border-transparent no-underline font-bold text-center", True )
             , ( "text-dusty-blue-dark", not isCurrent )
             , ( "border-blue text-blue", isCurrent )
             ]

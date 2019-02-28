@@ -335,7 +335,7 @@ resolvedView config replyView data =
         , classList [ ( "flex mt-2 text-md relative", True ) ]
         ]
         [ viewUnless (Reply.hasViewed reply) <|
-            div [ class "mr-2 -ml-3 mt-1 w-1 h-9 rounded pin-t bg-orange flex-no-shrink" ] []
+            div [ class "mr-2 -ml-3 mt-1 w-3px h-9 rounded pin-t bg-orange flex-no-shrink" ] []
         , div [ class "flex-no-shrink mr-3 z-10 pt-1" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small author) ]
         , div
             [ classList

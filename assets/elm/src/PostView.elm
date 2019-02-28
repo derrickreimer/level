@@ -849,9 +849,11 @@ view config postView =
 resolvedView : ViewConfig -> PostView -> Data -> Html Msg
 resolvedView config postView data =
     div [ id (postNodeId postView.id), class "flex relative" ]
-        [ viewIf (Post.inboxState data.post == Post.Unread) <|
+        [ viewIf config.isSelected <|
+            div [ class "absolute -ml-3 w-3px rounded pin-t h-20 bg-dusty-blue" ] []
+        , viewIf (Post.inboxState data.post == Post.Unread) <|
             div
-                [ class "tooltip tooltip-top mr-2 -ml-3 w-1 h-12 rounded pin-t bg-orange flex-no-shrink"
+                [ class "tooltip tooltip-top mr-2 -ml-3 w-3px h-12 rounded pin-t bg-orange flex-no-shrink shadow-white"
                 , attribute "data-tooltip" "Unread in your inbox"
                 ]
                 []
@@ -1185,9 +1187,9 @@ replyPromptView config postView data =
                 Post.Deleted ->
                     ( "", NoOp )
     in
-    if config.isSelected || not (ReplySet.isEmpty postView.replyViews) then
+    if not (ReplySet.isEmpty postView.replyViews) then
         button
-            [ classList [ ( "flex my-4 p-1 pr-4 -ml-1 mt-3 items-center text-md rounded-full", True ), ( "shadow-outline bg-grey-light", config.isSelected ) ]
+            [ classList [ ( "flex my-4 p-1 pr-4 -ml-1 mt-3 items-center text-md rounded-full", True ) ]
             , onClick msg
             ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]

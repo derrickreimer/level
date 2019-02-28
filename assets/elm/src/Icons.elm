@@ -80,7 +80,7 @@ checkSquare =
 chevronRight : Html msg
 chevronRight =
     iconView <|
-        svg [ width "7px", height "12px", viewBox "0 0 7 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "chevrons-right", transform "translate(1.000000, 1.000000)", stroke "#38C172", strokeWidth "2" ] [ polyline [ id "Path", points "0 10 5 5 0 0" ] [] ] ] ]
+        svg [ width "9px", height "16px", viewBox "0 0 9 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "chevrons-right", transform "translate(1.500000, 2.000000)", stroke "#4B73E1", strokeWidth "3" ] [ polyline [ id "Path", points "0 12 6 6 0 0" ] [] ] ] ]
 
 
 closedAvatar : Html msg
