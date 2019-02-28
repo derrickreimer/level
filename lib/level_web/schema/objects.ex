@@ -14,7 +14,9 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Notification
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SearchResult
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
@@ -779,15 +781,36 @@ defmodule LevelWeb.Schema.Objects do
     field :id, non_null(:id)
     field :topic, non_null(:string)
     field :state, non_null(:notification_state)
-    field :post, :post, resolve: notification_post_resolver()
+
+    field :reaction, :post_reaction do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        reaction_id = parent.data["post_reaction_id"]
+
+        loader
+        |> Dataloader.load(:db, PostReaction, reaction_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, PostReaction, reaction_id)}
+        end)
+      end
+    end
   end
 
   object :reply_reaction_created_notification do
     field :id, non_null(:id)
     field :topic, non_null(:string)
     field :state, non_null(:notification_state)
-    field :post, :post, resolve: notification_post_resolver()
-    field :reply, :reply, resolve: notification_reply_resolver()
+
+    field :reaction, :reply_reaction do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        reaction_id = parent.data["reply_reaction_id"]
+
+        loader
+        |> Dataloader.load(:db, ReplyReaction, reaction_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, ReplyReaction, reaction_id)}
+        end)
+      end
+    end
   end
 
   defp notification_post_resolver do

@@ -27,7 +27,9 @@ import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string)
 import Post exposing (Post)
+import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
+import ReplyReaction exposing (ReplyReaction)
 
 
 
@@ -50,8 +52,8 @@ type Event
     | PostClosed Id
     | PostReopened Id
     | ReplyCreated Id
-    | PostReactionCreated Id
-    | ReplyReactionCreated Id
+    | PostReactionCreated PostReaction
+    | ReplyReactionCreated ReplyReaction
 
 
 
@@ -96,15 +98,15 @@ fragment =
               ... on PostReactionCreatedNotification {
                 id
                 topic
-                post {
-                  ...PostFields
+                reaction {
+                  ...PostReactionFields
                 }
               }
               ... on ReplyReactionCreatedNotification {
                 id
                 topic
-                reply {
-                  ...ReplyFields
+                reaction {
+                  ...ReplyReactionFields
                 }
               }
             }
@@ -113,6 +115,8 @@ fragment =
     GraphQL.toFragment queryBody
         [ Post.fragment
         , Reply.fragment
+        , PostReaction.fragment
+        , ReplyReaction.fragment
         ]
 
 
@@ -153,11 +157,11 @@ eventDecoder =
 
                 "POST_REACTION_CREATED" ->
                     Decode.map PostReactionCreated <|
-                        Decode.at [ "post", "id" ] Id.decoder
+                        field "reaction" PostReaction.decoder
 
                 "REPLY_REACTION_CREATED" ->
                     Decode.map ReplyReactionCreated <|
-                        Decode.at [ "reply", "id" ] Id.decoder
+                        field "reaction" ReplyReaction.decoder
 
                 _ ->
                     Decode.fail "event not recognized"
