@@ -82,7 +82,7 @@
             <%= link "Privacy", to: page_path(@conn, :privacy), class: "mx-2 text-white no-underline" %>
             <%= link "SVG-to-Elm Tool", to: svg_to_elm_path(@conn, :index), class: "mx-2 text-white no-underline" %>
           </div>
-          <div class="opacity-75">&copy 2018 Level Technologies, LLC</span>
+          <div class="opacity-75">&copy <%= Timex.now().year %> Level Technologies, LLC</span>
         </div>
       </footer>
     </div>

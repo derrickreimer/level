@@ -235,6 +235,6 @@ In addition to a Heroku account, you'll need the following services to get your 
 
 ## Copyright
 
-&copy; 2018 Level Technologies, LLC
+&copy; 2019 Level Technologies, LLC
 
 Level is [source-available](https://en.wikipedia.org/wiki/Source-available_software) software. ([license](https://github.com/levelhq/level/blob/master/LICENSE.txt) | [readme](https://github.com/levelhq/level/blob/master/LICENSE-README.md))
