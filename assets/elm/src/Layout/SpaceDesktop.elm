@@ -52,10 +52,7 @@ layout config children =
             [ fullSidebar config
             , div [ class "ml-48 mr-16 xl:mx-48 relative" ] children
             ]
-        , div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
-            [ button [ class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg" ]
-                [ Icons.notification ]
-            ]
+        , rightmostSidebar config
         , div [ class "fixed pin-b pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
         , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
@@ -72,6 +69,23 @@ rightSidebar children =
         , style "right" "60px"
         ]
         children
+
+
+rightmostSidebar : Config msg -> Html msg
+rightmostSidebar config =
+    div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
+        [ button [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg" ]
+            [ Icons.notification Icons.Off
+            , div
+                [ class "absolute rounded-full bg-blue shadow-white pin-t pin-r"
+                , style "width" "10px"
+                , style "height" "10px"
+                , style "margin-right" "9px"
+                , style "margin-top" "3px"
+                ]
+                []
+            ]
+        ]
 
 
 keyboardCommandReference : Config msg -> Html msg
