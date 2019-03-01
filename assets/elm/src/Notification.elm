@@ -3,6 +3,7 @@ module Notification exposing
     , id
     , fragment
     , decoder
+    , withUndismissed
     )
 
 {-| A Notification represents activity that occurred in someone's Inbox.
@@ -26,6 +27,11 @@ module Notification exposing
 # Decoders
 
 @docs decoder
+
+
+# Filtering
+
+@docs withUndismissed
 
 -}
 
@@ -214,3 +220,12 @@ stateDecoder =
     in
     string
         |> Decode.andThen convert
+
+
+
+-- FILTERING
+
+
+withUndismissed : Notification -> Bool
+withUndismissed (Notification data) =
+    data.state == Undismissed

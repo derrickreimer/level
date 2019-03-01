@@ -19,6 +19,7 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
+import Notification
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -208,6 +209,13 @@ setup resp url model =
 
 buildGlobals : Model -> Globals
 buildGlobals model =
+    let
+        hasNotifications =
+            model.repo
+                |> Repo.getAllNotifications
+                |> List.filter Notification.withUndismissed
+                |> (not << List.isEmpty)
+    in
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
@@ -217,6 +225,7 @@ buildGlobals model =
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
     , showKeyboardCommands = model.showKeyboardCommands
+    , hasNotifications = hasNotifications
     }
 
 

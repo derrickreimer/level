@@ -19,4 +19,5 @@ type alias Globals =
     , pushStatus : PushStatus
     , currentRoute : Maybe Route
     , showKeyboardCommands : Bool
+    , hasNotifications : Bool
     }

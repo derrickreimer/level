@@ -77,7 +77,10 @@ rightmostSidebar config =
         [ button [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg" ]
             [ Icons.notification Icons.Off
             , div
-                [ class "absolute rounded-full bg-blue shadow-white pin-t pin-r"
+                [ classList
+                    [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
+                    , ( "opacity-100", config.globals.hasNotifications )
+                    ]
                 , style "width" "10px"
                 , style "height" "10px"
                 , style "margin-right" "9px"

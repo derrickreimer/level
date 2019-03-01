@@ -10,6 +10,7 @@ module Repo exposing
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
     , getNotification, setNotification
+    , getAllNotifications
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -447,3 +448,8 @@ setNotification notification (Repo data) =
                     notification
                     data.notifications
         }
+
+
+getAllNotifications : Repo -> List Notification
+getAllNotifications (Repo data) =
+    Dict.values data.notifications

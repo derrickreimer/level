@@ -800,6 +800,10 @@ a.user-mention:hover {
   transition: width 0.3s;
 }
 
+.transition-opacity {
+  transition: opacity 0.3s;
+}
+
 .focus-within-outline:focus-within {
   @apply bg-white;
   box-shadow: inset 0 0 0 2px config('colors.grey');
