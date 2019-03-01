@@ -120,6 +120,7 @@ type Msg
     | Submitted (Result Session.Error ( Session, CreateSpace.Response ))
     | NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -166,6 +167,9 @@ update msg globals navKey model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -259,6 +263,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.UserDesktop.layout config

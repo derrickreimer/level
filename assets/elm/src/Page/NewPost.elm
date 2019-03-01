@@ -149,6 +149,7 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | PostEditorEventReceived Decode.Value
     | NewPostBodyChanged String
     | NewPostFileAdded File
@@ -173,6 +174,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         PostEditorEventReceived value ->
             case PostEditor.decodeEvent value of
@@ -371,6 +375,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

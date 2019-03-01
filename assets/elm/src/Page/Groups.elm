@@ -152,6 +152,7 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | ToggleMembership Group
     | SubscribedToGroup (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribedFromGroup (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
@@ -173,6 +174,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         ToggleMembership group ->
             let
@@ -349,6 +353,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

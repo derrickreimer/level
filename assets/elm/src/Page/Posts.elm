@@ -223,6 +223,7 @@ isMemberPost repo model post =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | Tick Posix
     | LoadMoreClicked
     | PostsFetched Int (Result Session.Error ( Session, Posts.Response ))
@@ -260,6 +261,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
@@ -845,6 +849,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

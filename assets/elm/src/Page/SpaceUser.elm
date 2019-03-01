@@ -138,6 +138,7 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | TogglePermissionsModal
     | RevokeAccess
     | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
@@ -156,6 +157,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         TogglePermissionsModal ->
             case resolveData globals.repo model of
@@ -313,6 +317,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

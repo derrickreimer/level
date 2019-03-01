@@ -128,6 +128,7 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -142,6 +143,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -200,6 +204,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
 
         spaceUsers =

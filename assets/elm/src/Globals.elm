@@ -20,4 +20,5 @@ type alias Globals =
     , currentRoute : Maybe Route
     , showKeyboardCommands : Bool
     , hasNotifications : Bool
+    , showNotifications : Bool
     }

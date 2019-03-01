@@ -181,6 +181,7 @@ teardown model =
 
 type Msg
     = ToggleKeyboardCommands
+    | ToggleNotifications
     | SearchEditorChanged String
     | SearchSubmitted
     | Tick Posix
@@ -200,6 +201,9 @@ update msg globals model =
     case msg of
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
@@ -363,6 +367,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

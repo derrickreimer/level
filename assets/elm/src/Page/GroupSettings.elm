@@ -136,6 +136,7 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | UserToggled Id
     | PrivateGroupAccessRevoked Id (Result Session.Error ( Session, RevokePrivateGroupAccess.Response ))
     | PrivateGroupAccessGranted Id (Result Session.Error ( Session, GrantPrivateGroupAccess.Response ))
@@ -163,6 +164,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         UserToggled toggledId ->
             let
@@ -427,6 +431,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
     in
     Layout.SpaceDesktop.layout config

@@ -184,6 +184,7 @@ recordReplyViews globals model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
     | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -212,6 +213,9 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
 
         PostViewMsg postViewMsg ->
             let
@@ -499,6 +503,7 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
+            , onToggleNotifications = ToggleNotifications
             }
 
         postConfig =

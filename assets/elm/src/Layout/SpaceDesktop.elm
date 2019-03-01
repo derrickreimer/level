@@ -37,6 +37,7 @@ type alias Config msg =
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
     , onPageClicked : msg
+    , onToggleNotifications : msg
     }
 
 
@@ -74,7 +75,10 @@ rightSidebar children =
 rightmostSidebar : Config msg -> Html msg
 rightmostSidebar config =
     div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
-        [ button [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg" ]
+        [ button
+            [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , onClick config.onToggleNotifications
+            ]
             [ Icons.notification Icons.Off
             , div
                 [ classList

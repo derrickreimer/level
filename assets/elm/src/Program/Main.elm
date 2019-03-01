@@ -113,6 +113,7 @@ type alias Model =
     , flash : Flash
     , going : Bool
     , showKeyboardCommands : Bool
+    , showNotifications : Bool
     }
 
 
@@ -161,6 +162,7 @@ buildModel flags navKey =
         NotLoaded
         flags.timeZone
         Flash.init
+        False
         False
         False
 
@@ -226,6 +228,7 @@ buildGlobals model =
     , currentRoute = routeFor model.page
     , showKeyboardCommands = model.showKeyboardCommands
     , hasNotifications = hasNotifications
+    , showNotifications = model.showNotifications
     }
 
 
@@ -287,6 +290,7 @@ updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlo
         , page = toPage newPageModel
         , flash = newFlash
         , showKeyboardCommands = newGlobals.showKeyboardCommands
+        , showNotifications = newGlobals.showNotifications
       }
     , Cmd.batch
         [ Cmd.map toPageMsg pageCmd
