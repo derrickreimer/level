@@ -20,6 +20,7 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
 import Notification
+import NotificationSet exposing (NotificationSet)
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -114,6 +115,7 @@ type alias Model =
     , going : Bool
     , showKeyboardCommands : Bool
     , showNotifications : Bool
+    , notifications : NotificationSet
     }
 
 
@@ -165,6 +167,7 @@ buildModel flags navKey =
         False
         False
         False
+        NotificationSet.empty
 
 
 setup : MainInit.Response -> Url -> Model -> ( Model, Cmd Msg )
@@ -211,13 +214,6 @@ setup resp url model =
 
 buildGlobals : Model -> Globals
 buildGlobals model =
-    let
-        hasNotifications =
-            model.repo
-                |> Repo.getAllNotifications
-                |> List.filter Notification.withUndismissed
-                |> (not << List.isEmpty)
-    in
     { session = model.session
     , repo = model.repo
     , navKey = model.navKey
@@ -227,8 +223,8 @@ buildGlobals model =
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
     , showKeyboardCommands = model.showKeyboardCommands
-    , hasNotifications = hasNotifications
     , showNotifications = model.showNotifications
+    , notifications = model.notifications
     }
 
 
@@ -1567,7 +1563,14 @@ consumeEvent event ({ page } as model) =
             )
 
         Event.NotificationCreated resolvedNotification ->
-            ( { model | repo = ResolvedNotification.addToRepo resolvedNotification model.repo }
+            let
+                newNotifications =
+                    NotificationSet.add (Notification.id resolvedNotification.notification) model.notifications
+            in
+            ( { model
+                | notifications = newNotifications
+                , repo = ResolvedNotification.addToRepo resolvedNotification model.repo
+              }
             , Cmd.none
             )
 

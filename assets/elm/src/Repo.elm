@@ -9,8 +9,7 @@ module Repo exposing
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
-    , getNotification, setNotification
-    , getAllNotifications
+    , getNotification, getNotifications, setNotification, getAllNotifications
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -68,7 +67,7 @@ module Repo exposing
 
 # Notifications
 
-@docs getNotification, setNotification
+@docs getNotification, getNotifications, setNotification, getAllNotifications
 
 -}
 
@@ -436,6 +435,11 @@ getRepliesByPost postId maybeBefore maybeAfter (Repo data) =
 getNotification : Id -> Repo -> Maybe Notification
 getNotification id (Repo data) =
     Dict.get id data.notifications
+
+
+getNotifications : List Id -> Repo -> List Notification
+getNotifications ids repo =
+    List.filterMap (\id -> getNotification id repo) ids
 
 
 setNotification : Notification -> Repo -> Repo

@@ -99,7 +99,39 @@ addToRepo resolvedNotification repo =
 
 resolve : Repo -> Id -> Maybe ResolvedNotification
 resolve repo id =
-    Nothing
+    case Repo.getNotification id repo of
+        Just notification ->
+            let
+                maybeEvent =
+                    case Notification.event notification of
+                        Notification.PostCreated postId ->
+                            Maybe.map PostCreated <|
+                                ResolvedPost.resolve repo postId
+
+                        Notification.PostClosed postId ->
+                            Maybe.map PostClosed <|
+                                ResolvedPost.resolve repo postId
+
+                        Notification.PostReopened postId ->
+                            Maybe.map PostReopened <|
+                                ResolvedPost.resolve repo postId
+
+                        Notification.ReplyCreated replyId ->
+                            Maybe.map ReplyCreated <|
+                                ResolvedReply.resolve repo replyId
+
+                        Notification.PostReactionCreated postReaction ->
+                            Just <| PostReactionCreated postReaction
+
+                        Notification.ReplyReactionCreated replyReaction ->
+                            Just <| ReplyReactionCreated replyReaction
+            in
+            Maybe.map2 ResolvedNotification
+                (Just notification)
+                maybeEvent
+
+        Nothing ->
+            Nothing
 
 
 unresolve : ResolvedNotification -> Id
