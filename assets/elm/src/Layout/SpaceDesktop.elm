@@ -54,6 +54,17 @@ layout config children =
             , div [ class "ml-48 mr-16 xl:mx-48 relative" ] children
             ]
         , rightmostSidebar config
+        , viewIf config.globals.showNotifications <|
+            div [ class "fixed overflow-y-auto pin-t pin-b pin-r w-80 bg-white shadow-lg z-50" ]
+                [ div [ class "flex items-center p-3 pl-6" ]
+                    [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
+                    , button
+                        [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                        , onClick config.onToggleNotifications
+                        ]
+                        [ Icons.ex ]
+                    ]
+                ]
         , div [ class "fixed pin-b pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
         , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
