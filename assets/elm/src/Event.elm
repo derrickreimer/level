@@ -3,9 +3,9 @@ module Event exposing (Event(..), decodeEvent)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Json.Decode as Decode
-import Notification exposing (Notification)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedNotification exposing (ResolvedNotification)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import ResolvedSpace exposing (ResolvedSpace)
 import Space exposing (Space)
@@ -48,7 +48,7 @@ type Event
     | ReplyDeleted Reply
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
-    | NotificationCreated Notification
+    | NotificationCreated ResolvedNotification
     | Unknown Decode.Value
 
 

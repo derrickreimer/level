@@ -1,5 +1,6 @@
 module Notification exposing
     ( Notification, Event(..)
+    , id
     , fragment
     , decoder
     )
@@ -10,6 +11,11 @@ module Notification exposing
 # Types
 
 @docs Notification, Event
+
+
+# API
+
+@docs id
 
 
 # GraphQL
@@ -43,6 +49,7 @@ type Notification
 type alias Data =
     { id : Id
     , topic : String
+    , state : State
     , event : Event
     }
 
@@ -54,6 +61,20 @@ type Event
     | ReplyCreated Id
     | PostReactionCreated PostReaction
     | ReplyReactionCreated ReplyReaction
+
+
+type State
+    = Undismissed
+    | Dismissed
+
+
+
+-- API
+
+
+id : Notification -> Id
+id (Notification data) =
+    data.id
 
 
 
@@ -70,6 +91,7 @@ fragment =
               ... on PostCreatedNotification {
                 id
                 topic
+                state
                 post {
                   ...PostFields
                 }
@@ -77,6 +99,7 @@ fragment =
               ... on PostClosedNotification {
                 id
                 topic
+                state
                 post {
                   ...PostFields
                 }
@@ -84,6 +107,7 @@ fragment =
               ... on PostReopenedNotification {
                 id
                 topic
+                state
                 post {
                   ...PostFields
                 }
@@ -91,6 +115,7 @@ fragment =
               ... on ReplyCreatedNotification {
                 id
                 topic
+                state
                 reply {
                   ...ReplyFields
                 }
@@ -98,6 +123,7 @@ fragment =
               ... on PostReactionCreatedNotification {
                 id
                 topic
+                state
                 reaction {
                   ...PostReactionFields
                 }
@@ -105,6 +131,7 @@ fragment =
               ... on ReplyReactionCreatedNotification {
                 id
                 topic
+                state
                 reaction {
                   ...ReplyReactionFields
                 }
@@ -127,9 +154,10 @@ fragment =
 decoder : Decoder Notification
 decoder =
     Decode.map Notification <|
-        Decode.map3 Data
+        Decode.map4 Data
             (field "id" Id.decoder)
             (field "topic" string)
+            (field "state" stateDecoder)
             eventDecoder
 
 
@@ -139,27 +167,27 @@ eventDecoder =
         decodeByTypename : String -> Decoder Event
         decodeByTypename typename =
             case typename of
-                "POST_CREATED" ->
+                "PostCreatedNotification" ->
                     Decode.map PostCreated <|
                         Decode.at [ "post", "id" ] Id.decoder
 
-                "POST_CLOSED" ->
+                "PostClosedNotification" ->
                     Decode.map PostClosed <|
                         Decode.at [ "post", "id" ] Id.decoder
 
-                "POST_REOPENED" ->
+                "PostReopenedNotification" ->
                     Decode.map PostReopened <|
                         Decode.at [ "post", "id" ] Id.decoder
 
-                "REPLY_CREATED" ->
+                "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated <|
                         Decode.at [ "reply", "id" ] Id.decoder
 
-                "POST_REACTION_CREATED" ->
+                "PostReactionCreatedNotification" ->
                     Decode.map PostReactionCreated <|
                         field "reaction" PostReaction.decoder
 
-                "REPLY_REACTION_CREATED" ->
+                "ReplyReactionCreatedNotification" ->
                     Decode.map ReplyReactionCreated <|
                         field "reaction" ReplyReaction.decoder
 
@@ -168,3 +196,21 @@ eventDecoder =
     in
     Decode.field "__typename" string
         |> Decode.andThen decodeByTypename
+
+
+stateDecoder : Decoder State
+stateDecoder =
+    let
+        convert state =
+            case state of
+                "UNDISMISSED" ->
+                    Decode.succeed Undismissed
+
+                "DISMISSED" ->
+                    Decode.succeed Dismissed
+
+                _ ->
+                    Decode.fail "notification state not recognized"
+    in
+    string
+        |> Decode.andThen convert

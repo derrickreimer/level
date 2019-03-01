@@ -5,9 +5,10 @@ import GraphQL exposing (Document)
 import Group exposing (Group)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Notification exposing (Notification)
+import Notification
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedNotification exposing (ResolvedNotification)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Socket
 import Subscription
@@ -207,12 +208,12 @@ repliesViewedDecoder =
         (Decode.list Reply.decoder)
 
 
-notificationCreatedDecoder : Decode.Decoder Notification
+notificationCreatedDecoder : Decode.Decoder ResolvedNotification
 notificationCreatedDecoder =
     Subscription.decoder "spaceUser"
         "NotificationCreated"
         "notification"
-        Notification.decoder
+        ResolvedNotification.decoder
 
 
 

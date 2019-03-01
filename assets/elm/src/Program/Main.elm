@@ -45,6 +45,7 @@ import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
+import ResolvedNotification
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import ResolvedSpace exposing (ResolvedSpace)
 import Response exposing (Response)
@@ -1552,8 +1553,10 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.NotificationCreated notification ->
-            ( model, Cmd.none )
+        Event.NotificationCreated resolvedNotification ->
+            ( { model | repo = ResolvedNotification.addToRepo resolvedNotification model.repo }
+            , Cmd.none
+            )
 
         Event.Unknown payload ->
             ( model, Cmd.none )
