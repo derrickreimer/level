@@ -1,5 +1,6 @@
 module Page.InviteUsers exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Browser.Navigation as Nav
 import Clipboard
 import Device exposing (Device)
 import Event exposing (Event)
@@ -116,6 +117,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | LinkCopied
     | LinkCopyFailed
     | ScrollTopClicked
@@ -132,6 +134,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         LinkCopied ->
             let
@@ -204,6 +209,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

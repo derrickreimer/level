@@ -136,6 +136,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | NameChanged String
     | DefaultToggled
     | Submit
@@ -157,6 +158,9 @@ update msg globals navKey model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NameChanged val ->
             let
@@ -265,6 +269,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

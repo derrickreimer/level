@@ -1,6 +1,7 @@
 module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Device exposing (Device)
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
@@ -137,6 +138,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | NameChanged String
     | SlugChanged String
     | Submit
@@ -165,6 +167,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NameChanged val ->
             noCmd globals { model | name = val }
@@ -387,6 +392,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

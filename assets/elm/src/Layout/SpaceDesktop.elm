@@ -11,7 +11,9 @@ import Icons
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import NotificationSet exposing (NotificationSet)
+import NotificationView
 import Repo exposing (Repo)
+import ResolvedNotification exposing (ResolvedNotification)
 import Route exposing (Route)
 import Route.Apps
 import Route.Group
@@ -39,6 +41,7 @@ type alias Config msg =
     , onToggleKeyboardCommands : msg
     , onPageClicked : msg
     , onToggleNotifications : msg
+    , onInternalLinkClicked : String -> msg
     }
 
 
@@ -99,16 +102,15 @@ rightmostSidebar config =
 
 notificationPanel : Config msg -> Html msg
 notificationPanel config =
-    div [ class "fixed overflow-y-auto pin-t pin-b pin-r w-80 bg-white shadow-lg z-50" ]
-        [ div [ class "flex items-center p-3 pl-6" ]
-            [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
-            , button
-                [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
-                , onClick config.onToggleNotifications
-                ]
-                [ Icons.ex ]
-            ]
-        ]
+    let
+        panelConfig =
+            { onInternalLinkClicked = config.onInternalLinkClicked
+            , onToggleNotifications = config.onToggleNotifications
+            }
+    in
+    config.globals.notifications
+        |> NotificationSet.resolve config.globals.repo
+        |> NotificationView.panelView panelConfig
 
 
 keyboardCommandReference : Config msg -> Html msg

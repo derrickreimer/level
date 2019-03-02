@@ -170,6 +170,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | BackUp
     | Advance
     | SkipClicked
@@ -193,6 +194,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         BackUp ->
             backUp globals model
@@ -365,6 +369,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

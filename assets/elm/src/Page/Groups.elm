@@ -1,5 +1,6 @@
 module Page.Groups exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
+import Browser.Navigation as Nav
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
@@ -153,6 +154,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | ToggleMembership Group
     | SubscribedToGroup (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribedFromGroup (Result Session.Error ( Session, UnsubscribeFromGroup.Response ))
@@ -177,6 +179,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         ToggleMembership group ->
             let
@@ -354,6 +359,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

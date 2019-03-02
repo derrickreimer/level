@@ -1,6 +1,7 @@
 module Page.Posts exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
+import Browser.Navigation as Nav
 import Connection
 import Device exposing (Device)
 import Event exposing (Event)
@@ -224,6 +225,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | Tick Posix
     | LoadMoreClicked
     | PostsFetched Int (Result Session.Error ( Session, Posts.Response ))
@@ -264,6 +266,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
@@ -850,6 +855,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

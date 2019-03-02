@@ -121,6 +121,7 @@ type Msg
     | NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -170,6 +171,9 @@ update msg globals navKey model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
@@ -264,6 +268,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.UserDesktop.layout config

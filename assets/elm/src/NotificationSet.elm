@@ -1,7 +1,7 @@
 module NotificationSet exposing
     ( NotificationSet, State(..)
     , empty, load, isLoaded, setLoaded
-    , add, hasUndismissed, mapResolved
+    , add, hasUndismissed, resolve
     )
 
 {-| A NotificationSet represents a list of notifications.
@@ -19,7 +19,7 @@ module NotificationSet exposing
 
 # Operations
 
-@docs add, hasUndismissed, mapResolved
+@docs add, hasUndismissed, resolve
 
 -}
 
@@ -90,8 +90,7 @@ hasUndismissed repo (NotificationSet internal) =
         |> (not << List.isEmpty)
 
 
-mapResolved : Repo -> (ResolvedNotification -> a) -> NotificationSet -> List a
-mapResolved repo fn (NotificationSet internal) =
+resolve : Repo -> NotificationSet -> List ResolvedNotification
+resolve repo (NotificationSet internal) =
     internal.ids
         |> List.filterMap (ResolvedNotification.resolve repo)
-        |> List.map fn

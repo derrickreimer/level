@@ -185,6 +185,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
@@ -216,6 +217,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         PostViewMsg postViewMsg ->
             let
@@ -504,6 +508,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
 
         postConfig =

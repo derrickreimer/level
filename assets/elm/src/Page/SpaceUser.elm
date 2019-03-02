@@ -1,6 +1,7 @@
 module Page.SpaceUser exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Device exposing (Device)
 import Event exposing (Event)
 import Flash
@@ -139,6 +140,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | ToggleNotifications
+    | InternalLinkClicked String
     | TogglePermissionsModal
     | RevokeAccess
     | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
@@ -160,6 +162,9 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         TogglePermissionsModal ->
             case resolveData globals.repo model of
@@ -318,6 +323,7 @@ resolvedDesktopView globals model data =
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
             , onToggleNotifications = ToggleNotifications
+            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config
