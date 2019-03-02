@@ -1373,8 +1373,20 @@ nameErrors editor =
 
 controlsView : Model -> Html Msg
 controlsView model =
+    let
+        settingsParams =
+            Route.GroupSettings.init
+                (Route.Group.getSpaceSlug model.params)
+                (Route.Group.getGroupName model.params)
+                Route.GroupSettings.General
+    in
     div [ class "flex flex-grow justify-end" ]
         [ searchEditorView model.searchEditor
+        , a
+            [ Route.href (Route.GroupSettings settingsParams)
+            , class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            ]
+            [ Icons.settings ]
         ]
 
 
@@ -1688,13 +1700,6 @@ bookmarkButtonView isBookmarked =
 
 sidebarView : Space -> Group -> Lazy (List SpaceUser) -> Model -> List (Html Msg)
 sidebarView space group featuredMembers model =
-    let
-        settingsParams =
-            Route.GroupSettings.init
-                (Route.Group.getSpaceSlug model.params)
-                (Route.Group.getGroupName model.params)
-                Route.GroupSettings.General
-    in
     [ h3 [ class "flex items-baseline mb-2 text-base font-bold" ]
         [ span [ class "mr-2" ] [ text "Subscribers" ]
         , viewIf (Group.isPrivate group) <|
@@ -1721,13 +1726,6 @@ sidebarView space group featuredMembers model =
                 ]
         , li []
             [ subscribeButtonView (Group.membershipState group)
-            ]
-        , li []
-            [ a
-                [ Route.href (Route.GroupSettings settingsParams)
-                , class "text-md text-dusty-blue no-underline font-bold"
-                ]
-                [ text "Settings" ]
             ]
         ]
     ]
