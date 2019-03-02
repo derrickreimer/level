@@ -20,12 +20,12 @@ type alias Config msg =
 view : Config msg -> Html msg
 view config =
     if FieldEditor.isExpanded config.editor then
-        label [ class "flex items-center py-2 px-3 rounded-full bg-grey-light focus-within-outline" ]
+        label [ class "flex items-center h-9 px-3 rounded-full bg-grey-light focus-within-outline" ]
             [ div [ class "mr-2" ] [ Icons.search ]
             , input
                 [ id (FieldEditor.getNodeId config.editor)
                 , type_ "text"
-                , class "bg-transparent text-sm text-dusty-blue-dark no-outline"
+                , class "bg-transparent text-base text-dusty-blue-dark no-outline"
                 , value (FieldEditor.getValue config.editor)
                 , readonly (FieldEditor.isSubmitting config.editor)
                 , onInput config.changeMsg
@@ -39,7 +39,7 @@ view config =
 
     else
         button
-            [ class "px-3 py-2"
+            [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             , rel "tooltip"
             , Html.Attributes.title "Search"
             , onClick config.expandMsg

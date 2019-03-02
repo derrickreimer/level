@@ -1276,7 +1276,7 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "56px" ]
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "60px" ]
                 [ div [ class "flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params

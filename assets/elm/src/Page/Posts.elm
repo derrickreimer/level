@@ -853,10 +853,11 @@ resolvedDesktopView globals model data =
                     [ h2 [ class "flex-no-shrink" ]
                         [ span [ class "font-bold text-2xl" ] [ text "Home" ]
                         ]
+                    , controlsView model
                     ]
                 ]
             , desktopPostComposerView globals model data
-            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "56px" ]
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "60px" ]
                 [ div [ class "flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params
