@@ -47,7 +47,7 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised" ]
         [ spacesSidebar config
-        , div [ class "mx-auto max-w-4xl pl-16 xl:px-24" ]
+        , div [ class "mx-auto pl-16 xl:px-24" ]
             [ fullSidebar config
             , div [ class "ml-48 xl:mx-48 relative" ] children
             ]
