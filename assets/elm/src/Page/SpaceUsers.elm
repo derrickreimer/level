@@ -199,6 +199,7 @@ resolvedDesktopView globals model data =
             , spaceUser = data.viewer
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
+            , onPageClicked = NoOp
             }
 
         spaceUsers =

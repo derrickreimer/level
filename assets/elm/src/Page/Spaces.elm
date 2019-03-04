@@ -177,6 +177,7 @@ resolvedDesktopView globals model data =
             , viewer = data.viewer
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
+            , onPageClicked = NoOp
             }
 
         spaces =

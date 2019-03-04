@@ -258,6 +258,7 @@ resolvedDesktopView globals model data =
             , viewer = data.viewer
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
+            , onPageClicked = NoOp
             }
     in
     Layout.UserDesktop.layout config

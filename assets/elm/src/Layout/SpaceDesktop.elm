@@ -36,6 +36,7 @@ type alias Config msg =
     , spaceUser : SpaceUser
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
+    , onPageClicked : msg
     }
 
 
@@ -45,7 +46,7 @@ type alias Config msg =
 
 layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
-    div [ class "font-sans font-antialised" ]
+    div [ class "font-sans font-antialised", onClick config.onPageClicked ]
         [ spacesSidebar config
         , div [ class "mx-auto pl-16 xl:px-24" ]
             [ fullSidebar config

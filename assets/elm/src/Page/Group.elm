@@ -84,8 +84,8 @@ type alias Model =
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
-    , isWatching : Bool
-    , isTogglingWatching : Bool
+    , isChangingSubscription : Bool
+    , isSubscriptionDropdownOpen : Bool
 
     -- MOBILE
     , showNav : Bool
@@ -196,7 +196,7 @@ scaffold globals params viewer space group now =
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ Group.id group))
                 (FieldEditor.init "search-editor" "")
-                (Group.isWatching group)
+                False
                 False
                 False
                 False
@@ -276,6 +276,7 @@ type Msg
     = NoOp
     | ToggleKeyboardCommands
     | Tick Posix
+    | PageClicked
     | LoadMoreClicked
     | PostsFetched Params Int (Result Session.Error ( Session, GroupPosts.Response ))
     | PostEditorEventReceived Decode.Value
@@ -287,7 +288,7 @@ type Msg
     | ToggleUrgent
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
-    | ToggleWatching
+    | SubscriptionDropdownToggled
     | SubscribeClicked
     | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribeClicked
@@ -339,6 +340,9 @@ update msg globals model =
 
         Tick posix ->
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
+
+        PageClicked ->
+            ( ( { model | isSubscriptionDropdownOpen = False }, Cmd.none ), globals )
 
         LoadMoreClicked ->
             let
@@ -504,20 +508,8 @@ update msg globals model =
             { model | postComposer = PostEditor.setNotSubmitting model.postComposer }
                 |> noCmd globals
 
-        ToggleWatching ->
-            let
-                cmd =
-                    if model.isWatching then
-                        globals.session
-                            |> SubscribeToGroup.request model.spaceId model.groupId
-                            |> Task.attempt Subscribed
-
-                    else
-                        globals.session
-                            |> WatchGroup.request model.spaceId model.groupId
-                            |> Task.attempt Watched
-            in
-            ( ( { model | isWatching = not model.isWatching, isTogglingWatching = True }, cmd ), globals )
+        SubscriptionDropdownToggled ->
+            ( ( { model | isSubscriptionDropdownOpen = not model.isSubscriptionDropdownOpen }, Cmd.none ), globals )
 
         SubscribeClicked ->
             let
@@ -526,7 +518,7 @@ update msg globals model =
                         |> SubscribeToGroup.request model.spaceId model.groupId
                         |> Task.attempt Subscribed
             in
-            ( ( model, cmd ), globals )
+            ( ( { model | isChangingSubscription = True, isSubscriptionDropdownOpen = False }, cmd ), globals )
 
         Subscribed (Ok ( newSession, SubscribeToGroup.Success group )) ->
             let
@@ -534,7 +526,7 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( { model | isWatching = False, isTogglingWatching = False }, Cmd.none )
+            ( ( { model | isChangingSubscription = False }, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -554,7 +546,7 @@ update msg globals model =
                         |> UnsubscribeFromGroup.request model.spaceId model.groupId
                         |> Task.attempt Unsubscribed
             in
-            ( ( { model | isWatching = False, isTogglingWatching = False }, cmd ), globals )
+            ( ( { model | isChangingSubscription = True, isSubscriptionDropdownOpen = False }, cmd ), globals )
 
         Unsubscribed (Ok ( newSession, UnsubscribeFromGroup.Success group )) ->
             let
@@ -562,7 +554,7 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( { model | isWatching = False, isTogglingWatching = False }, Cmd.none )
+            ( ( { model | isChangingSubscription = False }, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -582,7 +574,7 @@ update msg globals model =
                         |> WatchGroup.request model.spaceId model.groupId
                         |> Task.attempt Watched
             in
-            ( ( { model | isWatching = True, isTogglingWatching = True }, cmd ), globals )
+            ( ( { model | isChangingSubscription = True, isSubscriptionDropdownOpen = False }, cmd ), globals )
 
         Watched (Ok ( newSession, WatchGroup.Success group )) ->
             let
@@ -590,7 +582,7 @@ update msg globals model =
                     globals.repo
                         |> Repo.setGroup group
             in
-            ( ( { model | isWatching = True, isTogglingWatching = False }, Cmd.none )
+            ( ( { model | isChangingSubscription = False }, Cmd.none )
             , { globals | session = newSession, repo = newRepo }
             )
 
@@ -1202,6 +1194,9 @@ consumeKeyboardEvent globals event model =
         ( "c", [] ) ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
 
+        ( "Escape", [] ) ->
+            ( ( { model | isSubscriptionDropdownOpen = False }, Cmd.none ), globals )
+
         _ ->
             ( ( model, Cmd.none ), globals )
 
@@ -1255,6 +1250,7 @@ resolvedDesktopView globals model data =
             , spaceUser = data.viewer
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
+            , onPageClicked = PageClicked
             }
     in
     Layout.SpaceDesktop.layout config
@@ -1262,9 +1258,14 @@ resolvedDesktopView globals model data =
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-3 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
-                    , viewIf False <| bookmarkButtonView (Group.isBookmarked data.group)
+                    , viewIf (Group.isPrivate data.group) <|
+                        div
+                            [ class "tooltip tooltip-bottom ml-2"
+                            , attribute "data-tooltip" "This channel is private"
+                            ]
+                            [ Icons.lockLarge ]
                     , nameErrors model.nameEditor
-                    , controlsView model
+                    , controlsView model data
                     ]
                 ]
             , viewIf (Group.state data.group == Group.Open) <|
@@ -1371,8 +1372,8 @@ nameErrors editor =
             text ""
 
 
-controlsView : Model -> Html Msg
-controlsView model =
+controlsView : Model -> Data -> Html Msg
+controlsView model data =
     let
         settingsParams =
             Route.GroupSettings.init
@@ -1381,24 +1382,89 @@ controlsView model =
                 Route.GroupSettings.General
     in
     div [ class "flex flex-grow justify-end" ]
-        [ searchEditorView model.searchEditor
+        [ subscriptionDropdown model data
+        , View.SearchBox.view
+            { editor = model.searchEditor
+            , changeMsg = SearchEditorChanged
+            , expandMsg = ExpandSearchEditor
+            , collapseMsg = CollapseSearchEditor
+            , submitMsg = SearchSubmitted
+            }
         , a
             [ Route.href (Route.GroupSettings settingsParams)
-            , class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , class "ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             ]
             [ Icons.settings ]
         ]
 
 
-searchEditorView : FieldEditor String -> Html Msg
-searchEditorView editor =
-    View.SearchBox.view
-        { editor = editor
-        , changeMsg = SearchEditorChanged
-        , expandMsg = ExpandSearchEditor
-        , collapseMsg = CollapseSearchEditor
-        , submitMsg = SearchSubmitted
-        }
+subscriptionDropdown : Model -> Data -> Html Msg
+subscriptionDropdown model data =
+    let
+        currentState =
+            Group.membershipState data.group
+
+        buttonText =
+            case currentState of
+                GroupMembership.NotSubscribed ->
+                    "Not Subscribed"
+
+                GroupMembership.Subscribed ->
+                    "Subscribed"
+
+                GroupMembership.Watching ->
+                    "Watching"
+
+        currentItem headline description =
+            div [ class "flex w-full p-3 border-b text-left bg-grey-light last-child:border-none" ]
+                [ div [ class "flex-no-shrink w-9 mt-1 pl-1" ] [ Icons.check ]
+                , div [ class "flex-grow" ]
+                    [ h3 [ class "pb-1 font-sans text-base text-dusty-blue-darker" ] [ text headline ]
+                    , p [ class "text-dusty-blue-dark text-sm leading-normal" ] [ text description ]
+                    ]
+                ]
+
+        transitionButton clickMsg headline description =
+            button [ class "flex w-full p-3 border-b text-left hover:bg-grey-lighter last-child:border-none", onClick clickMsg ]
+                [ div [ class "flex-no-shrink w-9" ] []
+                , div [ class "flex-grow" ]
+                    [ h3 [ class "pb-1 font-sans text-base text-dusty-blue-darker" ] [ text headline ]
+                    , p [ class "text-dusty-blue-dark text-sm leading-normal" ] [ text description ]
+                    ]
+                ]
+    in
+    div [ class "relative", stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed NoOp)) ]
+        [ button
+            [ classList
+                [ ( "flex items-center justify-center px-4 h-9 rounded-full", True )
+                , ( "bg-transparent hover:bg-grey transition-bg", True )
+                , ( "text-dusty-blue hover:text-dusty-blue-dark text-md font-bold", True )
+                ]
+            , onClick SubscriptionDropdownToggled
+            , disabled model.isChangingSubscription
+            ]
+            [ text buttonText
+            ]
+        , div
+            [ classList
+                [ ( "absolute bg-white mt-1 pin-r w-80 shadow-dropdown rounded-lg z-50 overflow-hidden", True )
+                , ( "hidden", not model.isSubscriptionDropdownOpen )
+                ]
+            ]
+            [ viewIf (currentState == GroupMembership.NotSubscribed) <|
+                currentItem "Not Subscribed" "Posts do not appear in your Home timelime."
+            , viewIf (currentState /= GroupMembership.NotSubscribed) <|
+                transitionButton UnsubscribeClicked "Unsubscribe" "Posts will not appear in your Home timelime."
+            , viewIf (currentState == GroupMembership.Subscribed) <|
+                currentItem "Subscribed" "Posts appear in your Home timelime."
+            , viewIf (currentState /= GroupMembership.Subscribed) <|
+                transitionButton SubscribeClicked "Subscribe" "Posts will appear in your Home timelime."
+            , viewIf (currentState == GroupMembership.Watching) <|
+                currentItem "Watching" "Posts appear in your Home timelime and in your Inbox (regardless of whether you are @-mentioned)."
+            , viewIf (currentState /= GroupMembership.Watching) <|
+                transitionButton WatchClicked "Watch" "Posts will appear in your Home timelime and in your Inbox (regardless of whether you are @-mentioned)."
+            ]
+        ]
 
 
 desktopFlushQueueButton : Model -> Html Msg
@@ -1706,28 +1772,6 @@ sidebarView space group featuredMembers model =
             div [ class "tooltip tooltip-bottom font-sans", attribute "data-tooltip" "This channel is private" ] [ Icons.lock ]
         ]
     , memberListView space featuredMembers
-    , ul [ class "list-reset leading-normal" ]
-        [ viewUnless (Group.membershipState group == GroupMembership.NotSubscribed) <|
-            li [ class "flex mb-3" ]
-                [ label
-                    [ class "control checkbox tooltip tooltip-bottom tooltip-wide"
-                    , attribute "data-tooltip" "By default, only posts where you are @mentioned go to your Inbox"
-                    ]
-                    [ input
-                        [ type_ "checkbox"
-                        , class "checkbox"
-                        , onClick ToggleWatching
-                        , checked model.isWatching
-                        ]
-                        []
-                    , span [ class "control-indicator w-4 h-4 mr-2 border" ] []
-                    , span [ class "select-none text-md text-dusty-blue-dark" ] [ text "Send all to Inbox" ]
-                    ]
-                ]
-        , li []
-            [ subscribeButtonView (Group.membershipState group)
-            ]
-        ]
     ]
 
 
@@ -1798,3 +1842,8 @@ feedParams params =
     params
         |> Route.Group.clearFilters
         |> Route.Group.setState PostStateFilter.All
+
+
+alwaysStopPropagation : msg -> ( msg, Bool )
+alwaysStopPropagation msg =
+    ( msg, True )
