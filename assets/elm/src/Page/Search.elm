@@ -216,7 +216,7 @@ update msg globals model =
                 searchParams =
                     Route.Search.init
                         (Route.Search.getSpaceSlug model.params)
-                        (FieldEditor.getValue newQueryEditor)
+                        (Just <| FieldEditor.getValue newQueryEditor)
 
                 cmd =
                     Route.pushUrl globals.navKey (Route.Search searchParams)
@@ -420,7 +420,7 @@ resolvedMobileView globals model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , leftControl = Layout.SpaceMobile.ShowNav
+            , leftControl = Layout.SpaceMobile.Back (Route.Root (Route.Search.getSpaceSlug model.params))
             , rightControl = Layout.SpaceMobile.NoControl
             }
     in
@@ -467,7 +467,7 @@ resultsView : Repo -> Params -> TimeWithZone -> Data -> Html Msg
 resultsView repo params now data =
     case data.resolvedSearchResults of
         Loaded resolvedSearchResults ->
-            if List.isEmpty resolvedSearchResults then
+            if List.isEmpty resolvedSearchResults && Route.Search.getQuery params /= Nothing then
                 div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
                     [ text "This search turned up no results!" ]
 

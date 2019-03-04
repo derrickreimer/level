@@ -351,7 +351,7 @@ update msg globals model =
                 searchParams =
                     Route.Search.init
                         (Route.Posts.getSpaceSlug model.params)
-                        (FieldEditor.getValue newSearchEditor)
+                        (Just <| FieldEditor.getValue newSearchEditor)
 
                 cmd =
                     Route.pushUrl globals.navKey (Route.Search searchParams)
@@ -1073,7 +1073,15 @@ resolvedMobileView globals model data =
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
             , leftControl = Layout.SpaceMobile.ShowNav
-            , rightControl = Layout.SpaceMobile.NoControl
+            , rightControl =
+                Layout.SpaceMobile.Custom <|
+                    a
+                        [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+                        , rel "tooltip"
+                        , Html.Attributes.title "Search"
+                        , Route.href (Route.Search <| Route.Search.init (Route.Posts.getSpaceSlug model.params) Nothing)
+                        ]
+                        [ Icons.search ]
             }
     in
     Layout.SpaceMobile.layout config

@@ -814,7 +814,7 @@ update msg globals model =
                 searchParams =
                     Route.Search.init
                         (Route.Group.getSpaceSlug model.params)
-                        (FieldEditor.getValue newSearchEditor)
+                        (Just <| FieldEditor.getValue newSearchEditor)
 
                 cmd =
                     Route.pushUrl globals.navKey (Route.Search searchParams)
