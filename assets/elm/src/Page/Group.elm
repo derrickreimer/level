@@ -3,6 +3,7 @@ module Page.Group exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, 
 import Avatar exposing (personAvatar)
 import Connection exposing (Connection)
 import Device exposing (Device)
+import Element
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import File exposing (File)
@@ -1433,12 +1434,13 @@ subscriptionDropdown model data =
                     ]
                 ]
     in
-    div [ class "relative", stopPropagationOn "click" (Decode.map alwaysStopPropagation (Decode.succeed NoOp)) ]
+    Element.dropdown NoOp
         [ button
             [ classList
-                [ ( "flex items-center justify-center px-4 h-9 rounded-full", True )
-                , ( "bg-transparent hover:bg-grey transition-bg", True )
+                [ ( "flex items-center justify-center px-4 h-9 rounded-full no-outline", True )
                 , ( "text-dusty-blue hover:text-dusty-blue-dark text-md font-bold", True )
+                , ( "bg-transparent hover:bg-grey transition-bg", not model.isSubscriptionDropdownOpen )
+                , ( "bg-grey", model.isSubscriptionDropdownOpen )
                 ]
             , onClick SubscriptionDropdownToggled
             , disabled model.isChangingSubscription
@@ -1800,31 +1802,6 @@ memberItemView space user =
         ]
 
 
-subscribeButtonView : GroupMembershipState -> Html Msg
-subscribeButtonView state =
-    case state of
-        GroupMembership.NotSubscribed ->
-            button
-                [ class "text-md text-dusty-blue no-underline font-bold"
-                , onClick SubscribeClicked
-                ]
-                [ text "Subscribe" ]
-
-        GroupMembership.Subscribed ->
-            button
-                [ class "text-md text-dusty-blue no-underline font-bold"
-                , onClick UnsubscribeClicked
-                ]
-                [ text "Unsubscribe" ]
-
-        GroupMembership.Watching ->
-            button
-                [ class "text-md text-dusty-blue no-underline font-bold"
-                , onClick UnsubscribeClicked
-                ]
-                [ text "Unsubscribe" ]
-
-
 
 -- INTERNAL
 
@@ -1842,8 +1819,3 @@ feedParams params =
     params
         |> Route.Group.clearFilters
         |> Route.Group.setState PostStateFilter.All
-
-
-alwaysStopPropagation : msg -> ( msg, Bool )
-alwaysStopPropagation msg =
-    ( msg, True )
