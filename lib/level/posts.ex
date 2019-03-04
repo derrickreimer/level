@@ -63,8 +63,8 @@ defmodule Level.Posts do
   @doc """
   Builds a base query for searching posts.
   """
-  @spec search_query(SpaceUser.t(), String.t(), integer()) :: Ecto.Query.t()
-  def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, term, limit) do
+  @spec search_query(SpaceUser.t(), String.t(), integer(), DateTime.t() | nil) :: Ecto.Query.t()
+  def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, term, limit, cursor) do
     preview_config = """
     StartSel=<mark>, StopSel=</mark>,
     MaxWords=35, MinWords=15, ShortWord=3, HighlightAll=FALSE,
@@ -94,8 +94,16 @@ defmodule Level.Posts do
           post_id: ps.post_id,
           document: ps.document,
           language: fragment("?::text", ps.language),
-          rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^term))
+          posted_at: p.inserted_at
         }
+
+    base_query =
+      if cursor do
+        base_query
+        |> where([ps, p], p.inserted_at < ^cursor)
+      else
+        base_query
+      end
 
     from ps in subquery(base_query),
       select: %SearchResult{
@@ -106,6 +114,7 @@ defmodule Level.Posts do
         post_id: fragment("?::text", ps.post_id),
         document: ps.document,
         language: ps.language,
+        posted_at: ps.posted_at,
         preview:
           ts_headline(
             fragment("?::regconfig", ps.language),

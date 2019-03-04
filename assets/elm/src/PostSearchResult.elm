@@ -1,6 +1,6 @@
 module PostSearchResult exposing
     ( PostSearchResult
-    , preview, postId
+    , preview, postId, postedAt
     , fragment
     , decoder
     )
@@ -15,7 +15,7 @@ module PostSearchResult exposing
 
 # Properties
 
-@docs preview, postId
+@docs preview, postId, postedAt
 
 
 # GraphQL
@@ -33,6 +33,8 @@ import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Post exposing (Post)
+import Time exposing (Posix)
+import Util exposing (dateDecoder)
 
 
 
@@ -46,6 +48,7 @@ type PostSearchResult
 type alias Internal =
     { preview : String
     , postId : Id
+    , postedAt : Posix
     }
 
 
@@ -63,6 +66,11 @@ postId (PostSearchResult internal) =
     internal.postId
 
 
+postedAt : PostSearchResult -> Posix
+postedAt (PostSearchResult internal) =
+    internal.postedAt
+
+
 
 -- GRAPHQL
 
@@ -77,6 +85,7 @@ fragment =
               post {
                 ...PostFields
               }
+              postedAt
             }
             """
     in
@@ -92,6 +101,7 @@ fragment =
 decoder : Decoder PostSearchResult
 decoder =
     Decode.map PostSearchResult <|
-        Decode.map2 Internal
+        Decode.map3 Internal
             (field "preview" string)
             (Decode.at [ "post", "id" ] Id.decoder)
+            (field "postedAt" dateDecoder)

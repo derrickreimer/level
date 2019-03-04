@@ -1,4 +1,4 @@
-module ResolvedSearchResult exposing (ResolvedSearchResult(..), addToRepo, decoder, resolve, unresolve)
+module ResolvedSearchResult exposing (ResolvedSearchResult(..), addManyToRepo, addToRepo, decoder, resolve, unresolve)
 
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Repo exposing (Repo)
@@ -20,6 +20,11 @@ addToRepo resolvedResult repo =
 
         Reply result ->
             ResolvedReplySearchResult.addToRepo result repo
+
+
+addManyToRepo : List ResolvedSearchResult -> Repo -> Repo
+addManyToRepo resolvedSearchResults repo =
+    List.foldr addToRepo repo resolvedSearchResults
 
 
 decoder : Decoder ResolvedSearchResult

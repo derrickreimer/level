@@ -21,6 +21,7 @@ import OffsetPagination
 import Post
 import PostSearchResult
 import Query.SearchInit as SearchInit
+import Query.SearchResults as SearchResults
 import RenderedHtml
 import Reply
 import ReplySearchResult
@@ -43,7 +44,7 @@ import Time exposing (Posix, Zone, every)
 import TimeWithZone exposing (TimeWithZone)
 import ValidationError exposing (ValidationError, errorView, errorsFor, errorsNotFor, isInvalid)
 import Vendor.Keys as Keys exposing (Modifier(..), enter, onKeydown, preventDefault)
-import View.Helpers exposing (onPassiveClick)
+import View.Helpers exposing (onPassiveClick, viewIf)
 import View.SearchBox
 
 
@@ -55,7 +56,9 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , searchResults : OffsetConnection SearchResult
+    , searchResults : List SearchResult
+    , hasMore : Bool
+    , isLoadingMore : Bool
     , queryEditor : FieldEditor String
     , now : TimeWithZone
     }
@@ -64,7 +67,7 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , resolvedSearchResults : OffsetConnection ResolvedSearchResult
+    , resolvedSearchResults : List ResolvedSearchResult
     }
 
 
@@ -73,7 +76,7 @@ resolveData repo model =
     Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| OffsetConnection.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
+        (Just <| List.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
 
 
 
@@ -112,6 +115,8 @@ buildModel params globals ( ( newSession, resp ), now ) =
                 resp.viewerId
                 resp.spaceId
                 resp.searchResults
+                (List.length resp.searchResults == 20)
+                False
                 editor
                 now
 
@@ -145,6 +150,8 @@ type Msg
     | Tick Posix
     | ClickedToExpand Route
     | InternalLinkClicked String
+    | LoadMoreClicked
+    | ResultsLoaded (Result Session.Error ( Session, SearchResults.Response ))
     | NoOp
 
 
@@ -181,6 +188,48 @@ update msg globals model =
 
         InternalLinkClicked pathname ->
             ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
+
+        LoadMoreClicked ->
+            let
+                maybeLastResult =
+                    model.searchResults
+                        |> List.reverse
+                        |> List.head
+
+                cmd =
+                    case maybeLastResult of
+                        Just lastResult ->
+                            globals.session
+                                |> SearchResults.request (SearchResults.variables model.params (Just <| SearchResult.postedAt lastResult))
+                                |> Task.attempt ResultsLoaded
+
+                        Nothing ->
+                            Cmd.none
+            in
+            ( ( model, cmd ), globals )
+
+        ResultsLoaded (Ok ( newSession, resp )) ->
+            let
+                newGlobals =
+                    { globals | repo = Repo.union resp.repo globals.repo, session = newSession }
+
+                hasMore =
+                    List.length resp.results >= 20
+            in
+            ( ( { model
+                    | searchResults = List.append model.searchResults resp.results
+                    , hasMore = hasMore
+                }
+              , Cmd.none
+              )
+            , newGlobals
+            )
+
+        ResultsLoaded (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        ResultsLoaded (Err _) ->
+            noCmd globals model
 
         NoOp ->
             noCmd globals model
@@ -251,9 +300,22 @@ resolvedView globals model data =
                     ]
                 ]
             , resultsView globals.repo model.params model.now data
-            , div [ class "p-8 pb-16" ]
-                [ paginationView model.params model.searchResults
-                ]
+            , viewIf (model.hasMore && not model.isLoadingMore) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
+            , viewIf model.isLoadingMore <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
+                    ]
             ]
         ]
 
@@ -263,13 +325,6 @@ controlsView model data =
     div [ class "flex items-center flex-grow justify-end" ]
         [ queryEditorView model.queryEditor
         ]
-
-
-paginationView : Params -> OffsetConnection a -> Html Msg
-paginationView params connection =
-    OffsetPagination.view connection
-        (Route.Search (Route.Search.decrementPage params))
-        (Route.Search (Route.Search.incrementPage params))
 
 
 queryEditorView : FieldEditor String -> Html Msg
@@ -285,13 +340,12 @@ queryEditorView editor =
 
 resultsView : Repo -> Params -> TimeWithZone -> Data -> Html Msg
 resultsView repo params now data =
-    if OffsetConnection.isEmptyAndExpanded data.resolvedSearchResults then
+    if List.isEmpty data.resolvedSearchResults then
         div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
             [ text "This search turned up no results!" ]
 
     else
         data.resolvedSearchResults
-            |> OffsetConnection.toList
             |> List.map (resultView repo params now data)
             |> div []
 

@@ -1,5 +1,6 @@
 module SearchResult exposing
     ( SearchResult(..)
+    , postedAt
     , fragment
     , decoder
     )
@@ -10,6 +11,11 @@ module SearchResult exposing
 # Types
 
 @docs SearchResult
+
+
+# API
+
+@docs postedAt
 
 
 # GraphQL
@@ -31,6 +37,7 @@ import Post exposing (Post)
 import PostSearchResult exposing (PostSearchResult)
 import Reply exposing (Reply)
 import ReplySearchResult exposing (ReplySearchResult)
+import Time exposing (Posix)
 
 
 
@@ -40,6 +47,20 @@ import ReplySearchResult exposing (ReplySearchResult)
 type SearchResult
     = Post PostSearchResult
     | Reply ReplySearchResult
+
+
+
+-- API
+
+
+postedAt : SearchResult -> Posix
+postedAt searchResult =
+    case searchResult of
+        Post postSearchResult ->
+            PostSearchResult.postedAt postSearchResult
+
+        Reply replySearchResult ->
+            ReplySearchResult.postedAt replySearchResult
 
 
 

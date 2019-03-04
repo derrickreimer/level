@@ -1,6 +1,6 @@
 module ReplySearchResult exposing
     ( ReplySearchResult
-    , preview, postId, replyId
+    , preview, postId, replyId, postedAt
     , fragment
     , decoder
     )
@@ -15,7 +15,7 @@ module ReplySearchResult exposing
 
 # Properties
 
-@docs preview, postId, replyId
+@docs preview, postId, replyId, postedAt
 
 
 # GraphQL
@@ -34,6 +34,8 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import Time exposing (Posix)
+import Util exposing (dateDecoder)
 
 
 
@@ -48,6 +50,7 @@ type alias Internal =
     { preview : String
     , postId : Id
     , replyId : Id
+    , postedAt : Posix
     }
 
 
@@ -70,6 +73,11 @@ replyId (ReplySearchResult internal) =
     internal.replyId
 
 
+postedAt : ReplySearchResult -> Posix
+postedAt (ReplySearchResult internal) =
+    internal.postedAt
+
+
 
 -- GRAPHQL
 
@@ -87,6 +95,7 @@ fragment =
               reply {
                 ...ReplyFields
               }
+              postedAt
             }
             """
     in
@@ -103,7 +112,8 @@ fragment =
 decoder : Decoder ReplySearchResult
 decoder =
     Decode.map ReplySearchResult <|
-        Decode.map3 Internal
+        Decode.map4 Internal
             (field "preview" string)
             (Decode.at [ "post", "id" ] Id.decoder)
             (Decode.at [ "reply", "id" ] Id.decoder)
+            (field "postedAt" dateDecoder)

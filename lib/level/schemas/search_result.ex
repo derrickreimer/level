@@ -20,6 +20,7 @@ defmodule Level.Schemas.SearchResult do
     field :id, :string, virtual: true
     field :preview, :string, virtual: true
     field :rank, :float, virtual: true
+    field :posted_at, :naive_datetime, virtual: true
 
     belongs_to :post, Post
     belongs_to :space, Space

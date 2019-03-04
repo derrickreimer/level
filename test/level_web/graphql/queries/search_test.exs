@@ -6,36 +6,30 @@ defmodule LevelWeb.GraphQL.SearchTest do
     query Search(
       $space_id: ID!,
       $query: String!,
-      $page: Int,
-      $count: Int
+      $limit: Int,
+      $cursor: Timestamp
     ) {
       space(id: $space_id) {
         search(
           query: $query,
-          page: $page,
-          count: $count
+          limit: $limit,
+          cursor: $cursor
         ) {
-          pageInfo {
-            hasPreviousPage
-            hasNextPage
-          }
-          nodes {
-            __typename
-            ... on PostSearchResult {
-              preview
-              post {
-                id
-              }
+          __typename
+          ... on PostSearchResult {
+            preview
+            post {
+              id
             }
+          }
 
-            ... on ReplySearchResult {
-              preview
-              post {
-                id
-              }
-              reply {
-                id
-              }
+          ... on ReplySearchResult {
+            preview
+            post {
+              id
+            }
+            reply {
+              id
             }
           }
         }
@@ -58,8 +52,7 @@ defmodule LevelWeb.GraphQL.SearchTest do
     variables = %{
       space_id: space.id,
       query: "quick",
-      page: 1,
-      count: 20
+      limit: 20
     }
 
     conn =
@@ -70,21 +63,15 @@ defmodule LevelWeb.GraphQL.SearchTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "space" => %{
-                 "search" => %{
-                   "pageInfo" => %{
-                     "hasPreviousPage" => false,
-                     "hasNextPage" => false
-                   },
-                   "nodes" => [
-                     %{
-                       "__typename" => "PostSearchResult",
-                       "preview" => "<p><mark>Quick</mark> brown fox jumps over the lazy dog</p>",
-                       "post" => %{
-                         "id" => post.id
-                       }
+                 "search" => [
+                   %{
+                     "__typename" => "PostSearchResult",
+                     "preview" => "<p><mark>Quick</mark> brown fox jumps over the lazy dog</p>",
+                     "post" => %{
+                       "id" => post.id
                      }
-                   ]
-                 }
+                   }
+                 ]
                }
              }
            }
@@ -99,8 +86,7 @@ defmodule LevelWeb.GraphQL.SearchTest do
     variables = %{
       space_id: space.id,
       query: "fight",
-      page: 1,
-      count: 20
+      limit: 20
     }
 
     conn =
@@ -111,24 +97,18 @@ defmodule LevelWeb.GraphQL.SearchTest do
     assert json_response(conn, 200) == %{
              "data" => %{
                "space" => %{
-                 "search" => %{
-                   "pageInfo" => %{
-                     "hasPreviousPage" => false,
-                     "hasNextPage" => false
-                   },
-                   "nodes" => [
-                     %{
-                       "__typename" => "ReplySearchResult",
-                       "preview" => "<p><mark>Fighting</mark> uphill battles</p>",
-                       "post" => %{
-                         "id" => post.id
-                       },
-                       "reply" => %{
-                         "id" => reply.id
-                       }
+                 "search" => [
+                   %{
+                     "__typename" => "ReplySearchResult",
+                     "preview" => "<p><mark>Fighting</mark> uphill battles</p>",
+                     "post" => %{
+                       "id" => post.id
+                     },
+                     "reply" => %{
+                       "id" => reply.id
                      }
-                   ]
-                 }
+                   }
+                 ]
                }
              }
            }

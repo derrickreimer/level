@@ -6,7 +6,6 @@ import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Pipeline
 import Json.Encode as Encode
-import OffsetConnection exposing (OffsetConnection)
 import Repo exposing (Repo)
 import ResolvedSearchResult exposing (ResolvedSearchResult)
 import Route.Search exposing (Params)
@@ -22,7 +21,7 @@ type alias Response =
     , spaceId : Id
     , groupIds : List Id
     , spaceUserIds : List Id
-    , searchResults : OffsetConnection SearchResult
+    , searchResults : List SearchResult
     , repo : Repo
     }
 
@@ -32,7 +31,7 @@ type alias Data =
     , space : Space
     , groups : List Group
     , spaceUsers : List SpaceUser
-    , resolvedSearchResults : OffsetConnection ResolvedSearchResult
+    , resolvedSearchResults : List ResolvedSearchResult
     }
 
 
@@ -43,7 +42,7 @@ document =
         query SearchInit(
           $spaceSlug: String!,
           $query: String!,
-          $page: Int
+          $cursor: Timestamp
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             ...SpaceUserFields
@@ -51,15 +50,9 @@ document =
               ...SpaceFields
               search(
                 query: $query,
-                page: $page
+                cursor: $cursor
               ) {
-                pageInfo {
-                  hasPreviousPage
-                  hasNextPage
-                }
-                nodes {
-                  ...SearchResultFields
-                }
+                ...SearchResultFields
               }
             }
           }
@@ -90,13 +83,13 @@ decoder =
             |> Pipeline.custom (Decode.field "space" Space.decoder)
             |> Pipeline.custom (Decode.at [ "space", "groups", "edges" ] (Decode.list (Decode.field "node" Group.decoder)))
             |> Pipeline.custom (Decode.at [ "space", "spaceUsers", "edges" ] (Decode.list (Decode.field "node" SpaceUser.decoder)))
-            |> Pipeline.custom (Decode.at [ "space", "search" ] (OffsetConnection.decoder ResolvedSearchResult.decoder))
+            |> Pipeline.custom (Decode.at [ "space", "search" ] (Decode.list ResolvedSearchResult.decoder))
         )
 
 
-addSearchResultsToRepo : OffsetConnection ResolvedSearchResult -> Repo -> Repo
+addSearchResultsToRepo : List ResolvedSearchResult -> Repo -> Repo
 addSearchResultsToRepo resolvedSearchResults repo =
-    List.foldr ResolvedSearchResult.addToRepo repo (OffsetConnection.toList resolvedSearchResults)
+    List.foldr ResolvedSearchResult.addToRepo repo resolvedSearchResults
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -116,7 +109,7 @@ buildResponse ( session, data ) =
                 (Space.id data.space)
                 (List.map Group.id data.groups)
                 (List.map SpaceUser.id data.spaceUsers)
-                (OffsetConnection.map ResolvedSearchResult.unresolve data.resolvedSearchResults)
+                (List.map ResolvedSearchResult.unresolve data.resolvedSearchResults)
                 repo
     in
     ( session, resp )

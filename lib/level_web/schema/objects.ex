@@ -282,9 +282,9 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     @desc "A paginated list of search results."
-    field :search, non_null(:search_connection) do
-      arg :page, :integer, default_value: 1
-      arg :count, :integer, default_value: 20
+    field :search, list_of(:search_result) do
+      arg :limit, :integer, default_value: 20
+      arg :cursor, :timestamp
       arg :query, non_null(:string)
 
       resolve &Resolvers.search/3
@@ -674,6 +674,8 @@ defmodule LevelWeb.Schema.Objects do
         end)
       end
     end
+
+    field :posted_at, non_null(:timestamp)
   end
 
   @desc "A reply search result."
@@ -708,6 +710,8 @@ defmodule LevelWeb.Schema.Objects do
         end)
       end
     end
+
+    field :posted_at, non_null(:timestamp)
   end
 
   def fetch_time do
