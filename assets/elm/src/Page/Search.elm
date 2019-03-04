@@ -3,6 +3,7 @@ module Page.Search exposing (Model, Msg(..), consumeEvent, init, setup, subscrip
 import Actor exposing (Actor)
 import Avatar
 import Browser.Navigation as Nav
+import Device
 import Event exposing (Event)
 import FieldEditor exposing (FieldEditor)
 import File exposing (File)
@@ -15,6 +16,7 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Layout.SpaceMobile
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import OffsetConnection exposing (OffsetConnection)
@@ -62,6 +64,10 @@ type alias Model =
     , isLoadingMore : Bool
     , queryEditor : FieldEditor String
     , now : TimeWithZone
+
+    -- MOBILE
+    , showNav : Bool
+    , showSidebar : Bool
     }
 
 
@@ -147,6 +153,8 @@ scaffold globals params viewer space now =
                 False
                 editor
                 now
+                False
+                False
     in
     ( globals, model )
 
@@ -181,6 +189,10 @@ type Msg
     | LoadMoreClicked
     | ResultsLoaded (Result Session.Error ( Session, SearchResults.Response ))
     | NoOp
+      -- MOBILE
+    | NavToggled
+    | SidebarToggled
+    | ScrollTopClicked
 
 
 update : Msg -> Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
@@ -275,6 +287,15 @@ update msg globals model =
         NoOp ->
             noCmd globals model
 
+        NavToggled ->
+            ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )
+
+        SidebarToggled ->
+            ( ( { model | showSidebar = not model.showSidebar }, Cmd.none ), globals )
+
+        ScrollTopClicked ->
+            ( ( model, Scroll.toDocumentTop NoOp ), globals )
+
 
 noCmd : Globals -> Model -> ( ( Model, Cmd Msg ), Globals )
 noCmd globals model =
@@ -320,6 +341,20 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
+    case globals.device of
+        Device.Desktop ->
+            resolvedDesktopView globals model data
+
+        Device.Mobile ->
+            resolvedMobileView globals model data
+
+
+
+-- DESKTOP
+
+
+resolvedDesktopView : Globals -> Model -> Data -> Html Msg
+resolvedDesktopView globals model data =
     let
         config =
             { globals = globals
@@ -366,6 +401,55 @@ controlsView model data =
     div [ class "flex items-center flex-grow justify-end" ]
         [ queryEditorView model.queryEditor
         ]
+
+
+
+-- MOBILE
+
+
+resolvedMobileView : Globals -> Model -> Data -> Html Msg
+resolvedMobileView globals model data =
+    let
+        config =
+            { globals = globals
+            , space = data.space
+            , spaceUser = data.viewer
+            , title = "Search"
+            , showNav = model.showNav
+            , onNavToggled = NavToggled
+            , onSidebarToggled = SidebarToggled
+            , onScrollTopClicked = ScrollTopClicked
+            , onNoOp = NoOp
+            , leftControl = Layout.SpaceMobile.ShowNav
+            , rightControl = Layout.SpaceMobile.NoControl
+            }
+    in
+    Layout.SpaceMobile.layout config
+        [ div [ class "p-3" ]
+            [ queryEditorView model.queryEditor
+            , resultsView globals.repo model.params model.now data
+            , viewIf (model.hasMore && not model.isLoadingMore) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick LoadMoreClicked
+                        ]
+                        [ text "Load more..." ]
+                    ]
+            , viewIf model.isLoadingMore <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , disabled True
+                        ]
+                        [ text "Loading..." ]
+                    ]
+            ]
+        ]
+
+
+
+-- SHARED
 
 
 queryEditorView : FieldEditor String -> Html Msg
@@ -422,7 +506,7 @@ postResultView repo params now data resolvedResult =
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand postRoute
-                [ div [ class "markdown mb-3/2" ]
+                [ div [ class "markdown mb-3/2 break-words" ]
                     [ RenderedHtml.node
                         { html = PostSearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked
@@ -449,7 +533,7 @@ replyResultView repo params now data resolvedResult =
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand replyRoute
-                [ div [ class "markdown mb-3/2" ]
+                [ div [ class "markdown mb-3/2 break-words" ]
                     [ RenderedHtml.node
                         { html = ReplySearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked
