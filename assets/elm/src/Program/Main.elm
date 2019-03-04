@@ -584,7 +584,7 @@ type PageInit
     | NewPostInit (Result PageError ( Globals, Page.NewPost.Model ))
     | UserSettingsInit (Result Session.Error ( Globals, Page.UserSettings.Model ))
     | SpaceSettingsInit (Result Session.Error ( Globals, Page.Settings.Model ))
-    | SearchInit (Result Session.Error ( Globals, Page.Search.Model ))
+    | SearchInit (Result PageError ( Globals, Page.Search.Model ))
     | WelcomeTutorialInit (Result PageError ( Globals, Page.WelcomeTutorial.Model ))
     | HelpInit (Result PageError ( Globals, Page.Help.Model ))
     | AppsInit (Result PageError ( Globals, Page.Apps.Model ))
@@ -995,10 +995,13 @@ setupPage pageInit model =
         SpaceSettingsInit (Err _) ->
             ( model, Cmd.none )
 
-        SearchInit (Ok result) ->
-            perform Page.Search.setup Search SearchMsg model result
+        SearchInit (Ok ( globals, pageModel )) ->
+            perform (Page.Search.setup globals) Search SearchMsg model ( globals, pageModel )
 
-        SearchInit (Err Session.Expired) ->
+        SearchInit (Err PageError.NotFound) ->
+            ( { model | page = NotFound, isTransitioning = False }, Cmd.none )
+
+        SearchInit (Err (PageError.SessionError Session.Expired)) ->
             ( model, Route.toLogin )
 
         SearchInit (Err _) ->

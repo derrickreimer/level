@@ -15,12 +15,13 @@ import Icons
 import Id exposing (Id)
 import Json.Decode as Decode
 import Layout.SpaceDesktop
+import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import OffsetConnection exposing (OffsetConnection)
 import OffsetPagination
+import PageError exposing (PageError)
 import Post
 import PostSearchResult
-import Query.SearchInit as SearchInit
 import Query.SearchResults as SearchResults
 import RenderedHtml
 import Reply
@@ -56,7 +57,7 @@ type alias Model =
     { params : Params
     , viewerId : Id
     , spaceId : Id
-    , searchResults : List SearchResult
+    , searchResults : Lazy (List SearchResult)
     , hasMore : Bool
     , isLoadingMore : Bool
     , queryEditor : FieldEditor String
@@ -67,16 +68,25 @@ type alias Model =
 type alias Data =
     { viewer : SpaceUser
     , space : Space
-    , resolvedSearchResults : List ResolvedSearchResult
+    , resolvedSearchResults : Lazy (List ResolvedSearchResult)
     }
 
 
 resolveData : Repo -> Model -> Maybe Data
 resolveData repo model =
+    let
+        resolvedSearchResults =
+            case model.searchResults of
+                Loaded searchResults ->
+                    Just (Loaded <| List.filterMap (ResolvedSearchResult.resolve repo) searchResults)
+
+                NotLoaded ->
+                    Just NotLoaded
+    in
     Maybe.map3 Data
         (Repo.getSpaceUser model.viewerId repo)
         (Repo.getSpace model.spaceId repo)
-        (Just <| List.filterMap (ResolvedSearchResult.resolve repo) model.searchResults)
+        resolvedSearchResults
 
 
 
@@ -92,16 +102,34 @@ title model =
 -- LIFECYCLE
 
 
-init : Params -> Globals -> Task Session.Error ( Globals, Model )
+init : Params -> Globals -> Task PageError ( Globals, Model )
 init params globals =
-    globals.session
-        |> SearchInit.request params
-        |> TaskHelpers.andThenGetCurrentTime
-        |> Task.map (buildModel params globals)
+    let
+        maybeUserId =
+            Session.getUserId globals.session
+
+        maybeSpace =
+            Repo.getSpaceBySlug (Route.Search.getSpaceSlug params) globals.repo
+
+        maybeViewer =
+            case ( maybeSpace, maybeUserId ) of
+                ( Just space, Just userId ) ->
+                    Repo.getSpaceUserByUserId (Space.id space) userId globals.repo
+
+                _ ->
+                    Nothing
+    in
+    case ( maybeViewer, maybeSpace ) of
+        ( Just viewer, Just space ) ->
+            TimeWithZone.now
+                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space now))
+
+        _ ->
+            Task.fail PageError.NotFound
 
 
-buildModel : Params -> Globals -> ( ( Session, SearchInit.Response ), TimeWithZone ) -> ( Globals, Model )
-buildModel params globals ( ( newSession, resp ), now ) =
+scaffold : Globals -> Params -> SpaceUser -> Space -> TimeWithZone -> ( Globals, Model )
+scaffold globals params viewer space now =
     let
         editor =
             Route.Search.getQuery params
@@ -112,25 +140,25 @@ buildModel params globals ( ( newSession, resp ), now ) =
         model =
             Model
                 params
-                resp.viewerId
-                resp.spaceId
-                resp.searchResults
-                (List.length resp.searchResults == 20)
+                (SpaceUser.id viewer)
+                (Space.id space)
+                NotLoaded
+                False
                 False
                 editor
                 now
-
-        newRepo =
-            Repo.union resp.repo globals.repo
     in
-    ( { globals | session = newSession, repo = newRepo }, model )
+    ( globals, model )
 
 
-setup : Model -> Cmd Msg
-setup model =
+setup : Globals -> Model -> Cmd Msg
+setup globals model =
     Cmd.batch
         [ Scroll.toDocumentTop NoOp
         , View.Helpers.selectValue (FieldEditor.getNodeId model.queryEditor)
+        , globals.session
+            |> SearchResults.request (SearchResults.variables model.params Nothing)
+            |> Task.attempt ResultsLoaded
         ]
 
 
@@ -190,34 +218,47 @@ update msg globals model =
             ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         LoadMoreClicked ->
-            let
-                maybeLastResult =
-                    model.searchResults
-                        |> List.reverse
-                        |> List.head
+            case model.searchResults of
+                Loaded searchResults ->
+                    let
+                        maybeLastResult =
+                            searchResults
+                                |> List.reverse
+                                |> List.head
 
-                cmd =
-                    case maybeLastResult of
-                        Just lastResult ->
-                            globals.session
-                                |> SearchResults.request (SearchResults.variables model.params (Just <| SearchResult.postedAt lastResult))
-                                |> Task.attempt ResultsLoaded
+                        cmd =
+                            case maybeLastResult of
+                                Just lastResult ->
+                                    globals.session
+                                        |> SearchResults.request (SearchResults.variables model.params (Just <| SearchResult.postedAt lastResult))
+                                        |> Task.attempt ResultsLoaded
 
-                        Nothing ->
-                            Cmd.none
-            in
-            ( ( model, cmd ), globals )
+                                Nothing ->
+                                    Cmd.none
+                    in
+                    ( ( model, cmd ), globals )
+
+                NotLoaded ->
+                    ( ( model, Cmd.none ), globals )
 
         ResultsLoaded (Ok ( newSession, resp )) ->
             let
                 newGlobals =
                     { globals | repo = Repo.union resp.repo globals.repo, session = newSession }
 
+                newSearchResults =
+                    case model.searchResults of
+                        Loaded searchResults ->
+                            Loaded <| List.append searchResults resp.results
+
+                        NotLoaded ->
+                            Loaded resp.results
+
                 hasMore =
                     List.length resp.results >= 20
             in
             ( ( { model
-                    | searchResults = List.append model.searchResults resp.results
+                    | searchResults = newSearchResults
                     , hasMore = hasMore
                 }
               , Cmd.none
@@ -340,14 +381,20 @@ queryEditorView editor =
 
 resultsView : Repo -> Params -> TimeWithZone -> Data -> Html Msg
 resultsView repo params now data =
-    if List.isEmpty data.resolvedSearchResults then
-        div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
-            [ text "This search turned up no results!" ]
+    case data.resolvedSearchResults of
+        Loaded resolvedSearchResults ->
+            if List.isEmpty resolvedSearchResults then
+                div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
+                    [ text "This search turned up no results!" ]
 
-    else
-        data.resolvedSearchResults
-            |> List.map (resultView repo params now data)
-            |> div []
+            else
+                resolvedSearchResults
+                    |> List.map (resultView repo params now data)
+                    |> div []
+
+        NotLoaded ->
+            div [ class "pt-8 pb-8 font-headline text-center text-lg" ]
+                [ text "Loading..." ]
 
 
 resultView : Repo -> Params -> TimeWithZone -> Data -> ResolvedSearchResult -> Html Msg
@@ -367,7 +414,7 @@ postResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedPost.author) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedPost.author) ]
         , div [ class "flex-grow min-w-0 normal" ]
             [ div [ class "pb-1/2" ]
                 [ authorLabel postRoute (ResolvedAuthor.actor resolvedResult.resolvedPost.author)
@@ -393,7 +440,7 @@ replyResultView repo params now data resolvedResult =
             Route.Post (Route.Search.getSpaceSlug params) (Post.id resolvedResult.resolvedPost.post)
     in
     div [ class "flex py-4" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedReply.author) ]
+        [ div [ class "flex-no-shrink mr-3" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium resolvedResult.resolvedReply.author) ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2" ]
                 [ div [ class "mr-2 inline-block" ] [ Icons.reply ]
