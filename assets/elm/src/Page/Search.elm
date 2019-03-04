@@ -323,7 +323,7 @@ postResultView repo params now data resolvedResult =
             , clickToExpand postRoute
                 [ div [ class "markdown mb-3/2" ]
                     [ RenderedHtml.node
-                        { html = Post.bodyHtml resolvedResult.resolvedPost.post
+                        { html = PostSearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked
                         }
                     ]
@@ -350,7 +350,7 @@ replyResultView repo params now data resolvedResult =
             , clickToExpand replyRoute
                 [ div [ class "markdown mb-3/2" ]
                     [ RenderedHtml.node
-                        { html = Reply.bodyHtml resolvedResult.resolvedReply.reply
+                        { html = ReplySearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked
                         }
                     ]

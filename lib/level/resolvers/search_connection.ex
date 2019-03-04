@@ -56,8 +56,7 @@ defmodule Level.Resolvers.SearchConnection do
 
   defp build_query(space_user, query, limit, offset_value) do
     space_user
-    |> Posts.search_query(query)
-    |> limit(^limit)
+    |> Posts.search_query(query, limit)
     |> offset(^offset_value)
   end
 

@@ -63,24 +63,56 @@ defmodule Level.Posts do
   @doc """
   Builds a base query for searching posts.
   """
-  @spec search_query(SpaceUser.t(), String.t()) :: Ecto.Query.t()
-  def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, query) do
-    from ps in SearchResult,
-      join: p in assoc(ps, :post),
-      left_join: g in assoc(p, :groups),
-      left_join: gu in GroupUser,
-      on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
-      left_join: pu in assoc(p, :post_users),
-      on: pu.space_user_id == ^space_user_id,
-      where: ps.space_id == ^space_id,
-      where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
-      where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
-      where: p.state != "DELETED",
-      select: %{
-        ps
-        | id: fragment("? || ?", ps.searchable_type, ps.searchable_id),
-          rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^query)),
-          preview: ts_headline(ps.language, ps.document, plainto_tsquery(ps.language, ^query))
+  @spec search_query(SpaceUser.t(), String.t(), integer()) :: Ecto.Query.t()
+  def search_query(%SpaceUser{id: space_user_id, space_id: space_id}, term, limit) do
+    preview_config = """
+    StartSel=<mark>, StopSel=</mark>,
+    MaxWords=35, MinWords=15, ShortWord=3, HighlightAll=FALSE,
+    MaxFragments=0, FragmentDelimiter=" ... "
+    """
+
+    base_query =
+      from ps in "post_searches",
+        join: p in Post,
+        on: p.id == ps.post_id,
+        left_join: g in assoc(p, :groups),
+        left_join: gu in GroupUser,
+        on: gu.space_user_id == ^space_user_id and gu.group_id == g.id,
+        left_join: pu in assoc(p, :post_users),
+        on: pu.space_user_id == ^space_user_id,
+        where: ps.space_id == type(^space_id, :binary_id),
+        where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
+        where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^term)),
+        where: p.state != "DELETED",
+        order_by: [desc: p.inserted_at],
+        limit: ^limit,
+        select: %{
+          id: fragment("? || ?", ps.searchable_type, ps.searchable_id),
+          searchable_id: ps.searchable_id,
+          searchable_type: ps.searchable_type,
+          space_id: ps.space_id,
+          post_id: ps.post_id,
+          document: ps.document,
+          language: fragment("?::text", ps.language),
+          rank: ts_rank(ps.search_vector, plainto_tsquery(ps.language, ^term))
+        }
+
+    from ps in subquery(base_query),
+      select: %SearchResult{
+        id: ps.id,
+        searchable_id: fragment("?::text", ps.searchable_id),
+        searchable_type: fragment("?::text", ps.searchable_type),
+        space_id: fragment("?::text", ps.space_id),
+        post_id: fragment("?::text", ps.post_id),
+        document: ps.document,
+        language: ps.language,
+        preview:
+          ts_headline(
+            fragment("?::regconfig", ps.language),
+            ps.document,
+            plainto_tsquery(fragment("?::regconfig", ps.language), ^term),
+            ^preview_config
+          )
       }
   end
 

@@ -78,7 +78,7 @@ defmodule LevelWeb.GraphQL.SearchTest do
                    "nodes" => [
                      %{
                        "__typename" => "PostSearchResult",
-                       "preview" => "<b>Quick</b> brown fox jumps over the lazy dog",
+                       "preview" => "<p><mark>Quick</mark> brown fox jumps over the lazy dog</p>",
                        "post" => %{
                          "id" => post.id
                        }
@@ -119,7 +119,7 @@ defmodule LevelWeb.GraphQL.SearchTest do
                    "nodes" => [
                      %{
                        "__typename" => "ReplySearchResult",
-                       "preview" => "<b>Fighting</b> uphill battles",
+                       "preview" => "<p><mark>Fighting</mark> uphill battles</p>",
                        "post" => %{
                          "id" => post.id
                        },

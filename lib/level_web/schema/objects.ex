@@ -7,6 +7,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.AssetStore
   alias Level.Files
   alias Level.Groups
+  alias Level.Markdown
   alias Level.Posts
   alias Level.Resolvers
   alias Level.Schemas.GroupBookmark
@@ -653,7 +654,12 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "A post search result."
   object :post_search_result do
-    field :preview, non_null(:string)
+    field :preview, non_null(:string) do
+      resolve fn parent, _, %{context: %{current_user: user}} ->
+        {:ok, body, _} = Markdown.to_html(parent.preview, %{user: user})
+        {:ok, body}
+      end
+    end
 
     # For some strange reason, dataloader(:db) helper is producing
     # flat out incorrect results.
@@ -672,7 +678,12 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "A reply search result."
   object :reply_search_result do
-    field :preview, non_null(:string)
+    field :preview, non_null(:string) do
+      resolve fn parent, _, %{context: %{current_user: user}} ->
+        {:ok, body, _} = Markdown.to_html(parent.preview, %{user: user})
+        {:ok, body}
+      end
+    end
 
     # For some strange reason, dataloader(:db) helper is producing
     # flat out incorrect results.

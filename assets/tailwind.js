@@ -82,6 +82,10 @@ let colors = {
 
   // Yellow
   'yellow-lighter': '#fcffe5',
+
+  // Gold
+  'gold-dark': '#8d7a2a',
+  'gold': '#ffe998',
 }
 
 module.exports = {

@@ -21,6 +21,18 @@ defmodule Level.SearchConditions do
     end
   end
 
+  defmacro ts_headline(config, document, query, opts) do
+    quote do
+      fragment(
+        "ts_headline(?, ?, ?, ?)",
+        unquote(config),
+        unquote(document),
+        unquote(query),
+        unquote(opts)
+      )
+    end
+  end
+
   defmacro ts_match(vector, query) do
     quote do
       fragment("? @@ ?", unquote(vector), unquote(query))

@@ -388,6 +388,10 @@ post-editor.dragging-over > * {
   @apply mb-4;
 }
 
+.markdown mark {
+  @apply px-3/2 py-1/2 rounded-lg bg-gold text-gold-dark font-bold;
+}
+
 /**
  * Markdown on marketing site
  */

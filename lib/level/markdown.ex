@@ -4,6 +4,7 @@ defmodule Level.Markdown do
   """
 
   alias Earmark.Options
+  alias Level.Markdown.Scrubber
   alias Level.Mentions
   alias Level.TaggedGroups
   alias LevelWeb.Router
@@ -40,7 +41,7 @@ defmodule Level.Markdown do
   end
 
   defp sanitize({status, html, errors}) do
-    {status, HtmlSanitizeEx.markdown_html(html), errors}
+    {status, HtmlSanitizeEx.Scrubber.scrub(html, Scrubber), errors}
   end
 
   defp apply_text_mutations({status, html, errors}, context) do
