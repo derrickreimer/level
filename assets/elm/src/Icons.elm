@@ -1,4 +1,4 @@
-module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronRight, closed, closedAvatar, closedSmall, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, lockLarge, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, settings, shield, square, thumbs, thumbsMedium, thumbsSmall, undismissed, unlock, zapWhite)
+module Icons exposing (Toggle(..), alert, arrowLeft, arrowRight, arrowUpRight, atSign, bookmark, check, checkSquare, chevronDown, chevronRight, chevronUp, closed, closedAvatar, closedSmall, comment, commentWhite, edit, ex, eye, file, filter, hash, heart, home, image, inbox, inboxWhite, lock, lockLarge, logOut, logo, logomark, menu, more, open, plus, postbot, refresh, reply, revokeMember, search, sendWhite, settings, shield, square, thumbs, thumbsMedium, thumbsSmall, undismissed, unlock, zapWhite)
 
 import Color exposing (Color)
 import Html exposing (Html)
@@ -77,10 +77,22 @@ checkSquare =
         svg [ width "21px", height "20px", viewBox "0 0 21 20", version "1.1" ] [ g [ stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "check-square", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Shape", points "6 8 9 11 19 1" ] [], Svg.path [ d "M18,9 L18,16 C18,17.1045695 17.1045695,18 16,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L13,0", id "Shape" ] [] ] ] ]
 
 
+chevronDown : Html msg
+chevronDown =
+    iconView <|
+        svg [ width "12px", height "7px", viewBox "0 0 12 7", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "chevron-down", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Path", points "0 0 5 5 10 0" ] [] ] ] ]
+
+
 chevronRight : Html msg
 chevronRight =
     iconView <|
         svg [ width "9px", height "16px", viewBox "0 0 9 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "chevrons-right", transform "translate(1.500000, 2.000000)", stroke "#4B73E1", strokeWidth "3" ] [ polyline [ id "Path", points "0 12 6 6 0 0" ] [] ] ] ]
+
+
+chevronUp : Html msg
+chevronUp =
+    iconView <|
+        svg [ width "12px", height "7px", viewBox "0 0 12 7", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "chevron-up", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ polyline [ id "Path", points "10 5 5 0 0 5" ] [] ] ] ]
 
 
 closedAvatar : Html msg

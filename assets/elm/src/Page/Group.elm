@@ -1384,13 +1384,15 @@ controlsView model data =
     in
     div [ class "flex flex-grow justify-end" ]
         [ subscriptionDropdown model data
-        , View.SearchBox.view
-            { editor = model.searchEditor
-            , changeMsg = SearchEditorChanged
-            , expandMsg = ExpandSearchEditor
-            , collapseMsg = CollapseSearchEditor
-            , submitMsg = SearchSubmitted
-            }
+        , div [ class "ml-2" ]
+            [ View.SearchBox.view
+                { editor = model.searchEditor
+                , changeMsg = SearchEditorChanged
+                , expandMsg = ExpandSearchEditor
+                , collapseMsg = CollapseSearchEditor
+                , submitMsg = SearchSubmitted
+                }
+            ]
         , a
             [ Route.href (Route.GroupSettings settingsParams)
             , class "ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
@@ -1446,6 +1448,8 @@ subscriptionDropdown model data =
             , disabled model.isChangingSubscription
             ]
             [ text buttonText
+            , viewIf (not model.isSubscriptionDropdownOpen) <| div [ class "ml-2" ] [ Icons.chevronDown ]
+            , viewIf model.isSubscriptionDropdownOpen <| div [ class "ml-2" ] [ Icons.chevronUp ]
             ]
         , div
             [ classList
