@@ -66,7 +66,7 @@ notificationView config resolvedNotification =
     case resolvedNotification.event of
         PostCreated resolvedPost ->
             div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-3 text-md" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "posted a message" ]
@@ -76,7 +76,7 @@ notificationView config resolvedNotification =
 
         PostClosed resolvedPost ->
             div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-3 text-md" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "resolved a post" ]
@@ -86,7 +86,7 @@ notificationView config resolvedNotification =
 
         PostReopened resolvedPost ->
             div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-3 text-md" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "reopened a post" ]
@@ -96,7 +96,7 @@ notificationView config resolvedNotification =
 
         ReplyCreated resolvedReply ->
             div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-3 text-md" ]
                     [ authorDisplayName resolvedReply.author
                     , space
                     , span [] [ text "replied to a post" ]
