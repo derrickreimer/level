@@ -75,6 +75,7 @@ defmodule Level.Posts do
       where: ps.space_id == ^space_id,
       where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
       where: ts_match(ps.search_vector, plainto_tsquery(ps.language, ^query)),
+      where: p.state != "DELETED",
       select: %{
         ps
         | id: fragment("? || ?", ps.searchable_type, ps.searchable_id),
