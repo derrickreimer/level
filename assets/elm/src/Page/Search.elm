@@ -242,8 +242,8 @@ resolvedView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "sticky pin-t mb-3 pt-4 bg-white z-50" ]
-                [ div [ class "pb-4 border-b" ]
+            [ div [ class "sticky pin-t mb-3 bg-white z-50" ]
+                [ div [ class "py-3 border-b" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Search" ]
                         , controlsView model data
