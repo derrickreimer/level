@@ -63,7 +63,7 @@ panelView config notifications =
                 |> NotificationSet.resolve config.globals.repo
                 |> List.map (notificationView config)
     in
-    div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
+    div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-dropdown z-50" ]
         [ div [ class "flex items-center p-3 pl-4 border-b" ]
             [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
             , button
