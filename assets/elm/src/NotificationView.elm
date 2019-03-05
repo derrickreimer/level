@@ -71,63 +71,81 @@ notificationView : Config msg -> ResolvedNotification -> Html msg
 notificationView config resolvedNotification =
     case resolvedNotification.event of
         PostCreated resolvedPost ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ authorDisplayName resolvedPost.author
-                    , space
-                    , span [] [ text "posted a message" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ authorDisplayName resolvedPost.author
+                        , space
+                        , span [] [ text "posted a message" ]
+                        ]
+                    , postPreview config resolvedPost
                     ]
-                , postPreview config resolvedPost
                 ]
 
         PostClosed resolvedPost ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ authorDisplayName resolvedPost.author
-                    , space
-                    , span [] [ text "resolved a post" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ authorDisplayName resolvedPost.author
+                        , space
+                        , span [] [ text "resolved a post" ]
+                        ]
+                    , postPreview config resolvedPost
                     ]
-                , postPreview config resolvedPost
                 ]
 
         PostReopened resolvedPost ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ authorDisplayName resolvedPost.author
-                    , space
-                    , span [] [ text "reopened a post" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ authorDisplayName resolvedPost.author
+                        , space
+                        , span [] [ text "reopened a post" ]
+                        ]
+                    , postPreview config resolvedPost
                     ]
-                , postPreview config resolvedPost
                 ]
 
         ReplyCreated resolvedReply ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ authorDisplayName resolvedReply.author
-                    , space
-                    , span [] [ text "replied to a post" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ authorDisplayName resolvedReply.author
+                        , space
+                        , span [] [ text "replied to a post" ]
+                        ]
+                    , replyPreview config resolvedReply
                     ]
-                , replyPreview config resolvedReply
                 ]
 
         PostReactionCreated resolvedReaction ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ spaceUserDisplayName resolvedReaction.spaceUser
-                    , space
-                    , span [] [ text "acknowledged a post" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ spaceUserDisplayName resolvedReaction.spaceUser
+                        , space
+                        , span [] [ text "acknowledged a post" ]
+                        ]
+                    , postPreview config resolvedReaction.resolvedPost
                     ]
-                , postPreview config resolvedReaction.resolvedPost
                 ]
 
         ReplyReactionCreated resolvedReaction ->
-            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-4" ]
-                    [ spaceUserDisplayName resolvedReaction.spaceUser
-                    , space
-                    , span [] [ text "acknowledged a reply" ]
+            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
+                , div [ class "flex-grow" ]
+                    [ div [ class "pt-1 pb-4" ]
+                        [ spaceUserDisplayName resolvedReaction.spaceUser
+                        , space
+                        , span [] [ text "acknowledged a reply" ]
+                        ]
+                    , replyPreview config resolvedReaction.resolvedReply
                     ]
-                , replyPreview config resolvedReaction.resolvedReply
                 ]
 
 
