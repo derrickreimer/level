@@ -55,7 +55,7 @@ type alias Config msg =
 
 panelView : Config msg -> List ResolvedNotification -> Html msg
 panelView config resolvedNotifications =
-    div [ class "fixed overflow-y-auto w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
+    div [ class "fixed w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
         [ div [ class "flex items-center p-3 pl-4 border-b" ]
             [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
             , button
@@ -64,14 +64,15 @@ panelView config resolvedNotifications =
                 ]
                 [ Icons.ex ]
             ]
-        , div [] (List.map (notificationView config) resolvedNotifications)
+        , div [ class "absolute pin overflow-y-auto", style "top" "61px" ]
+            (List.map (notificationView config) resolvedNotifications)
         ]
 
 
 notificationView : Config msg -> ResolvedNotification -> Html msg
 notificationView config resolvedNotification =
     case resolvedNotification.event of
-        PostCreated resolvedPost ->
+        PostCreated (Just resolvedPost) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -89,7 +90,7 @@ notificationView config resolvedNotification =
                     ]
                 ]
 
-        PostClosed resolvedPost ->
+        PostClosed (Just resolvedPost) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -107,7 +108,7 @@ notificationView config resolvedNotification =
                     ]
                 ]
 
-        PostReopened resolvedPost ->
+        PostReopened (Just resolvedPost) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -125,7 +126,7 @@ notificationView config resolvedNotification =
                     ]
                 ]
 
-        ReplyCreated resolvedReply ->
+        ReplyCreated (Just resolvedReply) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -143,7 +144,7 @@ notificationView config resolvedNotification =
                     ]
                 ]
 
-        PostReactionCreated resolvedReaction ->
+        PostReactionCreated (Just resolvedReaction) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -161,7 +162,7 @@ notificationView config resolvedNotification =
                     ]
                 ]
 
-        ReplyReactionCreated resolvedReaction ->
+        ReplyReactionCreated (Just resolvedReaction) ->
             button
                 [ classList
                     [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
@@ -178,6 +179,9 @@ notificationView config resolvedNotification =
                     , replyPreview config resolvedReaction.resolvedReply
                     ]
                 ]
+
+        _ ->
+            text ""
 
 
 

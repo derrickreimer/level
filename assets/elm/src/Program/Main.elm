@@ -46,6 +46,7 @@ import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
+import Query.Notifications as Notifications
 import Repo exposing (Repo)
 import ResolvedNotification
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -146,6 +147,9 @@ init flags url navKey =
         [ model.session
             |> MainInit.request
             |> Task.attempt (AppInitialized url)
+        , model.session
+            |> Notifications.request (Notifications.variables 20 Nothing)
+            |> Task.attempt NotificationsFetched
         , ServiceWorker.getPushSubscription
         , Task.perform TimeZoneFetched Time.here
         ]
@@ -244,6 +248,7 @@ type Msg
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
+    | NotificationsFetched (Result Session.Error ( Session, Notifications.Response ))
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
@@ -356,6 +361,33 @@ update msg model =
             ( { model | currentUser = Loaded newUser, session = newSession }, Cmd.none )
 
         ( TimeZoneUpdated _, _ ) ->
+            ( model, Cmd.none )
+
+        ( NotificationsFetched (Ok ( newSession, resp )), _ ) ->
+            let
+                newRepo =
+                    Repo.union resp.repo model.repo
+
+                notificationIds =
+                    resp.resolvedNotifications
+                        |> List.map (Notification.id << .notification)
+
+                newNotifications =
+                    model.notifications
+                        |> NotificationSet.load notificationIds
+            in
+            ( { model
+                | repo = newRepo
+                , session = newSession
+                , notifications = newNotifications
+              }
+            , Cmd.none
+            )
+
+        ( NotificationsFetched (Err Session.Expired), _ ) ->
+            ( model, Route.toLogin )
+
+        ( NotificationsFetched _, _ ) ->
             ( model, Cmd.none )
 
         ( PageInitialized pageInit, _ ) ->
