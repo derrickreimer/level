@@ -63,7 +63,6 @@ type alias Model =
     , hasMore : Bool
     , isLoadingMore : Bool
     , queryEditor : FieldEditor String
-    , now : TimeWithZone
 
     -- MOBILE
     , showNav : Bool
@@ -127,15 +126,14 @@ init params globals =
     in
     case ( maybeViewer, maybeSpace ) of
         ( Just viewer, Just space ) ->
-            TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space now))
+            Task.succeed (scaffold globals params viewer space)
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Globals -> Params -> SpaceUser -> Space -> TimeWithZone -> ( Globals, Model )
-scaffold globals params viewer space now =
+scaffold : Globals -> Params -> SpaceUser -> Space -> ( Globals, Model )
+scaffold globals params viewer space =
     let
         editor =
             Route.Search.getQuery params
@@ -152,7 +150,6 @@ scaffold globals params viewer space now =
                 False
                 False
                 editor
-                now
                 False
                 False
     in
@@ -184,7 +181,6 @@ type Msg
     | ToggleNotifications
     | SearchEditorChanged String
     | SearchSubmitted
-    | Tick Posix
     | ClickedToExpand Route
     | InternalLinkClicked String
     | LoadMoreClicked
@@ -204,9 +200,6 @@ update msg globals model =
 
         ToggleNotifications ->
             ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
-
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SearchEditorChanged newValue ->
             ( ( { model | queryEditor = FieldEditor.setValue newValue model.queryEditor }, Cmd.none ), globals )
@@ -326,7 +319,7 @@ consumeEvent event model =
 
 subscriptions : Sub Msg
 subscriptions =
-    every 1000 Tick
+    Sub.none
 
 
 
@@ -381,7 +374,7 @@ resolvedDesktopView globals model data =
                         ]
                     ]
                 ]
-            , resultsView globals.repo model.params model.now data
+            , resultsView globals.repo model.params globals.now data
             , viewIf (model.hasMore && not model.isLoadingMore) <|
                 div [ class "py-8 text-center" ]
                     [ button
@@ -433,7 +426,7 @@ resolvedMobileView globals model data =
     Layout.SpaceMobile.layout config
         [ div [ class "p-3" ]
             [ queryEditorView model.queryEditor
-            , resultsView globals.repo model.params model.now data
+            , resultsView globals.repo model.params globals.now data
             , viewIf (model.hasMore && not model.isLoadingMore) <|
                 div [ class "py-8 text-center" ]
                     [ button

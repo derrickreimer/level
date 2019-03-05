@@ -67,7 +67,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , postViews : PostSet
-    , now : TimeWithZone
     , searchEditor : FieldEditor String
     , postComposer : PostEditor
     , isSubmitting : Bool
@@ -129,15 +128,14 @@ init params globals =
     in
     case ( maybeViewer, maybeSpace ) of
         ( Just viewer, Just space ) ->
-            TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space now))
+            Task.succeed (scaffold globals params viewer space)
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Globals -> Params -> SpaceUser -> Space -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
-scaffold globals params viewer space now =
+scaffold : Globals -> Params -> SpaceUser -> Space -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space =
     let
         cachedPosts =
             globals.repo
@@ -164,7 +162,6 @@ scaffold globals params viewer space now =
                 (SpaceUser.id viewer)
                 (Space.id space)
                 postSet
-                now
                 (FieldEditor.init "search-editor" "")
                 (PostEditor.init "post-composer")
                 False
@@ -226,7 +223,6 @@ type Msg
     | ToggleKeyboardCommands
     | ToggleNotifications
     | InternalLinkClicked String
-    | Tick Posix
     | LoadMoreClicked
     | PostsFetched Int (Result Session.Error ( Session, Posts.Response ))
     | PostViewMsg String PostView.Msg
@@ -269,9 +265,6 @@ update msg globals model =
 
         InternalLinkClicked pathname ->
             ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
-
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         LoadMoreClicked ->
             let
@@ -811,9 +804,7 @@ consumeKeyboardEvent globals event model =
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.batch
-        [ every 1000 Tick
-        ]
+    Sub.none
 
 
 
@@ -1044,7 +1035,7 @@ desktopPostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = True
@@ -1168,7 +1159,7 @@ mobilePostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = True

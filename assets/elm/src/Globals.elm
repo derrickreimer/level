@@ -8,6 +8,7 @@ import PushStatus exposing (PushStatus)
 import Repo exposing (Repo)
 import Route exposing (Route)
 import Session exposing (Session)
+import TimeWithZone exposing (TimeWithZone)
 
 
 type alias Globals =
@@ -22,4 +23,5 @@ type alias Globals =
     , showKeyboardCommands : Bool
     , showNotifications : Bool
     , notifications : NotificationSet
+    , now : TimeWithZone
     }

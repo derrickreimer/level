@@ -82,7 +82,6 @@ type alias Model =
     , groupId : Id
     , featuredMemberIds : Lazy (List Id)
     , postViews : PostSet
-    , now : TimeWithZone
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
@@ -158,15 +157,14 @@ init params globals =
     in
     case ( maybeViewer, maybeSpace, maybeGroup ) of
         ( Just viewer, Just space, Just group ) ->
-            TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space group now))
+            Task.succeed (scaffold globals params viewer space group)
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
-scaffold globals params viewer space group now =
+scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space group =
     let
         cachedPosts =
             globals.repo
@@ -195,7 +193,6 @@ scaffold globals params viewer space group now =
                 (Group.id group)
                 NotLoaded
                 postSet
-                now
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ Group.id group))
                 (FieldEditor.init "search-editor" "")
@@ -281,7 +278,6 @@ type Msg
     | ToggleKeyboardCommands
     | ToggleNotifications
     | InternalLinkClicked String
-    | Tick Posix
     | PageClicked
     | LoadMoreClicked
     | PostsFetched Params Int (Result Session.Error ( Session, GroupPosts.Response ))
@@ -350,9 +346,6 @@ update msg globals model =
 
         InternalLinkClicked pathname ->
             ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
-
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         PageClicked ->
             ( ( { model
@@ -1245,8 +1238,7 @@ consumeKeyboardEvent globals event model =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ every 1000 Tick
-        , PostEditor.receive PostEditorEventReceived
+        [ PostEditor.receive PostEditorEventReceived
         ]
 
 
@@ -1637,7 +1629,7 @@ desktopPostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
@@ -1764,7 +1756,7 @@ mobilePostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False

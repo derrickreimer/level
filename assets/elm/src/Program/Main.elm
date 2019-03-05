@@ -75,6 +75,8 @@ import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Subscription.UserSubscription as UserSubscription
 import Task exposing (Task)
+import Time exposing (Posix, Zone)
+import TimeWithZone exposing (TimeWithZone)
 import Url exposing (Url)
 import User exposing (User)
 import View.Helpers exposing (viewIf)
@@ -116,6 +118,7 @@ type alias Model =
     , showKeyboardCommands : Bool
     , showNotifications : Bool
     , notifications : NotificationSet
+    , now : TimeWithZone
     }
 
 
@@ -124,6 +127,7 @@ type alias Flags =
     , supportsNotifications : Bool
     , timeZone : String
     , device : String
+    , now : Int
     }
 
 
@@ -136,16 +140,14 @@ init flags url navKey =
     let
         model =
             buildModel flags navKey
-
-        initCmd =
-            model.session
-                |> MainInit.request
-                |> Task.attempt (AppInitialized url)
     in
     ( model
     , Cmd.batch
-        [ initCmd
+        [ model.session
+            |> MainInit.request
+            |> Task.attempt (AppInitialized url)
         , ServiceWorker.getPushSubscription
+        , Task.perform TimeZoneFetched Time.here
         ]
     )
 
@@ -168,6 +170,7 @@ buildModel flags navKey =
         False
         False
         NotificationSet.empty
+        (TimeWithZone.init Time.utc (Time.millisToPosix flags.now))
 
 
 setup : MainInit.Response -> Url -> Model -> ( Model, Cmd Msg )
@@ -225,6 +228,7 @@ buildGlobals model =
     , showKeyboardCommands = model.showKeyboardCommands
     , showNotifications = model.showNotifications
     , notifications = model.notifications
+    , now = model.now
     }
 
 
@@ -233,7 +237,9 @@ buildGlobals model =
 
 
 type Msg
-    = UrlChange Url
+    = TimeZoneFetched Zone
+    | Tick Posix
+    | UrlChange Url
     | UrlRequest UrlRequest
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
@@ -302,6 +308,12 @@ update msg model =
             buildGlobals model
     in
     case ( msg, model.page ) of
+        ( TimeZoneFetched zone, _ ) ->
+            ( { model | now = TimeWithZone.setZone zone model.now }, Cmd.none )
+
+        ( Tick posix, _ ) ->
+            ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none )
+
         ( UrlChange url, _ ) ->
             navigateTo (Route.fromUrl url) model
 
@@ -1738,7 +1750,8 @@ sendPresenceToPage event model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Socket.receive SocketIn
+        [ Time.every 1000 Tick
+        , Socket.receive SocketIn
         , ServiceWorker.receive ServiceWorkerIn
         , Presence.receive PresenceIn
         , KeyboardShortcuts.subscribe KeyPressed

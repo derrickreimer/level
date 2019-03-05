@@ -53,7 +53,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , postView : PostView
-    , now : TimeWithZone
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
@@ -101,12 +100,11 @@ init : String -> Id -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug postId globals =
     globals.session
         |> PostInit.request spaceSlug postId
-        |> TaskHelpers.andThenGetCurrentTime
         |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
-buildModel spaceSlug globals ( ( newSession, resp ), now ) =
+buildModel : String -> Globals -> ( Session, PostInit.Response ) -> ( Globals, Model )
+buildModel spaceSlug globals ( newSession, resp ) =
     let
         newRepo =
             Repo.union resp.repo globals.repo
@@ -124,7 +122,6 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 resp.viewerId
                 resp.spaceId
                 postView
-                now
                 NotLoaded
                 False
                 False
@@ -189,7 +186,6 @@ type Msg
     | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
-    | Tick Posix
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
@@ -249,9 +245,6 @@ update msg globals model =
 
         ReplyViewsRecorded (Err _) ->
             noCmd globals model
-
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
@@ -464,9 +457,7 @@ handleJoin presence globals model =
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.batch
-        [ every 1000 Tick
-        ]
+    Sub.none
 
 
 
@@ -515,7 +506,7 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
@@ -569,7 +560,7 @@ resolvedMobileView globals model data =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
