@@ -25,8 +25,7 @@ defmodule Level.Notifications do
       join: su in assoc(n, :space_user),
       where: s.state == "ACTIVE",
       where: su.state == "ACTIVE",
-      where: su.user_id == ^user_id,
-      order_by: [desc: n.inserted_at]
+      where: su.user_id == ^user_id
   end
 
   @spec query(SpaceUser.t(), Post.t()) :: Ecto.Query.t()

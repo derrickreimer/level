@@ -1,6 +1,6 @@
 module Notification exposing
     ( Notification, Event(..)
-    , id, event, isUndismissed
+    , id, occurredAt, event, isUndismissed
     , fragment
     , decoder
     , withUndismissed
@@ -16,7 +16,7 @@ module Notification exposing
 
 # API
 
-@docs id, event, isUndismissed
+@docs id, occurredAt, event, isUndismissed
 
 
 # GraphQL
@@ -42,6 +42,8 @@ import Post exposing (Post)
 import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
 import ReplyReaction exposing (ReplyReaction)
+import Time exposing (Posix)
+import Util exposing (dateDecoder)
 
 
 
@@ -56,6 +58,7 @@ type alias Data =
     { id : Id
     , topic : String
     , state : State
+    , occurredAt : Posix
     , event : Event
     }
 
@@ -81,6 +84,11 @@ type State
 id : Notification -> Id
 id (Notification data) =
     data.id
+
+
+occurredAt : Notification -> Posix
+occurredAt (Notification data) =
+    data.occurredAt
 
 
 event : Notification -> Event
@@ -111,6 +119,7 @@ fragment =
                 post {
                   ...PostFields
                 }
+                occurredAt
               }
               ... on PostClosedNotification {
                 id
@@ -119,6 +128,7 @@ fragment =
                 post {
                   ...PostFields
                 }
+                occurredAt
               }
               ... on PostReopenedNotification {
                 id
@@ -127,6 +137,7 @@ fragment =
                 post {
                   ...PostFields
                 }
+                occurredAt
               }
               ... on ReplyCreatedNotification {
                 id
@@ -135,6 +146,7 @@ fragment =
                 reply {
                   ...ReplyFields
                 }
+                occurredAt
               }
               ... on PostReactionCreatedNotification {
                 id
@@ -143,6 +155,7 @@ fragment =
                 reaction {
                   ...PostReactionFields
                 }
+                occurredAt
               }
               ... on ReplyReactionCreatedNotification {
                 id
@@ -151,6 +164,7 @@ fragment =
                 reaction {
                   ...ReplyReactionFields
                 }
+                occurredAt
               }
             }
             """
@@ -170,10 +184,11 @@ fragment =
 decoder : Decoder Notification
 decoder =
     Decode.map Notification <|
-        Decode.map4 Data
+        Decode.map5 Data
             (field "id" Id.decoder)
             (field "topic" string)
             (field "state" stateDecoder)
+            (field "occurredAt" dateDecoder)
             eventDecoder
 
 
@@ -185,27 +200,41 @@ eventDecoder =
             case typename of
                 "PostCreatedNotification" ->
                     Decode.map PostCreated <|
-                        Decode.at [ "post", "id" ] (maybe Id.decoder)
+                        field "post" (maybe (field "id" Id.decoder))
 
                 "PostClosedNotification" ->
                     Decode.map PostClosed <|
-                        Decode.at [ "post", "id" ] (maybe Id.decoder)
+                        field "post" (maybe (field "id" Id.decoder))
 
                 "PostReopenedNotification" ->
                     Decode.map PostReopened <|
-                        Decode.at [ "post", "id" ] (maybe Id.decoder)
+                        field "post" (maybe (field "id" Id.decoder))
 
                 "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated <|
-                        Decode.at [ "reply", "id" ] (maybe Id.decoder)
+                        field "reply" (maybe (field "id" Id.decoder))
 
                 "PostReactionCreatedNotification" ->
+                    -- It's possible the reaction will not decode properly
+                    -- if the post does not exist. In that case, we'll
+                    -- treat it the same as if the reaction itself had been
+                    -- deleted.
                     Decode.map PostReactionCreated <|
-                        field "reaction" (maybe PostReaction.decoder)
+                        Decode.oneOf
+                            [ field "reaction" (maybe PostReaction.decoder)
+                            , Decode.succeed Nothing
+                            ]
 
                 "ReplyReactionCreatedNotification" ->
+                    -- It's possible the reaction will not decode properly
+                    -- if the post does not exist. In that case, we'll
+                    -- treat it the same as if the reaction itself had been
+                    -- deleted.
                     Decode.map ReplyReactionCreated <|
-                        field "reaction" (maybe ReplyReaction.decoder)
+                        Decode.oneOf
+                            [ field "reaction" (maybe ReplyReaction.decoder)
+                            , Decode.succeed Nothing
+                            ]
 
                 _ ->
                     Decode.fail "event not recognized"

@@ -576,14 +576,14 @@ defmodule LevelWeb.Schema.Objects do
   @desc "Represents a user's reaction to a post."
   object :post_reaction do
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
-    field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, :post, resolve: dataloader(:db)
   end
 
   @desc "Represents a user's reaction to a reply."
   object :reply_reaction do
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
-    field :post, non_null(:post), resolve: dataloader(:db)
-    field :reply, non_null(:reply), resolve: dataloader(:db)
+    field :post, :post, resolve: dataloader(:db)
+    field :reply, :reply, resolve: dataloader(:db)
   end
 
   @desc "A mention represents a when user has @-mentioned another user."
@@ -753,6 +753,7 @@ defmodule LevelWeb.Schema.Objects do
     field :topic, non_null(:string)
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   object :post_closed_notification do
@@ -760,6 +761,7 @@ defmodule LevelWeb.Schema.Objects do
     field :topic, non_null(:string)
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   object :post_reopened_notification do
@@ -767,6 +769,7 @@ defmodule LevelWeb.Schema.Objects do
     field :topic, non_null(:string)
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   object :reply_created_notification do
@@ -775,6 +778,7 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
     field :reply, :reply, resolve: notification_reply_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   object :post_reaction_created_notification do
@@ -793,6 +797,8 @@ defmodule LevelWeb.Schema.Objects do
         end)
       end
     end
+
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   object :reply_reaction_created_notification do
@@ -811,6 +817,8 @@ defmodule LevelWeb.Schema.Objects do
         end)
       end
     end
+
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
   end
 
   defp notification_post_resolver do
@@ -834,6 +842,12 @@ defmodule LevelWeb.Schema.Objects do
       |> on_load(fn loader ->
         {:ok, Dataloader.get(loader, :db, Reply, reply_id)}
       end)
+    end
+  end
+
+  defp notification_timestamp_resolver do
+    fn parent, _, _ ->
+      {:ok, parent.inserted_at}
     end
   end
 

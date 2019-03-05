@@ -21,6 +21,7 @@ import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
 import Notification
 import NotificationSet exposing (NotificationSet)
+import NotificationStateFilter
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -148,8 +149,8 @@ init flags url navKey =
             |> MainInit.request
             |> Task.attempt (AppInitialized url)
         , model.session
-            |> Notifications.request (Notifications.variables 20 Nothing)
-            |> Task.attempt NotificationsFetched
+            |> Notifications.request (Notifications.variables NotificationStateFilter.Undismissed 20 Nothing)
+            |> Task.attempt (NotificationsFetched 20)
         , ServiceWorker.getPushSubscription
         , Task.perform TimeZoneFetched Time.here
         ]
@@ -248,7 +249,7 @@ type Msg
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
-    | NotificationsFetched (Result Session.Error ( Session, Notifications.Response ))
+    | NotificationsFetched Int (Result Session.Error ( Session, Notifications.Response ))
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
@@ -363,7 +364,7 @@ update msg model =
         ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
 
-        ( NotificationsFetched (Ok ( newSession, resp )), _ ) ->
+        ( NotificationsFetched limit (Ok ( newSession, resp )), _ ) ->
             let
                 newRepo =
                     Repo.union resp.repo model.repo
@@ -384,10 +385,10 @@ update msg model =
             , Cmd.none
             )
 
-        ( NotificationsFetched (Err Session.Expired), _ ) ->
+        ( NotificationsFetched _ (Err Session.Expired), _ ) ->
             ( model, Route.toLogin )
 
-        ( NotificationsFetched _, _ ) ->
+        ( NotificationsFetched _ _, _ ) ->
             ( model, Cmd.none )
 
         ( PageInitialized pageInit, _ ) ->

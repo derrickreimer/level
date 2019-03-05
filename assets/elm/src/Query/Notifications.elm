@@ -5,6 +5,7 @@ import GraphQL exposing (Document)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Json.Encode as Encode
 import Notification
+import NotificationStateFilter exposing (NotificationStateFilter)
 import Repo exposing (Repo)
 import ResolvedNotification exposing (ResolvedNotification)
 import Session exposing (Session)
@@ -29,11 +30,19 @@ document =
         """
         query Notifications(
           $cursor: Timestamp,
-          $limit: Int
+          $limit: Int,
+          $orderField: NotificationOrderField,
+          $orderDirection: OrderDirection,
+          $state: NotificationStateFilter
         ) {
           notifications(
             cursor: $cursor,
-            limit: $limit
+            limit: $limit,
+            orderBy: {
+              field: $orderField,
+              direction: $orderDirection
+            },
+            state: $state
           ) {
             ...NotificationFields
           }
@@ -43,18 +52,24 @@ document =
         ]
 
 
-variables : Int -> Maybe Posix -> Maybe Encode.Value
-variables limit maybeCursor =
+variables : NotificationStateFilter -> Int -> Maybe Posix -> Maybe Encode.Value
+variables state limit maybeCursor =
     let
         pairs =
             case maybeCursor of
                 Just cursor ->
                     [ ( "cursor", Encode.int (Time.posixToMillis cursor) )
                     , ( "limit", Encode.int limit )
+                    , ( "orderField", Encode.string "OCCURRED_AT" )
+                    , ( "orderDirection", Encode.string "DESC" )
+                    , ( "state", Encode.string <| NotificationStateFilter.toEnum state )
                     ]
 
                 Nothing ->
                     [ ( "limit", Encode.int limit )
+                    , ( "orderField", Encode.string "OCCURRED_AT" )
+                    , ( "orderDirection", Encode.string "DESC" )
+                    , ( "state", Encode.string <| NotificationStateFilter.toEnum state )
                     ]
     in
     Just (Encode.object pairs)

@@ -555,21 +555,41 @@ defmodule Level.Resolvers do
       |> Notifications.query()
       |> apply_notification_limit(args)
       |> apply_notification_cursor(args)
+      |> apply_notification_order(args)
+      |> apply_notification_state_filter(args)
 
     {:ok, Repo.all(query)}
   end
 
   defp apply_notification_limit(query, %{limit: limit_value}) do
-    query
-    |> limit(^limit_value)
+    limit(query, ^limit_value)
   end
 
   defp apply_notification_cursor(query, %{cursor: cursor}) do
-    query
-    |> where([n], n.inserted_at < ^cursor)
+    where(query, [n], n.inserted_at < ^cursor)
   end
 
   defp apply_notification_cursor(query, _) do
+    query
+  end
+
+  defp apply_notification_order(query, %{order_by: %{direction: direction}}) do
+    order_by(query, [n], {^direction, :inserted_at})
+  end
+
+  defp apply_notification_order(query, _) do
+    order_by(query, [n], {:desc, :inserted_at})
+  end
+
+  defp apply_notification_state_filter(query, %{state: :undismissed}) do
+    where(query, [n], n.state == "UNDISMISSED")
+  end
+
+  defp apply_notification_state_filter(query, %{state: :dismissed}) do
+    where(query, [n], n.state == "DISMISSED")
+  end
+
+  defp apply_notification_state_filter(query, _) do
     query
   end
 
