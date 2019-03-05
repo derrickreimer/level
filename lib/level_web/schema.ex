@@ -54,6 +54,13 @@ defmodule LevelWeb.Schema do
       arg :user_id, non_null(:id)
       resolve &Level.Resolvers.space_user_by_user_id/2
     end
+
+    @desc "Fetches notifications."
+    field :notifications, list_of(:notification) do
+      arg :limit, :integer, default_value: 20
+      arg :cursor, :timestamp
+      resolve &Level.Resolvers.notifications/2
+    end
   end
 
   mutation do

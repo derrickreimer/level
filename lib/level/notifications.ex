@@ -13,10 +13,22 @@ defmodule Level.Notifications do
   alias Level.Schemas.Reply
   alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SpaceUser
+  alias Level.Schemas.User
 
   @doc """
-  A query for notifications for a given user and post.
+  A query for notifications.
   """
+  @spec query(User.t()) :: Ecto.Query.t()
+  def query(%User{id: user_id}) do
+    from n in Notification,
+      join: s in assoc(n, :space),
+      join: su in assoc(n, :space_user),
+      where: s.state == "ACTIVE",
+      where: su.state == "ACTIVE",
+      where: su.user_id == ^user_id,
+      order_by: [desc: n.inserted_at]
+  end
+
   @spec query(SpaceUser.t(), Post.t()) :: Ecto.Query.t()
   def query(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
     topic = "post:#{post_id}"

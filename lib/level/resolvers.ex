@@ -8,6 +8,7 @@ defmodule Level.Resolvers do
   import Ecto.Query, warn: false
   import Level.Gettext
 
+  alias Level.Notifications
   alias Level.Nudges
   alias Level.Pagination
   alias Level.Posts
@@ -22,6 +23,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Schemas.Group
   alias Level.Schemas.GroupUser
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostUser
   alias Level.Schemas.Reply
@@ -541,6 +543,34 @@ defmodule Level.Resolvers do
     else
       {:ok, nil}
     end
+  end
+
+  @doc """
+  Fetches notifications.
+  """
+  @spec notifications(map(), info()) :: {:ok, [Notification.t()]}
+  def notifications(args, %{context: %{current_user: user}}) do
+    query =
+      user
+      |> Notifications.query()
+      |> apply_notification_limit(args)
+      |> apply_notification_cursor(args)
+
+    {:ok, Repo.all(query)}
+  end
+
+  defp apply_notification_limit(query, %{limit: limit_value}) do
+    query
+    |> limit(^limit_value)
+  end
+
+  defp apply_notification_cursor(query, %{cursor: cursor}) do
+    query
+    |> where([n], n.inserted_at < ^cursor)
+  end
+
+  defp apply_notification_cursor(query, _) do
+    query
   end
 
   # Dataloader helpers
