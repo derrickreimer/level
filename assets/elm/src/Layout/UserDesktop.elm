@@ -51,7 +51,7 @@ layout config children =
             [ fullSidebar config
             , div [ class "ml-48 xl:mx-48 relative" ] children
             ]
-        , div [ class "fixed pin-t pin-r z-50", id "headway" ] []
+        , div [ class "fixed pin-b pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
         , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
         ]
