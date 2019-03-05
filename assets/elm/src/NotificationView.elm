@@ -17,6 +17,7 @@ module NotificationView exposing
 
 -}
 
+import Avatar
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -30,6 +31,9 @@ import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedNotification exposing (Event(..), ResolvedNotification)
 import ResolvedPost exposing (ResolvedPost)
 import ResolvedReply exposing (ResolvedReply)
+import SpaceUser exposing (SpaceUser)
+import TimeWithZone exposing (TimeWithZone)
+import View.Helpers exposing (viewIf)
 
 
 
@@ -48,8 +52,8 @@ type alias Config msg =
 
 panelView : Config msg -> List ResolvedNotification -> Html msg
 panelView config resolvedNotifications =
-    div [ class "fixed overflow-y-auto w-72 xl:w-80 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
-        [ div [ class "flex items-center p-3 pl-6 border-b" ]
+    div [ class "fixed overflow-y-auto w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
+        [ div [ class "flex items-center p-3 pl-4 border-b" ]
             [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
             , button
                 [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
@@ -65,50 +69,64 @@ notificationView : Config msg -> ResolvedNotification -> Html msg
 notificationView config resolvedNotification =
     case resolvedNotification.event of
         PostCreated resolvedPost ->
-            div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3 text-md" ]
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "posted a message" ]
                     ]
-                , postPreview config resolvedPost.post
+                , postPreview config resolvedPost
                 ]
 
         PostClosed resolvedPost ->
-            div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3 text-md" ]
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "resolved a post" ]
                     ]
-                , postPreview config resolvedPost.post
+                , postPreview config resolvedPost
                 ]
 
         PostReopened resolvedPost ->
-            div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3 text-md" ]
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "reopened a post" ]
                     ]
-                , postPreview config resolvedPost.post
+                , postPreview config resolvedPost
                 ]
 
         ReplyCreated resolvedReply ->
-            div [ class "px-6 py-4 border-b" ]
-                [ div [ class "pb-3 text-md" ]
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
                     [ authorDisplayName resolvedReply.author
                     , space
                     , span [] [ text "replied to a post" ]
                     ]
-                , replyPreview config resolvedReply.reply
+                , replyPreview config resolvedReply
                 ]
 
-        PostReactionCreated postReaction ->
-            text ""
+        PostReactionCreated resolvedReaction ->
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
+                    [ spaceUserDisplayName resolvedReaction.spaceUser
+                    , space
+                    , span [] [ text "acknowledged a post" ]
+                    ]
+                , postPreview config resolvedReaction.resolvedPost
+                ]
 
-        ReplyReactionCreated replyReaction ->
-            text ""
+        ReplyReactionCreated resolvedReaction ->
+            button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+                [ div [ class "pb-3" ]
+                    [ spaceUserDisplayName resolvedReaction.spaceUser
+                    , space
+                    , span [] [ text "acknowledged a reply" ]
+                    ]
+                , replyPreview config resolvedReaction.resolvedReply
+                ]
 
 
 
@@ -121,30 +139,130 @@ authorDisplayName resolvedAuthor =
         [ text <| ResolvedAuthor.displayName resolvedAuthor ]
 
 
+spaceUserDisplayName : SpaceUser -> Html msg
+spaceUserDisplayName spaceUser =
+    span [ class "font-bold" ]
+        [ text <| SpaceUser.displayName spaceUser ]
+
+
 space : Html msg
 space =
     text " "
 
 
-postPreview : Config msg -> Post -> Html msg
-postPreview config post =
-    div [ class "px-3 py-2 bg-grey-light rounded-xl text-md" ]
-        [ div [ class "markdown break-words overflow-hidden", style "max-height" "72px" ]
-            [ RenderedHtml.node
-                { html = Post.bodyHtml post
-                , onInternalLinkClicked = config.onInternalLinkClicked
-                }
+postPreview : Config msg -> ResolvedPost -> Html msg
+postPreview config resolvedPost =
+    div
+        [ classList [ ( "flex text-md relative", True ) ]
+        ]
+        [ div [ class "flex-no-shrink mr-3 z-10 pt-1" ]
+            [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedPost.author) ]
+        , div
+            [ classList
+                [ ( "min-w-0 leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
+                ]
+            ]
+            [ div [ class "pb-1/2" ]
+                [ authorLabel resolvedPost.author
+
+                -- , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                ]
+            , div []
+                [ div [ class "markdown pb-1 break-words text-dusty-blue-dark max-h-16 overflow-hidden" ]
+                    [ RenderedHtml.node
+                        { html = Post.bodyHtml resolvedPost.post
+                        , onInternalLinkClicked = config.onInternalLinkClicked
+                        }
+                    ]
+
+                -- , staticFilesView (Reply.files reply)
+                ]
+            , div [ class "pb-1/2 flex items-start" ] [ postReactionIndicator resolvedPost ]
             ]
         ]
 
 
-replyPreview : Config msg -> Reply -> Html msg
-replyPreview config reply =
-    div [ class "px-3 py-2 bg-grey-light rounded-xl text-md" ]
-        [ div [ class "markdown break-words overflow-hidden", style "max-height" "72px" ]
-            [ RenderedHtml.node
-                { html = Reply.bodyHtml reply
-                , onInternalLinkClicked = config.onInternalLinkClicked
-                }
+replyPreview : Config msg -> ResolvedReply -> Html msg
+replyPreview config resolvedReply =
+    div
+        [ classList [ ( "flex text-md relative", True ) ]
+        ]
+        [ div [ class "flex-no-shrink mr-3 z-10 pt-1" ]
+            [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedReply.author) ]
+        , div
+            [ classList
+                [ ( "min-w-0 leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
+                ]
             ]
+            [ div [ class "pb-1/2" ]
+                [ authorLabel resolvedReply.author
+
+                -- , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                ]
+            , div []
+                [ div [ class "markdown pb-1 break-words text-dusty-blue-dark max-h-16 overflow-hidden" ]
+                    [ RenderedHtml.node
+                        { html = Reply.bodyHtml resolvedReply.reply
+                        , onInternalLinkClicked = config.onInternalLinkClicked
+                        }
+                    ]
+
+                -- , staticFilesView (Reply.files reply)
+                ]
+            , div [ class "pb-1/2 flex items-start" ] [ replyReactionIndicator resolvedReply ]
+            ]
+        ]
+
+
+authorLabel : ResolvedAuthor -> Html msg
+authorLabel author =
+    span
+        [ class "whitespace-no-wrap"
+        ]
+        [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| ResolvedAuthor.displayName author ]
+        , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
+        ]
+
+
+postReactionIndicator : ResolvedPost -> Html msg
+postReactionIndicator resolvedPost =
+    let
+        toggleState =
+            if Post.hasReacted resolvedPost.post then
+                Icons.On
+
+            else
+                Icons.Off
+    in
+    div
+        [ class "flex relative items-center mr-6 no-outline react-button"
+        ]
+        [ Icons.thumbsMedium toggleState
+        , viewIf (Post.reactionCount resolvedPost.post > 0) <|
+            div
+                [ class "ml-1 text-dusty-blue font-bold text-sm"
+                ]
+                [ text <| String.fromInt (Post.reactionCount resolvedPost.post) ]
+        ]
+
+
+replyReactionIndicator : ResolvedReply -> Html msg
+replyReactionIndicator resolvedReply =
+    let
+        toggleState =
+            if Reply.hasReacted resolvedReply.reply then
+                Icons.On
+
+            else
+                Icons.Off
+    in
+    div
+        [ class "flex relative items-center mr-6 no-outline react-button"
+        ]
+        [ Icons.thumbsMedium toggleState
+        , viewIf (Reply.reactionCount resolvedReply.reply > 0) <|
+            div
+                [ class "ml-1 text-dusty-blue font-bold text-sm"
+                ]
+                [ text <| String.fromInt (Reply.reactionCount resolvedReply.reply) ]
         ]

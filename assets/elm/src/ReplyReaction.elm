@@ -1,5 +1,6 @@
 module ReplyReaction exposing
     ( ReplyReaction
+    , spaceUserId, postId, replyId
     , fragment
     , decoder
     )
@@ -10,6 +11,11 @@ module ReplyReaction exposing
 # Types
 
 @docs ReplyReaction
+
+
+# API
+
+@docs spaceUserId, postId, replyId
 
 
 # GraphQL
@@ -44,6 +50,25 @@ type alias Data =
     , postId : Id
     , replyId : Id
     }
+
+
+
+-- API
+
+
+spaceUserId : ReplyReaction -> Id
+spaceUserId (ReplyReaction data) =
+    data.spaceUserId
+
+
+postId : ReplyReaction -> Id
+postId (ReplyReaction data) =
+    data.postId
+
+
+replyId : ReplyReaction -> Id
+replyId (ReplyReaction data) =
+    data.replyId
 
 
 

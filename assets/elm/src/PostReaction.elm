@@ -1,5 +1,6 @@
 module PostReaction exposing
     ( PostReaction
+    , spaceUserId, postId
     , fragment
     , decoder
     )
@@ -10,6 +11,11 @@ module PostReaction exposing
 # Types
 
 @docs PostReaction
+
+
+# API
+
+@docs spaceUserId, postId
 
 
 # GraphQL
@@ -42,6 +48,20 @@ type alias Data =
     { spaceUserId : Id
     , postId : Id
     }
+
+
+
+-- API
+
+
+spaceUserId : PostReaction -> Id
+spaceUserId (PostReaction data) =
+    data.spaceUserId
+
+
+postId : PostReaction -> Id
+postId (PostReaction data) =
+    data.postId
 
 
 

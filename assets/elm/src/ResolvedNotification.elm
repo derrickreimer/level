@@ -9,7 +9,9 @@ import PostReaction exposing (PostReaction)
 import ReplyReaction exposing (ReplyReaction)
 import Repo exposing (Repo)
 import ResolvedPost exposing (ResolvedPost)
+import ResolvedPostReaction exposing (ResolvedPostReaction)
 import ResolvedReply exposing (ResolvedReply)
+import ResolvedReplyReaction exposing (ResolvedReplyReaction)
 
 
 type alias ResolvedNotification =
@@ -23,8 +25,8 @@ type Event
     | PostClosed ResolvedPost
     | PostReopened ResolvedPost
     | ReplyCreated ResolvedReply
-    | PostReactionCreated PostReaction
-    | ReplyReactionCreated ReplyReaction
+    | PostReactionCreated ResolvedPostReaction
+    | ReplyReactionCreated ResolvedReplyReaction
 
 
 decoder : Decoder ResolvedNotification
@@ -58,11 +60,11 @@ eventDecoder =
 
                 "PostReactionCreatedNotification" ->
                     Decode.map PostReactionCreated
-                        (field "reaction" PostReaction.decoder)
+                        (field "reaction" ResolvedPostReaction.decoder)
 
                 "ReplyReactionCreatedNotification" ->
                     Decode.map ReplyReactionCreated
-                        (field "reaction" ReplyReaction.decoder)
+                        (field "reaction" ResolvedReplyReaction.decoder)
 
                 _ ->
                     Decode.fail "event not recognized"
@@ -88,11 +90,11 @@ addToRepo resolvedNotification repo =
                 ReplyCreated resolvedReply ->
                     ResolvedReply.addToRepo resolvedReply repo
 
-                PostReactionCreated postReaction ->
-                    repo
+                PostReactionCreated resolvedReaction ->
+                    ResolvedPostReaction.addToRepo resolvedReaction repo
 
-                ReplyReactionCreated replyReaction ->
-                    repo
+                ReplyReactionCreated resolvedReaction ->
+                    ResolvedReplyReaction.addToRepo resolvedReaction repo
     in
     Repo.setNotification resolvedNotification.notification newRepo
 
@@ -121,10 +123,12 @@ resolve repo id =
                                 ResolvedReply.resolve repo replyId
 
                         Notification.PostReactionCreated postReaction ->
-                            Just <| PostReactionCreated postReaction
+                            Maybe.map PostReactionCreated <|
+                                ResolvedPostReaction.resolve repo postReaction
 
                         Notification.ReplyReactionCreated replyReaction ->
-                            Just <| ReplyReactionCreated replyReaction
+                            Maybe.map ReplyReactionCreated <|
+                                ResolvedReplyReaction.resolve repo replyReaction
             in
             Maybe.map2 ResolvedNotification
                 (Just notification)
