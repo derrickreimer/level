@@ -23,6 +23,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Notification
 import Post exposing (Post)
 import PostReaction exposing (PostReaction)
 import RenderedHtml
@@ -71,7 +72,12 @@ notificationView : Config msg -> ResolvedNotification -> Html msg
 notificationView config resolvedNotification =
     case resolvedNotification.event of
         PostCreated resolvedPost ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -84,7 +90,12 @@ notificationView config resolvedNotification =
                 ]
 
         PostClosed resolvedPost ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -97,7 +108,12 @@ notificationView config resolvedNotification =
                 ]
 
         PostReopened resolvedPost ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -110,7 +126,12 @@ notificationView config resolvedNotification =
                 ]
 
         ReplyCreated resolvedReply ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -123,7 +144,12 @@ notificationView config resolvedNotification =
                 ]
 
         PostReactionCreated resolvedReaction ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -136,7 +162,12 @@ notificationView config resolvedNotification =
                 ]
 
         ReplyReactionCreated resolvedReaction ->
-            button [ class "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
+            button
+                [ classList
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    ]
+                ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]
                     [ div [ class "pt-1 pb-4" ]
@@ -175,7 +206,7 @@ postPreview config resolvedPost =
     div
         [ classList [ ( "flex text-md relative", True ) ]
         ]
-        [ div [ class "flex-no-shrink mr-3 z-10 pt-1" ]
+        [ div [ class "flex-no-shrink mr-2 z-10 pt-1" ]
             [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedPost.author) ]
         , div
             [ classList
@@ -208,12 +239,12 @@ replyPreview config resolvedReply =
     div
         [ classList [ ( "flex text-md relative", True ) ]
         ]
-        [ div [ class "flex-no-shrink mr-3 z-10 pt-1" ]
+        [ div [ class "flex-no-shrink mr-2 z-10 pt-1" ]
             [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedReply.author) ]
         , div
             [ classList
                 [ ( "min-w-0 leading-normal -ml-6 px-6", True )
-                , ( "py-2 bg-grey-light rounded-xl", True )
+                , ( "py-2 bg-grey-light rounded-xl", False )
                 ]
             ]
             [ div [ class "pb-1/2" ]

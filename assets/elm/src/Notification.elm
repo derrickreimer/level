@@ -1,6 +1,6 @@
 module Notification exposing
     ( Notification, Event(..)
-    , id, event
+    , id, event, isUndismissed
     , fragment
     , decoder
     , withUndismissed
@@ -16,7 +16,7 @@ module Notification exposing
 
 # API
 
-@docs id, event
+@docs id, event, isUndismissed
 
 
 # GraphQL
@@ -86,6 +86,11 @@ id (Notification data) =
 event : Notification -> Event
 event (Notification data) =
     data.event
+
+
+isUndismissed : Notification -> Bool
+isUndismissed (Notification data) =
+    data.state == Undismissed
 
 
 
