@@ -104,7 +104,8 @@ notificationPanel : Config msg -> Html msg
 notificationPanel config =
     let
         panelConfig =
-            { onInternalLinkClicked = config.onInternalLinkClicked
+            { globals = config.globals
+            , onInternalLinkClicked = config.onInternalLinkClicked
             , onToggleNotifications = config.onToggleNotifications
             }
     in

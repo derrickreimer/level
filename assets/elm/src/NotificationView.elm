@@ -18,6 +18,7 @@ module NotificationView exposing
 -}
 
 import Avatar
+import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -41,7 +42,8 @@ import View.Helpers exposing (viewIf)
 
 
 type alias Config msg =
-    { onToggleNotifications : msg
+    { globals : Globals
+    , onToggleNotifications : msg
     , onInternalLinkClicked : String -> msg
     }
 
@@ -70,7 +72,7 @@ notificationView config resolvedNotification =
     case resolvedNotification.event of
         PostCreated resolvedPost ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "posted a message" ]
@@ -80,7 +82,7 @@ notificationView config resolvedNotification =
 
         PostClosed resolvedPost ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "resolved a post" ]
@@ -90,7 +92,7 @@ notificationView config resolvedNotification =
 
         PostReopened resolvedPost ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ authorDisplayName resolvedPost.author
                     , space
                     , span [] [ text "reopened a post" ]
@@ -100,7 +102,7 @@ notificationView config resolvedNotification =
 
         ReplyCreated resolvedReply ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ authorDisplayName resolvedReply.author
                     , space
                     , span [] [ text "replied to a post" ]
@@ -110,7 +112,7 @@ notificationView config resolvedNotification =
 
         PostReactionCreated resolvedReaction ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ spaceUserDisplayName resolvedReaction.spaceUser
                     , space
                     , span [] [ text "acknowledged a post" ]
@@ -120,7 +122,7 @@ notificationView config resolvedNotification =
 
         ReplyReactionCreated resolvedReaction ->
             button [ class "text-dusty-blue-darker px-4 py-4 border-b text-left w-full" ]
-                [ div [ class "pb-3" ]
+                [ div [ class "pb-4" ]
                     [ spaceUserDisplayName resolvedReaction.spaceUser
                     , space
                     , span [] [ text "acknowledged a reply" ]
@@ -159,13 +161,14 @@ postPreview config resolvedPost =
             [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedPost.author) ]
         , div
             [ classList
-                [ ( "min-w-0 leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
+                [ ( "min-w-0 leading-normal -ml-6 px-6", True )
                 ]
             ]
             [ div [ class "pb-1/2" ]
                 [ authorLabel resolvedPost.author
-
-                -- , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                , View.Helpers.timeTag config.globals.now
+                    (TimeWithZone.setPosix (Post.postedAt resolvedPost.post) config.globals.now)
+                    [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                 ]
             , div []
                 [ div [ class "markdown pb-1 break-words text-dusty-blue-dark max-h-16 overflow-hidden" ]
@@ -191,13 +194,15 @@ replyPreview config resolvedReply =
             [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small resolvedReply.author) ]
         , div
             [ classList
-                [ ( "min-w-0 leading-normal -ml-6 px-6 py-2 mb-1 bg-grey-light rounded-xl", True )
+                [ ( "min-w-0 leading-normal -ml-6 px-6", True )
+                , ( "py-2 bg-grey-light rounded-xl", True )
                 ]
             ]
             [ div [ class "pb-1/2" ]
                 [ authorLabel resolvedReply.author
-
-                -- , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt reply) config.now) [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
+                , View.Helpers.timeTag config.globals.now
+                    (TimeWithZone.setPosix (Reply.postedAt resolvedReply.reply) config.globals.now)
+                    [ class "mr-3 text-sm text-dusty-blue whitespace-no-wrap" ]
                 ]
             , div []
                 [ div [ class "markdown pb-1 break-words text-dusty-blue-dark max-h-16 overflow-hidden" ]
@@ -219,7 +224,7 @@ authorLabel author =
     span
         [ class "whitespace-no-wrap"
         ]
-        [ span [ class "font-bold text-dusty-blue-darkest mr-2" ] [ text <| ResolvedAuthor.displayName author ]
+        [ span [ class "font-bold text-dusty-blue-dark mr-2" ] [ text <| ResolvedAuthor.displayName author ]
         , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
         ]
 
