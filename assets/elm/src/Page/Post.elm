@@ -498,8 +498,6 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
-            , onToggleNotifications = ToggleNotifications
-            , onInternalLinkClicked = InternalLinkClicked
             }
 
         postConfig =

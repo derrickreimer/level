@@ -36,8 +36,6 @@ type alias Config msg =
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
     , onPageClicked : msg
-    , onToggleNotifications : msg
-    , onInternalLinkClicked : String -> msg
     }
 
 

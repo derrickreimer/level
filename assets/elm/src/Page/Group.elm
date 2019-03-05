@@ -1280,8 +1280,6 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = PageClicked
-            , onToggleNotifications = ToggleNotifications
-            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.SpaceDesktop.layout config

@@ -196,8 +196,6 @@ resolvedDesktopView globals model data =
             , onNoOp = NoOp
             , onToggleKeyboardCommands = ToggleKeyboardCommands
             , onPageClicked = NoOp
-            , onToggleNotifications = ToggleNotifications
-            , onInternalLinkClicked = InternalLinkClicked
             }
     in
     Layout.UserDesktop.layout config

@@ -24,6 +24,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
 import Notification
+import NotificationSet exposing (NotificationSet)
 import Post exposing (Post)
 import PostReaction exposing (PostReaction)
 import RenderedHtml
@@ -46,6 +47,7 @@ type alias Config msg =
     { globals : Globals
     , onToggleNotifications : msg
     , onInternalLinkClicked : String -> msg
+    , onMoreRequested : msg
     }
 
 
@@ -53,9 +55,15 @@ type alias Config msg =
 -- VIEW
 
 
-panelView : Config msg -> List ResolvedNotification -> Html msg
-panelView config resolvedNotifications =
-    div [ class "fixed w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
+panelView : Config msg -> NotificationSet -> Html msg
+panelView config notifications =
+    let
+        itemViews =
+            notifications
+                |> NotificationSet.resolve config.globals.repo
+                |> List.map (notificationView config)
+    in
+    div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-lg z-50" ]
         [ div [ class "flex items-center p-3 pl-4 border-b" ]
             [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
             , button
@@ -65,7 +73,16 @@ panelView config resolvedNotifications =
                 [ Icons.ex ]
             ]
         , div [ class "absolute pin overflow-y-auto", style "top" "61px" ]
-            (List.map (notificationView config) resolvedNotifications)
+            [ div [] itemViews
+            , viewIf (NotificationSet.hasMore notifications) <|
+                div [ class "py-8 text-center" ]
+                    [ button
+                        [ class "btn btn-grey-outline btn-md"
+                        , onClick config.onMoreRequested
+                        ]
+                        [ text "Load more..." ]
+                    ]
+            ]
         ]
 
 

@@ -40,8 +40,6 @@ type alias Config msg =
     , onNoOp : msg
     , onToggleKeyboardCommands : msg
     , onPageClicked : msg
-    , onToggleNotifications : msg
-    , onInternalLinkClicked : String -> msg
     }
 
 
@@ -57,8 +55,6 @@ layout config children =
             [ fullSidebar config
             , div [ class "ml-48 mr-16 xl:mx-48 relative" ] children
             ]
-        , rightmostSidebar config
-        , viewIf config.globals.showNotifications (notificationPanel config)
         , div [ class "fixed pin-b pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
         , viewIf config.globals.showKeyboardCommands (keyboardCommandReference config)
@@ -75,43 +71,6 @@ rightSidebar children =
         , style "right" "60px"
         ]
         children
-
-
-rightmostSidebar : Config msg -> Html msg
-rightmostSidebar config =
-    div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
-        [ button
-            [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
-            , onClick config.onToggleNotifications
-            ]
-            [ Icons.notification Icons.Off
-            , div
-                [ classList
-                    [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
-                    , ( "opacity-100", NotificationSet.hasUndismissed config.globals.repo config.globals.notifications )
-                    ]
-                , style "width" "10px"
-                , style "height" "10px"
-                , style "margin-right" "9px"
-                , style "margin-top" "3px"
-                ]
-                []
-            ]
-        ]
-
-
-notificationPanel : Config msg -> Html msg
-notificationPanel config =
-    let
-        panelConfig =
-            { globals = config.globals
-            , onInternalLinkClicked = config.onInternalLinkClicked
-            , onToggleNotifications = config.onToggleNotifications
-            }
-    in
-    config.globals.notifications
-        |> NotificationSet.resolve config.globals.repo
-        |> NotificationView.panelView panelConfig
 
 
 keyboardCommandReference : Config msg -> Html msg

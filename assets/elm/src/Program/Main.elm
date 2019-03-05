@@ -10,6 +10,7 @@ import Flash exposing (Flash)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import InboxStateFilter
@@ -22,6 +23,7 @@ import Mutation.UpdateUser as UpdateUser
 import Notification
 import NotificationSet exposing (NotificationSet)
 import NotificationStateFilter
+import NotificationView
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -149,8 +151,8 @@ init flags url navKey =
             |> MainInit.request
             |> Task.attempt (AppInitialized url)
         , model.session
-            |> Notifications.request (Notifications.variables NotificationStateFilter.Undismissed 20 Nothing)
-            |> Task.attempt (NotificationsFetched 20)
+            |> Notifications.request (Notifications.variables NotificationStateFilter.All 50 Nothing)
+            |> Task.attempt (NotificationsFetched 50)
         , ServiceWorker.getPushSubscription
         , Task.perform TimeZoneFetched Time.here
         ]
@@ -249,7 +251,10 @@ type Msg
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
+    | MoreNotificationsRequested
     | NotificationsFetched Int (Result Session.Error ( Session, Notifications.Response ))
+    | ToggleNotifications
+    | InternalLinkClicked String
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
@@ -364,6 +369,17 @@ update msg model =
         ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
 
+        ( MoreNotificationsRequested, _ ) ->
+            let
+                cursor =
+                    NotificationSet.firstOccurredAt model.repo model.notifications
+            in
+            ( model
+            , model.session
+                |> Notifications.request (Notifications.variables NotificationStateFilter.All 50 cursor)
+                |> Task.attempt (NotificationsFetched 50)
+            )
+
         ( NotificationsFetched limit (Ok ( newSession, resp )), _ ) ->
             let
                 newRepo =
@@ -375,7 +391,9 @@ update msg model =
 
                 newNotifications =
                     model.notifications
-                        |> NotificationSet.load notificationIds
+                        |> NotificationSet.addMany notificationIds
+                        |> NotificationSet.setLoaded
+                        |> NotificationSet.setHasMore (List.length notificationIds >= limit)
             in
             ( { model
                 | repo = newRepo
@@ -390,6 +408,12 @@ update msg model =
 
         ( NotificationsFetched _ _, _ ) ->
             ( model, Cmd.none )
+
+        ( ToggleNotifications, _ ) ->
+            ( { model | showNotifications = not model.showNotifications }, Cmd.none )
+
+        ( InternalLinkClicked pathname, _ ) ->
+            ( model, Nav.pushUrl model.navKey pathname )
 
         ( PageInitialized pageInit, _ ) ->
             setupPage pageInit model
@@ -1609,12 +1633,15 @@ consumeEvent event ({ page } as model) =
 
         Event.NotificationCreated resolvedNotification ->
             let
+                newRepo =
+                    ResolvedNotification.addToRepo resolvedNotification model.repo
+
                 newNotifications =
                     NotificationSet.add (Notification.id resolvedNotification.notification) model.notifications
             in
             ( { model
                 | notifications = newNotifications
-                , repo = ResolvedNotification.addToRepo resolvedNotification model.repo
+                , repo = newRepo
               }
             , Cmd.none
             )
@@ -1801,6 +1828,8 @@ view model =
     Document (pageTitle model.repo model.page)
         [ pageView (buildGlobals model) model.page
         , centerNoticeView model
+        , rightmostSidebar model
+        , viewIf model.showNotifications (notificationPanel model)
         ]
 
 
@@ -1815,3 +1844,39 @@ centerNoticeView model =
                     ]
                 ]
             ]
+
+
+rightmostSidebar : Model -> Html Msg
+rightmostSidebar model =
+    div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
+        [ button
+            [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , onClick ToggleNotifications
+            ]
+            [ Icons.notification Icons.Off
+            , div
+                [ classList
+                    [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
+                    , ( "opacity-100", NotificationSet.hasUndismissed model.repo model.notifications )
+                    ]
+                , style "width" "10px"
+                , style "height" "10px"
+                , style "margin-right" "9px"
+                , style "margin-top" "3px"
+                ]
+                []
+            ]
+        ]
+
+
+notificationPanel : Model -> Html Msg
+notificationPanel model =
+    let
+        config =
+            { globals = buildGlobals model
+            , onInternalLinkClicked = InternalLinkClicked
+            , onToggleNotifications = ToggleNotifications
+            , onMoreRequested = MoreNotificationsRequested
+            }
+    in
+    NotificationView.panelView config model.notifications
