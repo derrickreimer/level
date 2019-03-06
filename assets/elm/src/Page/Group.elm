@@ -1815,13 +1815,13 @@ memberListView space featuredMembers =
     case featuredMembers of
         Loaded members ->
             if List.isEmpty members then
-                div [ class "text-base text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
+                div [ class "px-3 py-2 text-base text-dusty-blue-dark" ] [ text "Nobody is subscribed." ]
 
             else
                 div [] <| List.map (memberItemView space) members
 
         NotLoaded ->
-            div [ class "pb-4 text-base text-dusty-blue-darker" ] [ text "Loading..." ]
+            div [ class "px-3 py-2 text-base text-dusty-blue-dark" ] [ text "Loading..." ]
 
 
 memberItemView : Space -> SpaceUser -> Html Msg
