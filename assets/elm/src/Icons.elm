@@ -6,7 +6,7 @@ module Icons exposing
     , bookmark, lock, lockLarge
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
-    , ex, home, logOut, menu, notification, plus, search, settings, zapWhite
+    , ex, home, logOut, menu, notification, people, plus, search, settings, zapWhite
     , logo, logomark, postbot
     )
 
@@ -50,7 +50,7 @@ module Icons exposing
 
 # Navigation
 
-@docs ex, home, logOut, menu, notification, plus, search, settings, zapWhite
+@docs ex, home, logOut, menu, notification, people, plus, search, settings, zapWhite
 
 
 # Identity
@@ -328,6 +328,12 @@ notification toggle =
         Off ->
             iconView <|
                 svg [ width "20px", height "22px", viewBox "0 0 20 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "bell-copy-4", transform "translate(9.265349, 10.885299) rotate(-19.000000) translate(-9.265349, -10.885299) translate(0.265349, 0.885299)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M8.91836283,14.9150382 C5.1754003,14.9290591 2.20261269,14.5028343 8.66329231e-12,13.6363636 C1.49116882,13.6363636 2.67808954,11.6876813 2.67808954,10.1814502 L2.7,6.36363636 C2.70000005,2.84909708 5.52060611,9.48149545e-08 9,9.48149549e-08 C12.4793939,9.48149553e-08 15.2999999,2.84909708 15.3,6.36363636 L15.3037904,10.2796776 C15.3037904,11.7859087 16.5088312,13.6363636 18,13.6363636 C15.6885377,14.4747924 12.6613254,14.9010173 8.91836283,14.9150382 Z M9.54808353,18.1476767 C9.00149045,19.2505425 8.04208916,19.907398 7.02998379,19.8716975 C6.01787842,19.835997 5.10617591,19.1131411 4.63707701,17.9744483 C5.66419455,18.0928401 6.4537235,18.1617704 7.00566387,18.1812393 C7.54505828,18.2002656 8.39253151,18.1890781 9.54808353,18.1476767 Z", id "Shape" ] [] ] ] ]
+
+
+people : Html msg
+people =
+    iconView <|
+        svg [ width "22px", height "18px", viewBox "0 0 22 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "users", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M14.5454545,16 L14.5454545,14.2222222 C14.5454545,12.2585431 12.9173991,10.6666667 10.9090909,10.6666667 L3.63636364,10.6666667 C1.62805546,10.6666667 2.01858732e-16,12.2585431 0,14.2222222 L0,16", id "Path" ] [], ellipse [ id "Oval", cx "7.27272727", cy "3.55555556", rx "3.63636364", ry "3.55555556" ] [], Svg.path [ d "M20,16 L20,14.2222222 C19.9987639,12.6018824 18.8772716,11.1873068 17.2727273,10.7822222", id "Path" ] [], Svg.path [ d "M13.6363636,0.115555556 C15.2453771,0.518373145 16.3707666,1.93599213 16.3707666,3.56 C16.3707666,5.18400787 15.2453771,6.60162686 13.6363636,7.00444444", id "Path" ] [] ] ] ]
 
 
 plus : Toggle -> Html msg

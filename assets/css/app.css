@@ -838,6 +838,11 @@ a.user-mention:hover {
   border: 0;
 }
 
+.last-child\:mb-0:last-child {
+  margin-bottom: 0;
+}
+
+
 .translate-y-1 {
   transform: translateY(1px);
 }

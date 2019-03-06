@@ -87,6 +87,7 @@ type alias Model =
     , searchEditor : FieldEditor String
     , isChangingSubscription : Bool
     , isSubscriptionDropdownOpen : Bool
+    , isSubscribersDropdownOpen : Bool
 
     -- MOBILE
     , showNav : Bool
@@ -201,6 +202,7 @@ scaffold globals params viewer space group now =
                 False
                 False
                 False
+                False
     in
     ( ( model, cmds ), globals )
 
@@ -290,6 +292,7 @@ type Msg
     | NewPostSubmit
     | NewPostSubmitted (Result Session.Error ( Session, CreatePost.Response ))
     | SubscriptionDropdownToggled
+    | SubscribersDropdownToggled
     | SubscribeClicked
     | Subscribed (Result Session.Error ( Session, SubscribeToGroup.Response ))
     | UnsubscribeClicked
@@ -343,7 +346,14 @@ update msg globals model =
             ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         PageClicked ->
-            ( ( { model | isSubscriptionDropdownOpen = False }, Cmd.none ), globals )
+            ( ( { model
+                    | isSubscriptionDropdownOpen = False
+                    , isSubscribersDropdownOpen = False
+                }
+              , Cmd.none
+              )
+            , globals
+            )
 
         LoadMoreClicked ->
             let
@@ -510,7 +520,24 @@ update msg globals model =
                 |> noCmd globals
 
         SubscriptionDropdownToggled ->
-            ( ( { model | isSubscriptionDropdownOpen = not model.isSubscriptionDropdownOpen }, Cmd.none ), globals )
+            ( ( { model
+                    | isSubscriptionDropdownOpen = not model.isSubscriptionDropdownOpen
+                    , isSubscribersDropdownOpen = False
+                }
+              , Cmd.none
+              )
+            , globals
+            )
+
+        SubscribersDropdownToggled ->
+            ( ( { model
+                    | isSubscribersDropdownOpen = not model.isSubscribersDropdownOpen
+                    , isSubscriptionDropdownOpen = False
+                }
+              , Cmd.none
+              )
+            , globals
+            )
 
         SubscribeClicked ->
             let
@@ -1303,7 +1330,6 @@ resolvedDesktopView globals model data =
                         ]
                         [ text "Loading..." ]
                     ]
-            , Layout.SpaceDesktop.rightSidebar (sidebarView data.space data.group data.featuredMembers model)
             ]
         ]
 
@@ -1384,11 +1410,37 @@ controlsView model data =
                 , submitMsg = SearchSubmitted
                 }
             ]
+        , subscribersDropdown model data
         , a
             [ Route.href (Route.GroupSettings settingsParams)
-            , class "ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , class "tooltip tooltip-bottom ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , attribute "data-tooltip" "Settings"
             ]
             [ Icons.settings ]
+        ]
+
+
+subscribersDropdown : Model -> Data -> Html Msg
+subscribersDropdown model data =
+    Element.dropdown NoOp
+        [ button
+            [ classList
+                [ ( "ml-2 flex items-center justify-center w-9 h-9 rounded-full", True )
+                , ( "bg-transparent hover:bg-grey transition-bg", not model.isSubscriptionDropdownOpen )
+                , ( "bg-grey", model.isSubscribersDropdownOpen )
+                ]
+            , onClick SubscribersDropdownToggled
+            ]
+            [ Icons.people ]
+        , div
+            [ classList
+                [ ( "absolute bg-white mt-1 py-1 pin-r w-56 max-h-screen shadow-dropdown rounded-lg z-50 overflow-y-auto", True )
+                , ( "hidden", not model.isSubscribersDropdownOpen )
+                ]
+            , style "max-height" "300px"
+            ]
+            [ memberListView data.space data.featuredMembers
+            ]
         ]
 
 
@@ -1610,7 +1662,7 @@ resolvedMobileView globals model data =
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
             , leftControl = Layout.SpaceMobile.ShowNav
-            , rightControl = Layout.SpaceMobile.ShowSidebar
+            , rightControl = Layout.SpaceMobile.NoControl
             }
     in
     Layout.SpaceMobile.layout config
@@ -1653,10 +1705,6 @@ resolvedMobileView globals model data =
             , style "right" "25px"
             ]
             [ Icons.commentWhite ]
-        , viewIf model.showSidebar <|
-            Layout.SpaceMobile.rightSidebar config
-                [ div [ class "p-6" ] (sidebarView data.space data.group data.featuredMembers model)
-                ]
         ]
 
 
@@ -1761,39 +1809,28 @@ bookmarkButtonView isBookmarked =
             [ Icons.bookmark Icons.Off ]
 
 
-sidebarView : Space -> Group -> Lazy (List SpaceUser) -> Model -> List (Html Msg)
-sidebarView space group featuredMembers model =
-    [ h3 [ class "flex items-baseline mb-2 text-base font-bold" ]
-        [ span [ class "mr-2" ] [ text "Subscribers" ]
-        , viewIf (Group.isPrivate group) <|
-            div [ class "tooltip tooltip-bottom font-sans", attribute "data-tooltip" "This channel is private" ] [ Icons.lock ]
-        ]
-    , memberListView space featuredMembers
-    ]
-
-
 memberListView : Space -> Lazy (List SpaceUser) -> Html Msg
 memberListView space featuredMembers =
     case featuredMembers of
         Loaded members ->
             if List.isEmpty members then
-                div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
+                div [ class "text-base text-dusty-blue-darker" ] [ text "Nobody is subscribed." ]
 
             else
-                div [ class "pb-4" ] <| List.map (memberItemView space) members
+                div [] <| List.map (memberItemView space) members
 
         NotLoaded ->
-            div [ class "pb-4 text-md text-dusty-blue-darker" ] [ text "Loading..." ]
+            div [ class "pb-4 text-base text-dusty-blue-darker" ] [ text "Loading..." ]
 
 
 memberItemView : Space -> SpaceUser -> Html Msg
 memberItemView space user =
     a
         [ Route.href <| Route.SpaceUser (Route.SpaceUser.init (Space.slug space) (SpaceUser.handle user))
-        , class "flex items-center pr-4 mb-px no-underline text-dusty-blue-darker"
+        , class "flex items-center px-2 py-1 no-underline text-dusty-blue-darker hover:bg-grey-light"
         ]
-        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-md truncate" ] [ text <| SpaceUser.displayName user ]
+        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Small user ]
+        , div [ class "flex-grow text-base truncate" ] [ text <| SpaceUser.displayName user ]
         ]
 
 
