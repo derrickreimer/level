@@ -96,14 +96,19 @@ notificationView config resolvedNotification =
             View.Helpers.timeTag config.globals.now
                 (TimeWithZone.setPosix (Notification.occurredAt notification) config.globals.now)
                 [ class "block flex-no-grow text-sm text-dusty-blue-dark whitespace-no-wrap" ]
+
+        classes =
+            classList
+                [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal no-underline", True )
+                , ( "hover:bg-grey-light", not <| Notification.isUndismissed notification )
+                , ( "bg-blue-lightest hover:bg-blue-light", Notification.isUndismissed notification )
+                ]
     in
     case resolvedNotification.event of
         PostCreated (Just resolvedPost) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Post.url resolvedPost.post)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
                 , div [ class "flex-grow" ]
@@ -119,11 +124,9 @@ notificationView config resolvedNotification =
                 ]
 
         PostClosed (Just resolvedPost) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Post.url resolvedPost.post)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
@@ -139,11 +142,9 @@ notificationView config resolvedNotification =
                 ]
 
         PostReopened (Just resolvedPost) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Post.url resolvedPost.post)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
@@ -159,11 +160,9 @@ notificationView config resolvedNotification =
                 ]
 
         ReplyCreated (Just resolvedReply) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Reply.url resolvedReply.reply)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
                 , div [ class "flex-grow" ]
@@ -179,11 +178,9 @@ notificationView config resolvedNotification =
                 ]
 
         PostReactionCreated (Just resolvedReaction) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Post.url resolvedReaction.resolvedPost.post)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]
@@ -199,11 +196,9 @@ notificationView config resolvedNotification =
                 ]
 
         ReplyReactionCreated (Just resolvedReaction) ->
-            button
-                [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
-                    ]
+            a
+                [ href (Reply.url resolvedReaction.resolvedReply.reply)
+                , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]

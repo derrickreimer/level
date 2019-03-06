@@ -18,6 +18,7 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Schemas.Reply
   alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SearchResult
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Spaces
@@ -176,8 +177,7 @@ defmodule LevelWeb.Schema.Objects do
       resolve fn space_bot, _, _ ->
         cond do
           space_bot.handle == "levelbot" ->
-            {:ok,
-             LevelWeb.Router.Helpers.static_url(LevelWeb.Endpoint, "/images/avatar-light.png")}
+            {:ok, Helpers.static_url(Endpoint, "/images/avatar-light.png")}
 
           space_bot.avatar ->
             {:ok, AssetStore.avatar_url(space_bot.avatar)}
@@ -485,6 +485,17 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :url, non_null(:string) do
+      resolve fn post, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Space, post.space_id)
+        |> on_load(fn loader ->
+          space = Dataloader.get(loader, :db, Space, post.space_id)
+          {:ok, Helpers.main_url(Endpoint, :index, [space.slug, "posts", post.id])}
+        end)
+      end
+    end
+
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
     field :subscription_state, non_null(:post_subscription_state) do
@@ -549,6 +560,17 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     field :files, list_of(:file), resolve: dataloader(:db)
+
+    field :url, non_null(:string) do
+      resolve fn reply, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Space, reply.space_id)
+        |> on_load(fn loader ->
+          space = Dataloader.get(loader, :db, Space, reply.space_id)
+          {:ok, Helpers.main_url(Endpoint, :index, [space.slug, "posts", reply.post_id])}
+        end)
+      end
+    end
 
     # Viewer-contextual fields
 
