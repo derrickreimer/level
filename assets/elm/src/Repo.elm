@@ -9,7 +9,7 @@ module Repo exposing
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
-    , getNotification, getNotifications, setNotification, getAllNotifications
+    , getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -67,7 +67,7 @@ module Repo exposing
 
 # Notifications
 
-@docs getNotification, getNotifications, setNotification, getAllNotifications
+@docs getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
 
 -}
 
@@ -457,3 +457,22 @@ setNotification notification (Repo data) =
 getAllNotifications : Repo -> List Notification
 getAllNotifications (Repo data) =
     Dict.values data.notifications
+
+
+dismissNotifications : Maybe String -> Repo -> Repo
+dismissNotifications maybeTopic ((Repo data) as repo) =
+    let
+        matching =
+            case maybeTopic of
+                Just topic ->
+                    data.notifications
+                        |> Dict.values
+                        |> List.filter (Notification.withTopic topic)
+
+                Nothing ->
+                    data.notifications
+                        |> Dict.values
+    in
+    matching
+        |> List.map Notification.setDismissed
+        |> List.foldr setNotification repo

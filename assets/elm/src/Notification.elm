@@ -1,9 +1,9 @@
 module Notification exposing
     ( Notification, Event(..)
-    , id, occurredAt, event, isUndismissed
+    , id, occurredAt, event, isUndismissed, setDismissed
     , fragment
     , decoder
-    , withUndismissed
+    , withUndismissed, withTopic
     )
 
 {-| A Notification represents activity that occurred in someone's Inbox.
@@ -16,7 +16,7 @@ module Notification exposing
 
 # API
 
-@docs id, occurredAt, event, isUndismissed
+@docs id, occurredAt, event, isUndismissed, setDismissed
 
 
 # GraphQL
@@ -31,7 +31,7 @@ module Notification exposing
 
 # Filtering
 
-@docs withUndismissed
+@docs withUndismissed, withTopic
 
 -}
 
@@ -99,6 +99,11 @@ event (Notification data) =
 isUndismissed : Notification -> Bool
 isUndismissed (Notification data) =
     data.state == Undismissed
+
+
+setDismissed : Notification -> Notification
+setDismissed (Notification data) =
+    Notification { data | state = Dismissed }
 
 
 
@@ -268,3 +273,8 @@ stateDecoder =
 withUndismissed : Notification -> Bool
 withUndismissed (Notification data) =
     data.state == Undismissed
+
+
+withTopic : String -> Notification -> Bool
+withTopic topic (Notification data) =
+    data.topic == topic

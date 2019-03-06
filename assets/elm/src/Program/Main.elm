@@ -1647,8 +1647,9 @@ consumeEvent event ({ page } as model) =
             )
 
         Event.NotificationsDismissed maybeTopic ->
-            -- TODO: handle it
-            ( model, Cmd.none )
+            ( { model | repo = Repo.dismissNotifications maybeTopic model.repo }
+            , Cmd.none
+            )
 
         Event.Unknown payload ->
             ( model, Cmd.none )
