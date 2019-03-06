@@ -88,20 +88,31 @@ panelView config notifications =
 
 notificationView : Config msg -> ResolvedNotification -> Html msg
 notificationView config resolvedNotification =
+    let
+        notification =
+            resolvedNotification.notification
+
+        timestamp =
+            View.Helpers.timeTag config.globals.now
+                (TimeWithZone.setPosix (Notification.occurredAt notification) config.globals.now)
+                [ class "block flex-no-grow text-sm text-dusty-blue-dark whitespace-no-wrap" ]
+    in
     case resolvedNotification.event of
         PostCreated (Just resolvedPost) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ authorDisplayName resolvedPost.author
-                        , space
-                        , span [] [ text "posted a message" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ authorDisplayName resolvedPost.author
+                            , span [] [ text " posted" ]
+                            ]
+                        , timestamp
                         ]
                     , postPreview config resolvedPost
                     ]
@@ -110,16 +121,18 @@ notificationView config resolvedNotification =
         PostClosed (Just resolvedPost) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ authorDisplayName resolvedPost.author
-                        , space
-                        , span [] [ text "resolved a post" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ authorDisplayName resolvedPost.author
+                            , span [] [ text " resolved a post" ]
+                            ]
+                        , timestamp
                         ]
                     , postPreview config resolvedPost
                     ]
@@ -128,16 +141,18 @@ notificationView config resolvedNotification =
         PostReopened (Just resolvedPost) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ authorDisplayName resolvedPost.author
-                        , space
-                        , span [] [ text "reopened a post" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ authorDisplayName resolvedPost.author
+                            , span [] [ text " reopened a post" ]
+                            ]
+                        , timestamp
                         ]
                     , postPreview config resolvedPost
                     ]
@@ -146,16 +161,18 @@ notificationView config resolvedNotification =
         ReplyCreated (Just resolvedReply) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ authorDisplayName resolvedReply.author
-                        , space
-                        , span [] [ text "replied to a post" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ authorDisplayName resolvedReply.author
+                            , span [] [ text " replied" ]
+                            ]
+                        , timestamp
                         ]
                     , replyPreview config resolvedReply
                     ]
@@ -164,16 +181,18 @@ notificationView config resolvedNotification =
         PostReactionCreated (Just resolvedReaction) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ spaceUserDisplayName resolvedReaction.spaceUser
-                        , space
-                        , span [] [ text "acknowledged a post" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ spaceUserDisplayName resolvedReaction.spaceUser
+                            , span [] [ text " acknowledged" ]
+                            ]
+                        , timestamp
                         ]
                     , postPreview config resolvedReaction.resolvedPost
                     ]
@@ -182,16 +201,18 @@ notificationView config resolvedNotification =
         ReplyReactionCreated (Just resolvedReaction) ->
             button
                 [ classList
-                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full", True )
-                    , ( "bg-blue-lightest", Notification.isUndismissed resolvedNotification.notification )
+                    [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal", True )
+                    , ( "bg-blue-lightest", Notification.isUndismissed notification )
                     ]
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
                 , div [ class "flex-grow" ]
-                    [ div [ class "pt-1 pb-4" ]
-                        [ spaceUserDisplayName resolvedReaction.spaceUser
-                        , space
-                        , span [] [ text "acknowledged a reply" ]
+                    [ div [ class "flex items-baseline pt-1 pb-4" ]
+                        [ div [ class "flex-grow mr-1" ]
+                            [ spaceUserDisplayName resolvedReaction.spaceUser
+                            , span [] [ text " acknowledged" ]
+                            ]
+                        , timestamp
                         ]
                     , replyPreview config resolvedReaction.resolvedReply
                     ]
