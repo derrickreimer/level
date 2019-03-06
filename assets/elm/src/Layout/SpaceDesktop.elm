@@ -51,9 +51,22 @@ layout : Config msg -> List (Html msg) -> Html msg
 layout config children =
     div [ class "font-sans font-antialised h-screen", onClick config.onPageClicked ]
         [ spacesSidebar config
-        , div [ class "mx-auto pl-16 xl:px-24" ]
+        , div
+            [ classList
+                [ ( "pl-16", True )
+                , ( "xl:px-24", not config.globals.showNotifications )
+                , ( "xl:pr-24", config.globals.showNotifications )
+                ]
+            ]
             [ fullSidebar config
-            , div [ class "ml-48 mr-16 xl:mx-48 relative" ] children
+            , div
+                [ classList
+                    [ ( "ml-48 mr-16 relative", True )
+                    , ( "xl:mr-48", not config.globals.showNotifications )
+                    , ( "xl:mr-64", config.globals.showNotifications )
+                    ]
+                ]
+                children
             ]
         , div [ class "fixed pin-b pin-r z-50", id "headway" ] []
         , Flash.view config.globals.flash
