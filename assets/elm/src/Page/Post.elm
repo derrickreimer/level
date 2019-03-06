@@ -537,9 +537,9 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div []
-                [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
+                [ div [ class "sticky flex items-center pin-t mb-6 py-2 border-b bg-white z-10" ]
                     [ button
-                        [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                        [ buttonClasses
                         , onClick BackClicked
                         ]
                         [ text "Back" ]
@@ -607,12 +607,22 @@ resolvedMobileView globals model data =
 -- SHARED
 
 
+buttonClasses : Attribute msg
+buttonClasses =
+    classList
+        [ ( "flex items-center justify-center px-4 h-9 rounded-full no-outline", True )
+        , ( "text-dusty-blue hover:text-dusty-blue-dark text-md font-bold", True )
+        , ( "bg-transparent hover:bg-grey transition-bg", True )
+        , ( "mr-2", True )
+        ]
+
+
 inboxStateButton : Bool -> Post -> Html Msg
 inboxStateButton isChangingInboxState post =
     case Post.inboxState post of
         Post.Excluded ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
@@ -620,7 +630,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Unread ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick DismissPostClicked
                 , disabled isChangingInboxState
                 ]
@@ -628,7 +638,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Read ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick DismissPostClicked
                 , disabled isChangingInboxState
                 ]
@@ -636,7 +646,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Dismissed ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
@@ -648,7 +658,7 @@ postStateButton isChangingState post =
     case Post.state post of
         Post.Open ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick ClosePostClicked
                 , disabled isChangingState
                 ]
@@ -656,7 +666,7 @@ postStateButton isChangingState post =
 
         Post.Closed ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick ReopenPostClicked
                 , disabled isChangingState
                 ]
