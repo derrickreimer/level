@@ -946,7 +946,7 @@ reopenButton post =
         , attribute "data-tooltip" "Reopen conversation"
         , onClick ReopenPostClicked
         ]
-        [ Icons.closedSmall ]
+        [ Icons.closed ]
 
 
 authorLabel : Space -> Id -> ResolvedAuthor -> Html Msg

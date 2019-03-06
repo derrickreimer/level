@@ -1354,15 +1354,6 @@ nameView group editor =
                 ]
 
 
-privacyIcon : Bool -> Html Msg
-privacyIcon isPrivate =
-    if isPrivate == True then
-        span [ class "mx-2" ] [ Icons.lock ]
-
-    else
-        span [ class "mx-2" ] [ Icons.unlock ]
-
-
 nameErrors : FieldEditor String -> Html Msg
 nameErrors editor =
     case ( FieldEditor.isExpanded editor, List.head (FieldEditor.getErrors editor) ) of
