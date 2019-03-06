@@ -1401,15 +1401,16 @@ controlsView model data =
     in
     div [ class "flex flex-grow justify-end" ]
         [ subscriptionDropdown model data
-        , div [ class "ml-2" ]
-            [ View.SearchBox.view
-                { editor = model.searchEditor
-                , changeMsg = SearchEditorChanged
-                , expandMsg = ExpandSearchEditor
-                , collapseMsg = CollapseSearchEditor
-                , submitMsg = SearchSubmitted
-                }
-            ]
+
+        -- , div [ class "ml-2" ]
+        --     [ View.SearchBox.view
+        --         { editor = model.searchEditor
+        --         , changeMsg = SearchEditorChanged
+        --         , expandMsg = ExpandSearchEditor
+        --         , collapseMsg = CollapseSearchEditor
+        --         , submitMsg = SearchSubmitted
+        --         }
+        --     ]
         , subscribersDropdown model data
         , a
             [ Route.href (Route.GroupSettings settingsParams)
