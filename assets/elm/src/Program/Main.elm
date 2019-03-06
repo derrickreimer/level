@@ -18,6 +18,7 @@ import Json.Decode as Decode exposing (decodeString)
 import KeyboardShortcuts exposing (Modifier(..))
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
+import Mutation.DismissNotifications as DismissNotifications
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
 import Notification
@@ -254,6 +255,8 @@ type Msg
     | MoreNotificationsRequested
     | NotificationsFetched Int (Result Session.Error ( Session, Notifications.Response ))
     | ToggleNotifications
+    | DismissAllNotificationsClicked
+    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
     | InternalLinkClicked String
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
@@ -411,6 +414,28 @@ update msg model =
 
         ( ToggleNotifications, _ ) ->
             ( { model | showNotifications = not model.showNotifications }, Cmd.none )
+
+        ( DismissAllNotificationsClicked, _ ) ->
+            let
+                cmd =
+                    model.session
+                        |> DismissNotifications.request (DismissNotifications.variables Nothing)
+                        |> Task.attempt NotificationsDismissed
+            in
+            ( model, cmd )
+
+        ( NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )), _ ) ->
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic globals.repo
+            in
+            ( { model | session = newSession, repo = newRepo }, Cmd.none )
+
+        ( NotificationsDismissed (Err Session.Expired), _ ) ->
+            ( model, Route.toLogin )
+
+        ( NotificationsDismissed _, _ ) ->
+            ( model, Cmd.none )
 
         ( InternalLinkClicked pathname, _ ) ->
             ( model, Nav.pushUrl model.navKey pathname )
@@ -1882,6 +1907,7 @@ notificationPanel model =
             , onInternalLinkClicked = InternalLinkClicked
             , onToggleNotifications = ToggleNotifications
             , onMoreRequested = MoreNotificationsRequested
+            , onDismissAllClicked = DismissAllNotificationsClicked
             }
     in
     NotificationView.panelView config model.notifications

@@ -48,6 +48,7 @@ type alias Config msg =
     , onToggleNotifications : msg
     , onInternalLinkClicked : String -> msg
     , onMoreRequested : msg
+    , onDismissAllClicked : msg
     }
 
 
@@ -66,6 +67,16 @@ panelView config notifications =
     div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-dropdown z-50" ]
         [ div [ class "flex items-center p-3 pl-4 border-b" ]
             [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
+            , button
+                [ classList
+                    [ ( "flex items-center justify-center px-4 h-9 rounded-full no-outline", True )
+                    , ( "text-dusty-blue hover:text-dusty-blue-dark text-md font-bold", True )
+                    , ( "bg-transparent hover:bg-grey transition-bg", True )
+                    , ( "mr-2", True )
+                    ]
+                , onClick config.onDismissAllClicked
+                ]
+                [ text "Dismiss All" ]
             , button
                 [ class "flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
                 , onClick config.onToggleNotifications
