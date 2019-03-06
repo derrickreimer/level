@@ -238,11 +238,6 @@ spaceUserDisplayName spaceUser =
         [ text <| SpaceUser.displayName spaceUser ]
 
 
-space : Html msg
-space =
-    text " "
-
-
 postPreview : Config msg -> ResolvedPost -> Html msg
 postPreview config resolvedPost =
     div
