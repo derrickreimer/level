@@ -151,19 +151,20 @@ defmodule Level.Notifications do
   defp after_record(err), do: err
 
   @doc """
-  Dismiss notifications for the given posts.
+  Dismiss notifications.
   """
-  @spec dismiss(SpaceUser.t(), [Post.t()]) :: {:ok, [Post.t()]}
-  def dismiss(%SpaceUser{} = space_user, posts) do
-    posts
-    |> Enum.each(fn post ->
-      space_user
-      |> query(post)
-      |> Repo.update_all(set: [state: "DISMISSED"])
+  @spec dismiss(User.t(), String.t(), NaiveDateTime.t()) :: {:ok, String.t()}
+  def dismiss(%User{} = user, topic, now \\ nil) do
+    now = now || NaiveDateTime.utc_now()
 
-      post
-    end)
-
-    {:ok, posts}
+    user
+    |> query()
+    |> with_topic(topic)
+    |> Repo.update_all(set: [state: "DISMISSED", updated_at: now])
+    |> after_dismiss(topic)
   end
+
+  defp with_topic(query, nil), do: query
+  defp with_topic(query, topic), do: where(query, [n], n.topic == ^topic)
+  defp after_dismiss(_, topic), do: {:ok, topic}
 end

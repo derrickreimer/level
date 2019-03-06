@@ -92,16 +92,17 @@ defmodule Level.NotificationsTest do
 
   describe "dismiss/2" do
     test "transitions notifications to dismissed" do
-      {:ok, %{space_user: space_user}} = create_user_and_space()
+      {:ok, %{user: user, space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
 
       post_id = post.id
+      topic = "post:#{post_id}"
 
       {:ok, _} = Notifications.record_post_created(space_user, post)
       {:ok, _} = Notifications.record_post_closed(space_user, post)
 
-      {:ok, [%Post{id: ^post_id}]} = Notifications.dismiss(space_user, [post])
+      {:ok, ^topic} = Notifications.dismiss(user, topic)
 
       notifications = Notifications.list(space_user, post)
       assert Enum.count(notifications) == 2

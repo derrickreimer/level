@@ -461,6 +461,13 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.delete_reply_reaction/2
     end
+
+    @desc "Dismisses notifications on a particular topic (or all notifications if no topic is given)."
+    field :dismiss_notifications, :dismiss_notifications_payload do
+      arg :topic, :string
+
+      resolve &Level.Mutations.dismiss_notifications/2
+    end
   end
 
   subscription do
