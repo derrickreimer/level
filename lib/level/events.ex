@@ -18,6 +18,14 @@ defmodule Level.Events do
     publish_to_user(id, :space_joined, %{space: space, space_user: space_user})
   end
 
+  def notification_created(id, notification) do
+    publish_to_user(id, :notification_created, %{notification: notification})
+  end
+
+  def notifications_dismissed(id, topic) do
+    publish_to_user(id, :notifications_dismissed, %{topic: topic})
+  end
+
   # Space
 
   def space_updated(id, %Space{} = space) do
@@ -116,10 +124,6 @@ defmodule Level.Events do
 
   def replies_viewed(id, replies) do
     publish_to_space_user(id, :replies_viewed, %{replies: replies})
-  end
-
-  def notification_created(id, notification) do
-    publish_to_space_user(id, :notification_created, %{notification: notification})
   end
 
   # Group

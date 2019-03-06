@@ -49,6 +49,7 @@ type Event
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
     | NotificationCreated ResolvedNotification
+    | NotificationsDismissed (Maybe String)
     | Unknown Decode.Value
 
 
@@ -67,6 +68,8 @@ eventDecoder =
     Decode.oneOf
         [ -- USER EVENTS
           Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
+        , Decode.map NotificationCreated UserSubscription.notificationCreatedDecoder
+        , Decode.map NotificationsDismissed UserSubscription.notificationsDismissedDecoder
 
         -- SPACE USER EVENTS
         , Decode.map GroupCreated SpaceUserSubscription.groupCreatedDecoder
@@ -91,7 +94,6 @@ eventDecoder =
         , Decode.map PostsMarkedAsRead SpaceUserSubscription.postsMarkedAsReadDecoder
         , Decode.map PostsDismissed SpaceUserSubscription.postsDismissedDecoder
         , Decode.map RepliesViewed SpaceUserSubscription.repliesViewedDecoder
-        , Decode.map NotificationCreated SpaceUserSubscription.notificationCreatedDecoder
 
         -- GROUP EVENTS
         , Decode.map SubscribedToGroup GroupSubscription.subscribedToGroupDecoder

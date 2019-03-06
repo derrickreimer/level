@@ -54,7 +54,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("POST_CREATED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   @doc """
@@ -67,7 +67,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("REPLY_CREATED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   @doc """
@@ -80,7 +80,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("POST_CLOSED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   @doc """
@@ -93,7 +93,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("POST_REOPENED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   @doc """
@@ -109,7 +109,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("POST_REACTION_CREATED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   @doc """
@@ -126,7 +126,7 @@ defmodule Level.Notifications do
 
     space_user
     |> insert_record("REPLY_REACTION_CREATED", "post:#{post_id}", data)
-    |> after_record()
+    |> after_record(space_user)
   end
 
   defp insert_record(space_user, event, topic, data) do
@@ -143,12 +143,12 @@ defmodule Level.Notifications do
     |> Repo.insert()
   end
 
-  defp after_record({:ok, notification}) do
-    Events.notification_created(notification.space_user_id, notification)
+  defp after_record({:ok, notification}, space_user) do
+    Events.notification_created(space_user.user_id, notification)
     {:ok, notification}
   end
 
-  defp after_record(err), do: err
+  defp after_record(err, _), do: err
 
   @doc """
   Dismiss notifications.
@@ -161,10 +161,14 @@ defmodule Level.Notifications do
     |> query()
     |> with_topic(topic)
     |> Repo.update_all(set: [state: "DISMISSED", updated_at: now])
-    |> after_dismiss(topic)
+    |> after_dismiss(user, topic)
   end
 
   defp with_topic(query, nil), do: query
   defp with_topic(query, topic), do: where(query, [n], n.topic == ^topic)
-  defp after_dismiss(_, topic), do: {:ok, topic}
+
+  defp after_dismiss(_, user, topic) do
+    Events.notifications_dismissed(user.id, topic)
+    {:ok, topic}
+  end
 end

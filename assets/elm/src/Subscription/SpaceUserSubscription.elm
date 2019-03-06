@@ -1,14 +1,12 @@
-module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupCreatedDecoder, groupUnbookmarkedDecoder, groupUpdatedDecoder, notificationCreatedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
+module Subscription.SpaceUserSubscription exposing (groupBookmarkedDecoder, groupCreatedDecoder, groupUnbookmarkedDecoder, groupUpdatedDecoder, postClosedDecoder, postCreatedDecoder, postDeletedDecoder, postReactionCreatedDecoder, postReactionDeletedDecoder, postReopenedDecoder, postUpdatedDecoder, postsDismissedDecoder, postsMarkedAsReadDecoder, postsMarkedAsUnreadDecoder, postsSubscribedDecoder, postsUnsubscribedDecoder, repliesViewedDecoder, replyCreatedDecoder, replyDeletedDecoder, replyReactionCreatedDecoder, replyReactionDeletedDecoder, replyUpdatedDecoder, subscribe, unsubscribe)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Notification
 import Post exposing (Post)
 import Reply exposing (Reply)
-import ResolvedNotification exposing (ResolvedNotification)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Socket
 import Subscription
@@ -208,14 +206,6 @@ repliesViewedDecoder =
         (Decode.list Reply.decoder)
 
 
-notificationCreatedDecoder : Decode.Decoder ResolvedNotification
-notificationCreatedDecoder =
-    Subscription.decoder "spaceUser"
-        "NotificationCreated"
-        "notification"
-        ResolvedNotification.decoder
-
-
 
 -- INTERNAL
 
@@ -351,11 +341,6 @@ document =
                 ...ReplyFields
               }
             }
-            ... on NotificationCreatedPayload {
-              notification {
-                ...NotificationFields
-              }
-            }
           }
         }
         """
@@ -363,7 +348,6 @@ document =
         , Post.fragment
         , Reply.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
-        , Notification.fragment
         ]
 
 

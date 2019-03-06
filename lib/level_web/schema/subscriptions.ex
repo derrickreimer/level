@@ -7,7 +7,7 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a user topic."
   union :user_subscription_payload do
-    types [:space_joined_payload]
+    types [:space_joined_payload, :notification_created_payload, :notifications_dismissed_payload]
     resolve_type &type_resolver/2
   end
 
@@ -41,8 +41,7 @@ defmodule LevelWeb.Schema.Subscriptions do
       :posts_marked_as_unread_payload,
       :posts_marked_as_read_payload,
       :posts_dismissed_payload,
-      :replies_viewed_payload,
-      :notification_created_payload
+      :replies_viewed_payload
     ]
 
     resolve_type &type_resolver/2
@@ -257,6 +256,12 @@ defmodule LevelWeb.Schema.Subscriptions do
   object :notification_created_payload do
     @desc "The notification."
     field :notification, :notification
+  end
+
+  @desc "The payload for the notification created event."
+  object :notifications_dismissed_payload do
+    @desc "The topic."
+    field :topic, :string
   end
 
   defp type_resolver(%{type: type}, _) do

@@ -4,10 +4,8 @@ defmodule LevelWeb.GraphQL.NotificationCreatedTest do
   alias Level.Groups
 
   @operation """
-    subscription SpaceUserSubscription(
-      $id: ID!
-    ) {
-      spaceUserSubscription(spaceUserId: $id) {
+    subscription UserSubscription {
+      userSubscription {
         __typename
         ... on NotificationCreatedPayload {
           notification {
@@ -48,7 +46,7 @@ defmodule LevelWeb.GraphQL.NotificationCreatedTest do
 
     Groups.watch(group, space_user)
 
-    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
+    ref = push_subscription(socket, @operation, %{})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, %{post: post}} = create_post(another_user, group)
@@ -56,7 +54,7 @@ defmodule LevelWeb.GraphQL.NotificationCreatedTest do
     push_data = %{
       result: %{
         data: %{
-          "spaceUserSubscription" => %{
+          "userSubscription" => %{
             "__typename" => "NotificationCreatedPayload",
             "notification" => %{
               "__typename" => "PostCreatedNotification",
@@ -83,7 +81,7 @@ defmodule LevelWeb.GraphQL.NotificationCreatedTest do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
 
-    ref = push_subscription(socket, @operation, %{"id" => space_user.id})
+    ref = push_subscription(socket, @operation, %{})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
     {:ok, %{reply: reply}} = create_reply(another_user, post)
@@ -91,7 +89,7 @@ defmodule LevelWeb.GraphQL.NotificationCreatedTest do
     push_data = %{
       result: %{
         data: %{
-          "spaceUserSubscription" => %{
+          "userSubscription" => %{
             "__typename" => "NotificationCreatedPayload",
             "notification" => %{
               "__typename" => "ReplyCreatedNotification",

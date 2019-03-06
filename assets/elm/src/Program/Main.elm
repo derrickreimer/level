@@ -1646,6 +1646,10 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.NotificationsDismissed maybeTopic ->
+            -- TODO: handle it
+            ( model, Cmd.none )
+
         Event.Unknown payload ->
             ( model, Cmd.none )
 
