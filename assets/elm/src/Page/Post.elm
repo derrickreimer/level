@@ -16,6 +16,7 @@ import Layout.SpaceMobile
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
+import Mutation.DismissNotifications as DismissNotifications
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsUnread as MarkAsUnread
 import Mutation.RecordPostView as RecordPostView
@@ -135,7 +136,8 @@ setup : Globals -> Model -> Cmd Msg
 setup globals ({ postView } as model) =
     Cmd.batch
         [ Cmd.map PostViewMsg (PostView.setup globals postView)
-        , recordView globals.session model
+        , dismissNotifications globals model
+        , recordView globals model
         , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
@@ -149,9 +151,16 @@ teardown globals ({ postView } as model) =
         ]
 
 
-recordView : Session -> Model -> Cmd Msg
-recordView session model =
-    session
+dismissNotifications : Globals -> Model -> Cmd Msg
+dismissNotifications globals model =
+    globals.session
+        |> DismissNotifications.request (DismissNotifications.variables (Just <| "post:" ++ model.postId))
+        |> Task.attempt NotificationsDismissed
+
+
+recordView : Globals -> Model -> Cmd Msg
+recordView globals model =
+    globals.session
         |> RecordPostView.request model.spaceId model.postView.id Nothing
         |> Task.attempt ViewRecorded
 
@@ -184,6 +193,7 @@ type Msg
     | ToggleNotifications
     | InternalLinkClicked String
     | PostViewMsg PostView.Msg
+    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
@@ -227,6 +237,19 @@ update msg globals model =
               )
             , newGlobals
             )
+
+        NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic globals.repo
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        NotificationsDismissed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NotificationsDismissed _ ->
+            noCmd globals model
 
         ViewRecorded (Ok ( newSession, _ )) ->
             noCmd { globals | session = newSession } model
