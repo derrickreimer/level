@@ -61,6 +61,8 @@ let colors = {
   // Blues
   'blue-dark': '#4265c7',
   'blue': '#4b73e1',
+  'blue-light': '#eff3fd',
+  'blue-lightest': '#f4f6fd',
 
   // Greens
   'green-dark': '#1F9D55',
@@ -467,6 +469,7 @@ module.exports = {
     '64': '16rem',
     '72': '18rem',
     '80': '20rem',
+    '88': '22rem',
     '1/2': '50%',
     '1/3': '33.33333%',
     '2/3': '66.66667%',
@@ -609,6 +612,7 @@ module.exports = {
   */
 
   maxHeight: {
+    '16': '4rem',
     'full': '100%',
     'screen': '100vh',
   },

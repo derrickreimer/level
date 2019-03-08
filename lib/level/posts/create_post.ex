@@ -100,7 +100,7 @@ defmodule Level.Posts.CreatePost do
 
   defp set_primary_group(multi, group) do
     Multi.run(multi, :primary_group, fn %{post: post} ->
-      _ = Posts.publish_to_group(post, group)
+      Posts.publish_to_group(post, group)
 
       {:ok, group}
     end)
@@ -115,7 +115,7 @@ defmodule Level.Posts.CreatePost do
           result[:primary_group] && result[:primary_group].id == group.id
         end)
         |> Enum.map(fn group ->
-          _ = Posts.publish_to_group(post, group)
+          Posts.publish_to_group(post, group)
 
           group
         end)
@@ -147,25 +147,6 @@ defmodule Level.Posts.CreatePost do
     end)
   end
 
-  defp after_user_post({:ok, result}, author) do
-    _ = Posts.subscribe(author, [result.post])
-    _ = subscribe_mentioned_users(result.post, result)
-    _ = subscribe_mentioned_groups(result.post, result)
-
-    result
-    |> gather_groups()
-    |> Enum.each(fn group ->
-      _ = subscribe_watchers(result.post, group)
-    end)
-
-    _ = send_push_notifications(result, author)
-    _ = send_events(result.post)
-
-    {:ok, result}
-  end
-
-  defp after_user_post(err, _), do: err
-
   defp gather_groups(%{primary_group: primary_group, tagged_groups: tagged_groups}) do
     [primary_group | tagged_groups] |> Enum.uniq_by(fn group -> group.id end)
   end
@@ -174,10 +155,42 @@ defmodule Level.Posts.CreatePost do
     tagged_groups |> Enum.uniq_by(fn group -> group.id end)
   end
 
+  defp after_user_post({:ok, %{post: post} = result}, author) do
+    Posts.subscribe(author, [post])
+    subscribe_mentioned_users(post, result)
+    subscribe_mentioned_groups(post, result)
+    subscribe_watchers(result)
+
+    {:ok, subscribers} = Posts.get_subscribers(post)
+    record_notifications(post, subscribers)
+
+    send_push_notifications(result, author)
+    send_events(post)
+
+    {:ok, result}
+  end
+
+  defp after_user_post(err, _), do: err
+
+  defp after_bot_post({:ok, %{post: post} = result}, author) do
+    subscribe_mentioned_users(post, result)
+    subscribe_mentioned_groups(post, result)
+    subscribe_watchers(result)
+
+    {:ok, subscribers} = Posts.get_subscribers(post)
+    record_notifications(post, subscribers)
+
+    send_push_notifications(result, author)
+    send_events(post)
+
+    {:ok, result}
+  end
+
+  defp after_bot_post(err, _), do: err
+
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
-      _ = Posts.mark_as_unread(mentioned_user, [post])
-      _ = Notifications.record_post_created(mentioned_user, post)
+      Posts.mark_as_unread(mentioned_user, [post])
     end)
   end
 
@@ -187,12 +200,20 @@ defmodule Level.Posts.CreatePost do
       group_users = Repo.preload(group_users, :space_user)
 
       Enum.each(group_users, fn group_user ->
-        _ = Posts.mark_as_unread(group_user.space_user, [post])
+        Posts.mark_as_unread(group_user.space_user, [post])
       end)
     end)
   end
 
-  defp subscribe_watchers(post, group) do
+  defp subscribe_watchers(%{post: post} = result) do
+    groups = gather_groups(result)
+
+    Enum.each(groups, fn group ->
+      subscribe_group_watchers(post, group)
+    end)
+  end
+
+  defp subscribe_group_watchers(post, group) do
     {:ok, watching_group_users} = Groups.list_all_watchers(group)
 
     space_users =
@@ -203,28 +224,18 @@ defmodule Level.Posts.CreatePost do
     space_users
     |> Enum.each(fn space_user ->
       if space_user.id !== post.space_user_id do
-        _ = Posts.mark_as_unread(space_user, [post])
+        Posts.mark_as_unread(space_user, [post])
       end
     end)
   end
 
-  defp after_bot_post({:ok, result}, author) do
-    _ = subscribe_mentioned_users(result.post, result)
-    _ = subscribe_mentioned_groups(result.post, result)
-
-    result
-    |> gather_groups()
-    |> Enum.each(fn group ->
-      _ = subscribe_watchers(result.post, group)
+  defp record_notifications(post, subscribers) do
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== post.space_user_id do
+        Notifications.record_post_created(subscriber, post)
+      end
     end)
-
-    _ = send_push_notifications(result, author)
-    _ = send_events(result.post)
-
-    {:ok, result}
   end
-
-  defp after_bot_post(err, _), do: err
 
   defp send_push_notifications(
          %{post: %Post{is_urgent: true} = post, mentions: %{space_users: mentioned_users}},
@@ -256,6 +267,6 @@ defmodule Level.Posts.CreatePost do
 
   defp send_events(post) do
     {:ok, space_user_ids} = Posts.get_accessor_ids(post)
-    _ = Events.post_created(space_user_ids, post)
+    Events.post_created(space_user_ids, post)
   end
 end

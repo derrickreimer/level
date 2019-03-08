@@ -39,7 +39,7 @@ defmodule LevelWeb.GraphQL.DeleteReplyReactionTest do
     {:ok, %{post: post}} = create_post(space_user, group)
     {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-    {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+    {:ok, _} = Posts.create_reply_reaction(space_user, post, reply)
 
     variables = %{space_id: space.id, post_id: post.id, reply_id: reply.id}
 

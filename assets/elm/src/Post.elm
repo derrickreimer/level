@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
@@ -17,7 +17,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
 
 
 # GraphQL
@@ -100,6 +100,7 @@ type alias Data =
     , hasReacted : Bool
     , reactionCount : Int
     , reactorIds : List Id
+    , url : String
     , isPrivate : Bool
     , lastActivityAt : Posix
     , fetchedAt : Posix
@@ -165,6 +166,11 @@ bodyHtml (Post data) =
 files : Post -> List File
 files (Post data) =
     data.files
+
+
+url : Post -> String
+url (Post data) =
+    data.url
 
 
 subscriptionState : Post -> SubscriptionState
@@ -246,6 +252,7 @@ fragment =
                 }
                 totalCount
               }
+              url
               lastActivityAt
               canEdit
               hasReacted
@@ -285,6 +292,7 @@ decoder =
             |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
+            |> required "url" string
             |> required "isPrivate" bool
             |> required "lastActivityAt" dateDecoder
             |> required "fetchedAt" dateDecoder

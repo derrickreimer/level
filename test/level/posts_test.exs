@@ -805,7 +805,7 @@ defmodule Level.PostsTest do
   end
 
   describe "mark_as_read/2" do
-    test "sets the inbox state to read and dismisses notifications" do
+    test "sets the inbox state to read" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
@@ -815,12 +815,6 @@ defmodule Level.PostsTest do
 
       Posts.mark_as_read(space_user, [post])
       assert %{inbox: "READ"} = Posts.get_user_state(post, space_user)
-
-      notifications = Notifications.list(space_user, post)
-
-      assert Enum.all?(notifications, fn notification ->
-               notification.state == "DISMISSED"
-             end)
     end
   end
 
@@ -848,6 +842,25 @@ defmodule Level.PostsTest do
 
       assert {:ok, %PostReaction{space_user_id: ^space_user_id, post_id: ^post_id}} =
                Posts.create_post_reaction(space_user, post)
+    end
+
+    test "records a notification for all subscribers" do
+      {:ok, %{space_user: reactor, space: space}} = create_user_and_space()
+      {:ok, %{space_user: subscriber}} = create_space_member(space)
+      {:ok, %{group: group}} = create_group(reactor)
+      {:ok, %{post: post}} = create_post(reactor, group)
+
+      Posts.subscribe(subscriber, [post])
+      {:ok, _} = Posts.create_post_reaction(reactor, post)
+
+      # Does not record a notification for the reactor
+      refute Enum.any?(Notifications.list(reactor, post), fn notification ->
+               notification.event == "POST_REACTION_CREATED"
+             end)
+
+      assert Enum.any?(Notifications.list(subscriber, post), fn notification ->
+               notification.event == "POST_REACTION_CREATED"
+             end)
     end
   end
 
@@ -885,7 +898,7 @@ defmodule Level.PostsTest do
 
       refute Posts.reacted?(space_user, reply)
 
-      {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+      {:ok, _} = Posts.create_reply_reaction(space_user, post, reply)
 
       assert Posts.reacted?(space_user, reply)
 
@@ -901,7 +914,27 @@ defmodule Level.PostsTest do
       reply_id = reply.id
 
       assert {:ok, %ReplyReaction{space_user_id: ^space_user_id, reply_id: ^reply_id}} =
-               Posts.create_reply_reaction(space_user, reply)
+               Posts.create_reply_reaction(space_user, post, reply)
+    end
+
+    test "records a notification for all subscribers" do
+      {:ok, %{space_user: reactor, space: space}} = create_user_and_space()
+      {:ok, %{space_user: subscriber}} = create_space_member(space)
+      {:ok, %{group: group}} = create_group(reactor)
+      {:ok, %{post: post}} = create_post(reactor, group)
+      {:ok, %{reply: reply}} = create_reply(reactor, post)
+
+      Posts.subscribe(subscriber, [post])
+      {:ok, _} = Posts.create_reply_reaction(reactor, post, reply)
+
+      # Does not record a notification for the reactor
+      refute Enum.any?(Notifications.list(reactor, post), fn notification ->
+               notification.event == "REPLY_REACTION_CREATED"
+             end)
+
+      assert Enum.any?(Notifications.list(subscriber, post), fn notification ->
+               notification.event == "REPLY_REACTION_CREATED"
+             end)
     end
   end
 
@@ -912,7 +945,7 @@ defmodule Level.PostsTest do
       {:ok, %{post: post}} = create_post(space_user, group)
       {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-      {:ok, reaction} = Posts.create_reply_reaction(space_user, reply)
+      {:ok, reaction} = Posts.create_reply_reaction(space_user, post, reply)
 
       assert Posts.reacted?(space_user, reply)
 

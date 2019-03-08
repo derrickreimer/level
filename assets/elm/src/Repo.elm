@@ -9,6 +9,7 @@ module Repo exposing
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
+    , getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
     )
 
 {-| The repo is a central repository of data fetched from the server.
@@ -63,12 +64,18 @@ module Repo exposing
 
 @docs getReply, getReplies, setReply, setReplies, getRepliesByPost
 
+
+# Notifications
+
+@docs getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
+
 -}
 
 import Actor exposing (Actor, ActorId)
 import Dict exposing (Dict)
 import Group exposing (Group)
 import Id exposing (Id)
+import Notification exposing (Notification)
 import Post exposing (Post)
 import Reply exposing (Reply)
 import Space exposing (Space)
@@ -90,6 +97,7 @@ type alias InternalData =
     , groups : Dict Id Group
     , posts : Dict Id Post
     , replies : Dict Id Reply
+    , notifications : Dict Id Notification
     }
 
 
@@ -99,7 +107,7 @@ type alias InternalData =
 
 empty : Repo
 empty =
-    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
 
 
 union : Repo -> Repo -> Repo
@@ -113,6 +121,7 @@ union (Repo newer) (Repo older) =
             (Dict.union newer.groups older.groups)
             (Dict.union newer.posts older.posts)
             (Dict.union newer.replies older.replies)
+            (Dict.union newer.notifications older.notifications)
 
 
 
@@ -417,3 +426,53 @@ getRepliesByPost postId maybeBefore maybeAfter (Repo data) =
                         |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) > Time.posixToMillis after)
     in
     repliesWithBeforeAndAfter
+
+
+
+-- NOTIFICATIONS
+
+
+getNotification : Id -> Repo -> Maybe Notification
+getNotification id (Repo data) =
+    Dict.get id data.notifications
+
+
+getNotifications : List Id -> Repo -> List Notification
+getNotifications ids repo =
+    List.filterMap (\id -> getNotification id repo) ids
+
+
+setNotification : Notification -> Repo -> Repo
+setNotification notification (Repo data) =
+    Repo
+        { data
+            | notifications =
+                Dict.insert
+                    (Notification.id notification)
+                    notification
+                    data.notifications
+        }
+
+
+getAllNotifications : Repo -> List Notification
+getAllNotifications (Repo data) =
+    Dict.values data.notifications
+
+
+dismissNotifications : Maybe String -> Repo -> Repo
+dismissNotifications maybeTopic ((Repo data) as repo) =
+    let
+        matching =
+            case maybeTopic of
+                Just topic ->
+                    data.notifications
+                        |> Dict.values
+                        |> List.filter (Notification.withTopic topic)
+
+                Nothing ->
+                    data.notifications
+                        |> Dict.values
+    in
+    matching
+        |> List.map Notification.setDismissed
+        |> List.foldr setNotification repo

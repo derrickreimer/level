@@ -12,9 +12,13 @@ defmodule LevelWeb.Schema.Objects do
   alias Level.Resolvers
   alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.SearchResult
+  alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
   alias Level.Spaces
@@ -173,8 +177,7 @@ defmodule LevelWeb.Schema.Objects do
       resolve fn space_bot, _, _ ->
         cond do
           space_bot.handle == "levelbot" ->
-            {:ok,
-             LevelWeb.Router.Helpers.static_url(LevelWeb.Endpoint, "/images/avatar-light.png")}
+            {:ok, Helpers.static_url(Endpoint, "/images/avatar-light.png")}
 
           space_bot.avatar ->
             {:ok, AssetStore.avatar_url(space_bot.avatar)}
@@ -482,6 +485,17 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :url, non_null(:string) do
+      resolve fn post, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Space, post.space_id)
+        |> on_load(fn loader ->
+          space = Dataloader.get(loader, :db, Space, post.space_id)
+          {:ok, Helpers.main_url(Endpoint, :index, [space.slug, "posts", post.id])}
+        end)
+      end
+    end
+
     # Viewer-contextual fields
     @desc "The viewer's subscription to the post."
     field :subscription_state, non_null(:post_subscription_state) do
@@ -547,6 +561,17 @@ defmodule LevelWeb.Schema.Objects do
 
     field :files, list_of(:file), resolve: dataloader(:db)
 
+    field :url, non_null(:string) do
+      resolve fn reply, _, %{context: %{loader: loader}} ->
+        loader
+        |> Dataloader.load(:db, Space, reply.space_id)
+        |> on_load(fn loader ->
+          space = Dataloader.get(loader, :db, Space, reply.space_id)
+          {:ok, Helpers.main_url(Endpoint, :index, [space.slug, "posts", reply.post_id])}
+        end)
+      end
+    end
+
     # Viewer-contextual fields
 
     @desc "Determines whether the current viewer has viewed the reply."
@@ -573,14 +598,14 @@ defmodule LevelWeb.Schema.Objects do
   @desc "Represents a user's reaction to a post."
   object :post_reaction do
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
-    field :post, non_null(:post), resolve: dataloader(:db)
+    field :post, :post, resolve: dataloader(:db)
   end
 
   @desc "Represents a user's reaction to a reply."
   object :reply_reaction do
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
-    field :post, non_null(:post), resolve: dataloader(:db)
-    field :reply, non_null(:reply), resolve: dataloader(:db)
+    field :post, :post, resolve: dataloader(:db)
+    field :reply, :reply, resolve: dataloader(:db)
   end
 
   @desc "A mention represents a when user has @-mentioned another user."
@@ -712,6 +737,140 @@ defmodule LevelWeb.Schema.Objects do
     end
 
     field :posted_at, non_null(:timestamp)
+  end
+
+  union :notification do
+    types [
+      :post_created_notification,
+      :post_closed_notification,
+      :post_reopened_notification,
+      :reply_created_notification,
+      :post_reaction_created_notification,
+      :reply_reaction_created_notification
+    ]
+
+    resolve_type(fn
+      %Notification{event: "POST_CREATED"}, _ ->
+        :post_created_notification
+
+      %Notification{event: "POST_CLOSED"}, _ ->
+        :post_closed_notification
+
+      %Notification{event: "POST_REOPENED"}, _ ->
+        :post_reopened_notification
+
+      %Notification{event: "REPLY_CREATED"}, _ ->
+        :reply_created_notification
+
+      %Notification{event: "POST_REACTION_CREATED"}, _ ->
+        :post_reaction_created_notification
+
+      %Notification{event: "REPLY_REACTION_CREATED"}, _ ->
+        :reply_reaction_created_notification
+    end)
+  end
+
+  object :post_created_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+    field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  object :post_closed_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+    field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  object :post_reopened_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+    field :post, :post, resolve: notification_post_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  object :reply_created_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+    field :post, :post, resolve: notification_post_resolver()
+    field :reply, :reply, resolve: notification_reply_resolver()
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  object :post_reaction_created_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+
+    field :reaction, :post_reaction do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        reaction_id = parent.data["post_reaction_id"]
+
+        loader
+        |> Dataloader.load(:db, PostReaction, reaction_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, PostReaction, reaction_id)}
+        end)
+      end
+    end
+
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  object :reply_reaction_created_notification do
+    field :id, non_null(:id)
+    field :topic, non_null(:string)
+    field :state, non_null(:notification_state)
+
+    field :reaction, :reply_reaction do
+      resolve fn parent, _, %{context: %{loader: loader}} ->
+        reaction_id = parent.data["reply_reaction_id"]
+
+        loader
+        |> Dataloader.load(:db, ReplyReaction, reaction_id)
+        |> on_load(fn loader ->
+          {:ok, Dataloader.get(loader, :db, ReplyReaction, reaction_id)}
+        end)
+      end
+    end
+
+    field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+  end
+
+  defp notification_post_resolver do
+    fn parent, _, %{context: %{loader: loader}} ->
+      post_id = parent.data["post_id"]
+
+      loader
+      |> Dataloader.load(:db, Post, post_id)
+      |> on_load(fn loader ->
+        {:ok, Dataloader.get(loader, :db, Post, post_id)}
+      end)
+    end
+  end
+
+  defp notification_reply_resolver do
+    fn parent, _, %{context: %{loader: loader}} ->
+      reply_id = parent.data["reply_id"]
+
+      loader
+      |> Dataloader.load(:db, Reply, reply_id)
+      |> on_load(fn loader ->
+        {:ok, Dataloader.get(loader, :db, Reply, reply_id)}
+      end)
+    end
+  end
+
+  defp notification_timestamp_resolver do
+    fn parent, _, _ ->
+      {:ok, parent.inserted_at}
+    end
   end
 
   def fetch_time do

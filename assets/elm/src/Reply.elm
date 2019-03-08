@@ -1,4 +1,4 @@
-module Reply exposing (Reply, asc, author, body, bodyHtml, canEdit, decoder, desc, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds)
+module Reply exposing (Reply, asc, author, body, bodyHtml, canEdit, decoder, desc, files, fragment, hasReacted, hasViewed, id, notDeleted, postId, postedAt, reactionCount, reactorIds, url)
 
 import Author exposing (Author)
 import File exposing (File)
@@ -29,6 +29,7 @@ type alias Data =
     , hasReacted : Bool
     , reactionCount : Int
     , reactorIds : List Id
+    , url : String
     , isDeleted : Bool
     , canEdit : Bool
     , postedAt : Posix
@@ -63,6 +64,7 @@ fragment =
             }
             totalCount
           }
+          url
           isDeleted
           canEdit
           postedAt
@@ -106,6 +108,11 @@ author (Reply data) =
 files : Reply -> List File
 files (Reply data) =
     data.files
+
+
+url : Reply -> String
+url (Reply data) =
+    data.url
 
 
 hasViewed : Reply -> Bool
@@ -161,6 +168,7 @@ decoder =
             |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (Decode.list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
+            |> required "url" string
             |> required "isDeleted" bool
             |> required "canEdit" bool
             |> required "postedAt" dateDecoder

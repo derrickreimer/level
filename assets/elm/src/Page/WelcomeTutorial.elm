@@ -169,6 +169,8 @@ markIfComplete globals model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
+    | InternalLinkClicked String
     | BackUp
     | Advance
     | SkipClicked
@@ -189,6 +191,12 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         BackUp ->
             backUp globals model

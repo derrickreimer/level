@@ -1,4 +1,39 @@
-module PostView exposing (Msg(..), PostView, ViewConfig, expandReplyComposer, init, postNodeId, refreshFromCache, setup, teardown, update, view)
+module PostView exposing
+    ( PostView
+    , init, setup, teardown
+    , postNodeId, recordView, expandReplyComposer, refreshFromCache
+    , Msg(..), update
+    , ViewConfig, view
+    )
+
+{-| The post view.
+
+
+# Model
+
+@docs PostView
+
+
+# Lifecycle
+
+@docs init, setup, teardown
+
+
+# API
+
+@docs postNodeId, recordView, expandReplyComposer, refreshFromCache
+
+
+# Update
+
+@docs Msg, update
+
+
+# View
+
+@docs ViewConfig, view
+
+-}
 
 import Actor exposing (Actor)
 import Avatar exposing (personAvatar)
@@ -22,6 +57,7 @@ import Mutation.CreatePostReaction as CreatePostReaction
 import Mutation.CreateReply as CreateReply
 import Mutation.DeletePost as DeletePost
 import Mutation.DeletePostReaction as DeletePostReaction
+import Mutation.DismissNotifications as DismissNotifications
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsRead as MarkAsRead
 import Mutation.RecordReplyViews as RecordReplyViews
@@ -135,6 +171,67 @@ teardown globals postView =
 
 
 
+-- API
+
+
+postNodeId : PostView -> String
+postNodeId postView =
+    "post-" ++ postView.id
+
+
+recordView : Globals -> PostView -> Cmd Msg
+recordView globals postView =
+    Cmd.batch
+        [ markVisibleRepliesAsViewed globals postView
+        , markAsRead globals postView
+        , dismissNotifications globals postView
+        ]
+
+
+expandReplyComposer : Globals -> PostView -> ( ( PostView, Cmd Msg ), Globals )
+expandReplyComposer globals postView =
+    let
+        newPostView =
+            { postView | replyComposer = PostEditor.expand postView.replyComposer }
+
+        cmd =
+            Cmd.batch
+                [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
+                , recordView globals newPostView
+                ]
+    in
+    ( ( newPostView, cmd ), globals )
+
+
+refreshFromCache : Globals -> PostView -> ( PostView, Cmd Msg )
+refreshFromCache globals postView =
+    let
+        newReplies =
+            case ReplySet.lastPostedAt postView.replyViews of
+                Just lastPostedAt ->
+                    globals.repo
+                        |> Repo.getRepliesByPost postView.id Nothing (Just lastPostedAt)
+                        |> List.sortWith Reply.asc
+
+                Nothing ->
+                    globals.repo
+                        |> Repo.getRepliesByPost postView.id Nothing Nothing
+                        |> List.sortWith Reply.desc
+                        |> List.take 3
+                        |> List.sortWith Reply.asc
+
+        newReplyViews =
+            postView.replyViews
+                |> ReplySet.appendMany postView.spaceId newReplies
+                |> ReplySet.removeDeleted globals.repo
+
+        newPostView =
+            { postView | replyViews = newReplyViews }
+    in
+    ( newPostView, Cmd.none )
+
+
+
 -- UPDATE
 
 
@@ -161,6 +258,7 @@ type Msg
     | MoveToInboxClicked
     | PostMovedToInbox (Result Session.Error ( Session, MarkAsRead.Response ))
     | MarkedAsRead (Result Session.Error ( Session, MarkAsRead.Response ))
+    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
     | ExpandPostEditor
     | CollapsePostEditor
     | PostEditorBodyChanged String
@@ -435,6 +533,19 @@ update msg globals postView =
             redirectToLogin globals postView
 
         MarkedAsRead (Err _) ->
+            noCmd globals postView
+
+        NotificationsDismissed (Ok ( newSession, _ )) ->
+            ( ( postView, Cmd.none )
+            , { globals
+                | session = newSession
+              }
+            )
+
+        NotificationsDismissed (Err Session.Expired) ->
+            redirectToLogin globals postView
+
+        NotificationsDismissed (Err _) ->
             noCmd globals postView
 
         ExpandPostEditor ->
@@ -773,51 +884,11 @@ markAsRead globals postView =
             Cmd.none
 
 
-
--- EXTERNAL UPDATES
-
-
-expandReplyComposer : Globals -> PostView -> ( ( PostView, Cmd Msg ), Globals )
-expandReplyComposer globals postView =
-    let
-        cmd =
-            Cmd.batch
-                [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
-                , markVisibleRepliesAsViewed globals postView
-                , markAsRead globals postView
-                ]
-
-        newPostView =
-            { postView | replyComposer = PostEditor.expand postView.replyComposer }
-    in
-    ( ( newPostView, cmd ), globals )
-
-
-{-| TODO: Should newly added replies to the set be automatically marked as read?
--}
-refreshFromCache : Globals -> PostView -> ( PostView, Cmd Msg )
-refreshFromCache globals postView =
-    let
-        newReplies =
-            case ReplySet.lastPostedAt postView.replyViews of
-                Just lastPostedAt ->
-                    globals.repo
-                        |> Repo.getRepliesByPost postView.id Nothing (Just lastPostedAt)
-                        |> List.sortWith Reply.asc
-
-                Nothing ->
-                    globals.repo
-                        |> Repo.getRepliesByPost postView.id Nothing Nothing
-                        |> List.sortWith Reply.desc
-                        |> List.take 3
-                        |> List.sortWith Reply.asc
-
-        newReplyViews =
-            postView.replyViews
-                |> ReplySet.appendMany postView.spaceId newReplies
-                |> ReplySet.removeDeleted globals.repo
-    in
-    ( { postView | replyViews = newReplyViews }, Cmd.none )
+dismissNotifications : Globals -> PostView -> Cmd Msg
+dismissNotifications globals postView =
+    globals.session
+        |> DismissNotifications.request (DismissNotifications.variables (Just <| "post:" ++ postView.id))
+        |> Task.attempt NotificationsDismissed
 
 
 
@@ -848,7 +919,7 @@ view config postView =
 
 resolvedView : ViewConfig -> PostView -> Data -> Html Msg
 resolvedView config postView data =
-    div [ id (postNodeId postView.id), class "flex relative" ]
+    div [ id (postNodeId postView), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
             div
                 [ class "tooltip tooltip-top mr-2 -ml-3 mt-px w-1 h-12 rounded pin-t bg-orange flex-no-shrink shadow-white"
@@ -1307,12 +1378,3 @@ reactorView user =
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]
-
-
-
--- UTILS
-
-
-postNodeId : String -> String
-postNodeId postId =
-    "post-" ++ postId

@@ -1,11 +1,13 @@
-module Subscription.UserSubscription exposing (spaceJoinedDecoder, subscribe, unsubscribe)
+module Subscription.UserSubscription exposing (notificationCreatedDecoder, notificationsDismissedDecoder, spaceJoinedDecoder, subscribe, unsubscribe)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Notification
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedNotification exposing (ResolvedNotification)
 import ResolvedSpace exposing (ResolvedSpace)
 import Socket
 import Space
@@ -41,6 +43,22 @@ spaceJoinedDecoder =
         )
 
 
+notificationCreatedDecoder : Decode.Decoder ResolvedNotification
+notificationCreatedDecoder =
+    Subscription.decoder "user"
+        "NotificationCreated"
+        "notification"
+        ResolvedNotification.decoder
+
+
+notificationsDismissedDecoder : Decode.Decoder (Maybe String)
+notificationsDismissedDecoder =
+    Subscription.decoder "user"
+        "NotificationsDismissed"
+        "topic"
+        (Decode.maybe Decode.string)
+
+
 
 -- INTERNAL
 
@@ -65,9 +83,18 @@ document =
                 ...SpaceUserFields
               }
             }
+            ... on NotificationCreatedPayload {
+              notification {
+                ...NotificationFields
+              }
+            }
+            ... on NotificationsDismissedPayload {
+              topic
+            }
           }
         }
         """
         [ Space.fragment
         , SpaceUser.fragment
+        , Notification.fragment
         ]

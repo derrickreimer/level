@@ -54,6 +54,16 @@ defmodule LevelWeb.Schema do
       arg :user_id, non_null(:id)
       resolve &Level.Resolvers.space_user_by_user_id/2
     end
+
+    @desc "Fetches notifications."
+    field :notifications, list_of(:notification) do
+      arg :limit, :integer, default_value: 20
+      arg :cursor, :timestamp
+      arg :order_by, :notification_order
+      arg :state, :notification_state_filter, default_value: :all
+
+      resolve &Level.Resolvers.notifications/2
+    end
   end
 
   mutation do
@@ -450,6 +460,13 @@ defmodule LevelWeb.Schema do
       arg :value, non_null(:string)
 
       resolve &Level.Mutations.delete_reply_reaction/2
+    end
+
+    @desc "Dismisses notifications on a particular topic (or all notifications if no topic is given)."
+    field :dismiss_notifications, :dismiss_notifications_payload do
+      arg :topic, :string
+
+      resolve &Level.Mutations.dismiss_notifications/2
     end
   end
 

@@ -1,6 +1,7 @@
 module Page.Group exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
+import Browser.Navigation as Nav
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Element
@@ -81,7 +82,6 @@ type alias Model =
     , groupId : Id
     , featuredMemberIds : Lazy (List Id)
     , postViews : PostSet
-    , now : TimeWithZone
     , nameEditor : FieldEditor String
     , postComposer : PostEditor
     , searchEditor : FieldEditor String
@@ -157,15 +157,14 @@ init params globals =
     in
     case ( maybeViewer, maybeSpace, maybeGroup ) of
         ( Just viewer, Just space, Just group ) ->
-            TimeWithZone.now
-                |> Task.andThen (\now -> Task.succeed (scaffold globals params viewer space group now))
+            Task.succeed (scaffold globals params viewer space group)
 
         _ ->
             Task.fail PageError.NotFound
 
 
-scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> TimeWithZone -> ( ( Model, Cmd Msg ), Globals )
-scaffold globals params viewer space group now =
+scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> ( ( Model, Cmd Msg ), Globals )
+scaffold globals params viewer space group =
     let
         cachedPosts =
             globals.repo
@@ -194,7 +193,6 @@ scaffold globals params viewer space group now =
                 (Group.id group)
                 NotLoaded
                 postSet
-                now
                 (FieldEditor.init "name-editor" "")
                 (PostEditor.init ("post-composer-" ++ Group.id group))
                 (FieldEditor.init "search-editor" "")
@@ -278,7 +276,8 @@ isMemberPost model post =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
-    | Tick Posix
+    | ToggleNotifications
+    | InternalLinkClicked String
     | PageClicked
     | LoadMoreClicked
     | PostsFetched Params Int (Result Session.Error ( Session, GroupPosts.Response ))
@@ -342,8 +341,11 @@ update msg globals model =
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         PageClicked ->
             ( ( { model
@@ -905,10 +907,20 @@ update msg globals model =
 
         PostSelected postId ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.select postId model.postViews
+
+                cmd =
+                    case PostSet.selected newPostViews of
+                        Just postView ->
+                            postView
+                                |> PostView.recordView globals
+                                |> Cmd.map (PostViewMsg postId)
+
+                        Nothing ->
+                            Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, Cmd.none ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         FocusOnComposer ->
             ( ( model, setFocus (PostEditor.getTextareaId model.postComposer) NoOp ), globals )
@@ -1130,33 +1142,43 @@ consumeKeyboardEvent globals event model =
 
         ( "k", [] ) ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.selectPrev model.postViews
 
                 cmd =
-                    case PostSet.selected newPostComps of
+                    case PostSet.selected newPostViews of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 125
+                            Cmd.batch
+                                [ Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost) 125
+                                , currentPost
+                                    |> PostView.recordView globals
+                                    |> Cmd.map (PostViewMsg currentPost.id)
+                                ]
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         ( "j", [] ) ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.selectNext model.postViews
 
                 cmd =
-                    case PostSet.selected newPostComps of
+                    case PostSet.selected newPostViews of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 125
+                            Cmd.batch
+                                [ Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost) 125
+                                , currentPost
+                                    |> PostView.recordView globals
+                                    |> Cmd.map (PostViewMsg currentPost.id)
+                                ]
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         ( "e", [] ) ->
             case PostSet.selected model.postViews of
@@ -1236,8 +1258,7 @@ consumeKeyboardEvent globals event model =
 subscriptions : Sub Msg
 subscriptions =
     Sub.batch
-        [ every 1000 Tick
-        , PostEditor.receive PostEditorEventReceived
+        [ PostEditor.receive PostEditorEventReceived
         ]
 
 
@@ -1626,7 +1647,7 @@ desktopPostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False
@@ -1753,7 +1774,7 @@ mobilePostView globals spaceUsers groups model data postView =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
             , showGroups = False

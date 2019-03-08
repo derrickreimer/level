@@ -1,6 +1,7 @@
 module Page.Spaces exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
@@ -97,6 +98,8 @@ type Msg
     = QueryChanged String
     | NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
+    | InternalLinkClicked String
       -- MOBILE
     | NavToggled
     | SidebarToggled
@@ -114,6 +117,12 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )

@@ -1,4 +1,4 @@
-module TimeWithZone exposing (TimeWithZone, getPosix, getZone, init, now, setPosix, toDay, toHour, toMillis, toMinute, toMonth, toSecond, toWeekday, toYear)
+module TimeWithZone exposing (TimeWithZone, getPosix, getZone, init, now, setPosix, setZone, toDay, toHour, toMillis, toMinute, toMonth, toSecond, toWeekday, toYear)
 
 import Task exposing (Task)
 import Time exposing (Posix, Zone)
@@ -37,6 +37,11 @@ getZone (TimeWithZone internal) =
 setPosix : Posix -> TimeWithZone -> TimeWithZone
 setPosix newPosix (TimeWithZone internal) =
     TimeWithZone { internal | posix = newPosix }
+
+
+setZone : Zone -> TimeWithZone -> TimeWithZone
+setZone newZone (TimeWithZone internal) =
+    TimeWithZone { internal | zone = newZone }
 
 
 toYear : TimeWithZone -> Int

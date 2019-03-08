@@ -5,6 +5,7 @@ import Group exposing (Group)
 import Json.Decode as Decode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedNotification exposing (ResolvedNotification)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import ResolvedSpace exposing (ResolvedSpace)
 import Space exposing (Space)
@@ -47,6 +48,8 @@ type Event
     | ReplyDeleted Reply
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
+    | NotificationCreated ResolvedNotification
+    | NotificationsDismissed (Maybe String)
     | Unknown Decode.Value
 
 
@@ -65,6 +68,8 @@ eventDecoder =
     Decode.oneOf
         [ -- USER EVENTS
           Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
+        , Decode.map NotificationCreated UserSubscription.notificationCreatedDecoder
+        , Decode.map NotificationsDismissed UserSubscription.notificationsDismissedDecoder
 
         -- SPACE USER EVENTS
         , Decode.map GroupCreated SpaceUserSubscription.groupCreatedDecoder

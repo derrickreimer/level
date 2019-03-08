@@ -89,7 +89,7 @@ defmodule Level.Posts.CreateReply do
           author
           |> TaggedGroups.get_tagged_groups(reply.body)
           |> Enum.map(fn group ->
-            _ = Posts.publish_to_group(post, group)
+            Posts.publish_to_group(post, group)
             group
           end)
 
@@ -121,17 +121,19 @@ defmodule Level.Posts.CreateReply do
   end
 
   defp after_transaction({:ok, %{reply: reply} = result}, post, author, opts) do
-    _ = subscribe_author(post, author)
-    _ = subscribe_mentioned_users(post, result)
-    _ = subscribe_mentioned_groups(post, result)
-    _ = subscribe_watchers(post)
-    _ = record_reply_view(reply, author)
+    subscribe_author(post, author)
+    subscribe_mentioned_users(post, result)
+    subscribe_mentioned_groups(post, result)
+    subscribe_watchers(post)
+    record_reply_view(reply, author)
 
     {:ok, subscribers} = Posts.get_subscribers(post)
 
-    _ = mark_unread_for_subscribers(post, reply, subscribers, author)
-    _ = send_push_notifications(post, reply, subscribers, author, opts)
-    _ = send_events(post, result, opts)
+    mark_as_unread(post, reply, subscribers)
+    record_notifications(reply, subscribers)
+    send_push_notifications(post, reply, subscribers, author, opts)
+
+    send_events(post, result, opts)
 
     {:ok, result}
   end
@@ -148,7 +150,7 @@ defmodule Level.Posts.CreateReply do
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
       if can_access_post?(mentioned_user, post.id) do
-        _ = Posts.subscribe(mentioned_user, [post])
+        Posts.subscribe(mentioned_user, [post])
       end
     end)
   end
@@ -159,7 +161,7 @@ defmodule Level.Posts.CreateReply do
       group_users = Repo.preload(group_users, :space_user)
 
       Enum.each(group_users, fn group_user ->
-        _ = Posts.subscribe(group_user.space_user, [post])
+        Posts.subscribe(group_user.space_user, [post])
       end)
     end)
   end
@@ -177,7 +179,7 @@ defmodule Level.Posts.CreateReply do
         |> Enum.map(fn group_user -> group_user.space_user end)
 
       Enum.each(space_users, fn space_user ->
-        _ = Posts.subscribe(space_user, [post])
+        Posts.subscribe(space_user, [post])
       end)
     end)
   end
@@ -186,12 +188,19 @@ defmodule Level.Posts.CreateReply do
     Posts.record_reply_views(author, [reply])
   end
 
-  defp mark_unread_for_subscribers(post, reply, subscribers, author) do
+  defp mark_as_unread(post, reply, subscribers) do
     Enum.each(subscribers, fn subscriber ->
       # Skip marking unread for the author
-      if subscriber.id !== author.id do
-        _ = Posts.mark_as_unread(subscriber, [post])
-        _ = Notifications.record_reply_created(subscriber, reply)
+      if subscriber.id !== reply.space_user_id do
+        Posts.mark_as_unread(subscriber, [post])
+      end
+    end)
+  end
+
+  defp record_notifications(reply, subscribers) do
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== reply.space_user_id do
+        Notifications.record_reply_created(subscriber, reply)
       end
     end)
   end
@@ -229,7 +238,7 @@ defmodule Level.Posts.CreateReply do
     events = Keyword.get(opts, :events)
     {:ok, space_user_ids} = Posts.get_accessor_ids(post)
 
-    _ = events.reply_created(space_user_ids, reply)
+    events.reply_created(space_user_ids, reply)
   end
 
   defp can_access_post?(space_user, post_id) do

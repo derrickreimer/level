@@ -12,8 +12,10 @@ defmodule Level.Loaders.Database do
   alias Level.Schemas.GroupBookmark
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
+  alias Level.Schemas.PostReaction
   alias Level.Schemas.PostUser
   alias Level.Schemas.Reply
+  alias Level.Schemas.ReplyReaction
   alias Level.Schemas.ReplyView
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
@@ -65,6 +67,8 @@ defmodule Level.Loaders.Database do
       where: su.user_id == ^user_id
   end
 
+  def query(PostReaction, _), do: PostReaction
+
   # Replies
 
   def query(Reply, %{current_user: user}), do: Posts.replies_base_query(user)
@@ -74,6 +78,8 @@ defmodule Level.Loaders.Database do
       join: su in assoc(rv, :space_user),
       where: su.user_id == ^user_id
   end
+
+  def query(ReplyReaction, _), do: ReplyReaction
 
   # Mentions
 

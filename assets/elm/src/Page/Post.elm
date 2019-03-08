@@ -16,6 +16,7 @@ import Layout.SpaceMobile
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
+import Mutation.DismissNotifications as DismissNotifications
 import Mutation.DismissPosts as DismissPosts
 import Mutation.MarkAsUnread as MarkAsUnread
 import Mutation.RecordPostView as RecordPostView
@@ -53,7 +54,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , postView : PostView
-    , now : TimeWithZone
     , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
@@ -101,12 +101,11 @@ init : String -> Id -> Globals -> Task Session.Error ( Globals, Model )
 init spaceSlug postId globals =
     globals.session
         |> PostInit.request spaceSlug postId
-        |> TaskHelpers.andThenGetCurrentTime
         |> Task.map (buildModel spaceSlug globals)
 
 
-buildModel : String -> Globals -> ( ( Session, PostInit.Response ), TimeWithZone ) -> ( Globals, Model )
-buildModel spaceSlug globals ( ( newSession, resp ), now ) =
+buildModel : String -> Globals -> ( Session, PostInit.Response ) -> ( Globals, Model )
+buildModel spaceSlug globals ( newSession, resp ) =
     let
         newRepo =
             Repo.union resp.repo globals.repo
@@ -124,7 +123,6 @@ buildModel spaceSlug globals ( ( newSession, resp ), now ) =
                 resp.viewerId
                 resp.spaceId
                 postView
-                now
                 NotLoaded
                 False
                 False
@@ -138,7 +136,8 @@ setup : Globals -> Model -> Cmd Msg
 setup globals ({ postView } as model) =
     Cmd.batch
         [ Cmd.map PostViewMsg (PostView.setup globals postView)
-        , recordView globals.session model
+        , dismissNotifications globals model
+        , recordView globals model
         , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
@@ -152,9 +151,16 @@ teardown globals ({ postView } as model) =
         ]
 
 
-recordView : Session -> Model -> Cmd Msg
-recordView session model =
-    session
+dismissNotifications : Globals -> Model -> Cmd Msg
+dismissNotifications globals model =
+    globals.session
+        |> DismissNotifications.request (DismissNotifications.variables (Just <| "post:" ++ model.postId))
+        |> Task.attempt NotificationsDismissed
+
+
+recordView : Globals -> Model -> Cmd Msg
+recordView globals model =
+    globals.session
         |> RecordPostView.request model.spaceId model.postView.id Nothing
         |> Task.attempt ViewRecorded
 
@@ -184,10 +190,12 @@ recordReplyViews globals model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
+    | InternalLinkClicked String
     | PostViewMsg PostView.Msg
+    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
     | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
-    | Tick Posix
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
@@ -213,6 +221,12 @@ update msg globals model =
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
 
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
+
         PostViewMsg postViewMsg ->
             let
                 ( ( newPostComp, cmd ), newGlobals ) =
@@ -223,6 +237,19 @@ update msg globals model =
               )
             , newGlobals
             )
+
+        NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic globals.repo
+            in
+            noCmd { globals | session = newSession, repo = newRepo } model
+
+        NotificationsDismissed (Err Session.Expired) ->
+            redirectToLogin globals model
+
+        NotificationsDismissed _ ->
+            noCmd globals model
 
         ViewRecorded (Ok ( newSession, _ )) ->
             noCmd { globals | session = newSession } model
@@ -241,9 +268,6 @@ update msg globals model =
 
         ReplyViewsRecorded (Err _) ->
             noCmd globals model
-
-        Tick posix ->
-            ( ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none ), globals )
 
         SpaceUserFetched (Ok ( newSession, response )) ->
             let
@@ -456,9 +480,7 @@ handleJoin presence globals model =
 
 subscriptions : Sub Msg
 subscriptions =
-    Sub.batch
-        [ every 1000 Tick
-        ]
+    Sub.none
 
 
 
@@ -505,7 +527,7 @@ resolvedDesktopView globals model data =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
@@ -515,9 +537,9 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div []
-                [ div [ class "sticky pin-t mb-6 py-2 border-b bg-white z-10" ]
+                [ div [ class "sticky flex items-center pin-t mb-6 py-2 trans-border-b-grey bg-white z-40" ]
                     [ button
-                        [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                        [ buttonClasses
                         , onClick BackClicked
                         ]
                         [ text "Back" ]
@@ -559,7 +581,7 @@ resolvedMobileView globals model data =
             { globals = globals
             , space = data.space
             , currentUser = data.viewer
-            , now = model.now
+            , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
             , showGroups = True
@@ -585,12 +607,22 @@ resolvedMobileView globals model data =
 -- SHARED
 
 
+buttonClasses : Attribute msg
+buttonClasses =
+    classList
+        [ ( "flex items-center justify-center px-4 h-9 rounded-full no-outline", True )
+        , ( "text-dusty-blue hover:text-dusty-blue-dark text-md font-bold", True )
+        , ( "bg-transparent hover:bg-grey transition-bg", True )
+        , ( "mr-2", True )
+        ]
+
+
 inboxStateButton : Bool -> Post -> Html Msg
 inboxStateButton isChangingInboxState post =
     case Post.inboxState post of
         Post.Excluded ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
@@ -598,7 +630,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Unread ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick DismissPostClicked
                 , disabled isChangingInboxState
                 ]
@@ -606,7 +638,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Read ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick DismissPostClicked
                 , disabled isChangingInboxState
                 ]
@@ -614,7 +646,7 @@ inboxStateButton isChangingInboxState post =
 
         Post.Dismissed ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick MoveToInboxClicked
                 , disabled isChangingInboxState
                 ]
@@ -626,7 +658,7 @@ postStateButton isChangingState post =
     case Post.state post of
         Post.Open ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick ClosePostClicked
                 , disabled isChangingState
                 ]
@@ -634,7 +666,7 @@ postStateButton isChangingState post =
 
         Post.Closed ->
             button
-                [ class "btn btn-md btn-dusty-blue-inverse text-base"
+                [ buttonClasses
                 , onClick ReopenPostClicked
                 , disabled isChangingState
                 ]

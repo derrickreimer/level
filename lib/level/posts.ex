@@ -397,7 +397,6 @@ defmodule Level.Posts do
     end)
 
     Events.posts_marked_as_read(space_user.id, posts)
-    Notifications.dismiss(space_user, posts)
     result
   end
 
@@ -621,9 +620,9 @@ defmodule Level.Posts do
   defp after_post_closed({:ok, %{post: post}} = result, closer) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = dismiss(closer, [post])
-    _ = record_closed_notifications(post, closer)
-    _ = Events.post_closed(space_user_ids, post)
+    dismiss(closer, [post])
+    record_closed_notifications(post, closer)
+    Events.post_closed(space_user_ids, post)
 
     result
   end
@@ -633,7 +632,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== closer.id do
-        _ = Notifications.record_post_closed(subscriber, post)
+        Notifications.record_post_closed(subscriber, post)
       end
     end)
   end
@@ -659,8 +658,8 @@ defmodule Level.Posts do
   defp after_post_reopened({:ok, %{post: post}} = result, reopener) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = Events.post_reopened(space_user_ids, post)
-    _ = record_reopened_notifications(post, reopener)
+    Events.post_reopened(space_user_ids, post)
+    record_reopened_notifications(post, reopener)
 
     result
   end
@@ -670,7 +669,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== reopener.id do
-        _ = Notifications.record_post_reopened(subscriber, post)
+        Notifications.record_post_reopened(subscriber, post)
       end
     end)
   end
@@ -697,8 +696,16 @@ defmodule Level.Posts do
   defp after_create_post_reaction({:ok, reaction}, space_user, post) do
     {:ok, space_user_ids} = get_accessor_ids(post)
 
-    _ = PostLog.post_reaction_created(post, space_user)
-    _ = Events.post_reaction_created(space_user_ids, post, reaction)
+    PostLog.post_reaction_created(post, space_user)
+    Events.post_reaction_created(space_user_ids, post, reaction)
+
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== space_user.id do
+        Notifications.record_post_reaction_created(subscriber, reaction)
+      end
+    end)
 
     {:ok, reaction}
   end
@@ -730,7 +737,7 @@ defmodule Level.Posts do
 
   defp after_delete_post_reaction({:ok, reaction}, _space_user, post) do
     {:ok, space_user_ids} = get_accessor_ids(post)
-    _ = Events.post_reaction_deleted(space_user_ids, post, reaction)
+    Events.post_reaction_deleted(space_user_ids, post, reaction)
     {:ok, reaction}
   end
 
@@ -739,9 +746,9 @@ defmodule Level.Posts do
   @doc """
   Creates a reaction to a reply.
   """
-  @spec create_reply_reaction(SpaceUser.t(), Reply.t()) ::
+  @spec create_reply_reaction(SpaceUser.t(), Post.t(), Reply.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
-  def create_reply_reaction(%SpaceUser{} = space_user, %Reply{} = reply) do
+  def create_reply_reaction(%SpaceUser{} = space_user, post, %Reply{} = reply) do
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
@@ -753,19 +760,27 @@ defmodule Level.Posts do
     %ReplyReaction{}
     |> Ecto.Changeset.change(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
-    |> after_create_reply_reaction(space_user, reply)
+    |> after_create_reply_reaction(space_user, post, reply)
   end
 
-  defp after_create_reply_reaction({:ok, reaction}, space_user, reply) do
+  defp after_create_reply_reaction({:ok, reaction}, space_user, post, reply) do
     {:ok, space_user_ids} = get_accessor_ids(reply)
 
-    _ = PostLog.reply_reaction_created(reply, space_user)
-    _ = Events.reply_reaction_created(space_user_ids, reply, reaction)
+    PostLog.reply_reaction_created(reply, space_user)
+    Events.reply_reaction_created(space_user_ids, reply, reaction)
+
+    {:ok, subscribers} = get_subscribers(post)
+
+    Enum.each(subscribers, fn subscriber ->
+      if subscriber.id !== space_user.id do
+        Notifications.record_reply_reaction_created(subscriber, reaction)
+      end
+    end)
 
     {:ok, reaction}
   end
 
-  defp after_create_reply_reaction(err, _, _), do: err
+  defp after_create_reply_reaction(err, _, _, _), do: err
 
   @doc """
   Deletes a reaction to a reply.
@@ -795,7 +810,7 @@ defmodule Level.Posts do
 
   defp after_delete_reply_reaction({:ok, reaction}, _space_user, reply) do
     {:ok, space_user_ids} = get_accessor_ids(reply)
-    _ = Events.reply_reaction_deleted(space_user_ids, reply, reaction)
+    Events.reply_reaction_deleted(space_user_ids, reply, reaction)
     {:ok, reaction}
   end
 

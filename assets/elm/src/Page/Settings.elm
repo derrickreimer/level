@@ -1,6 +1,7 @@
 module Page.Settings exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Device exposing (Device)
 import DigestSettings exposing (DigestSettings)
 import Event exposing (Event)
@@ -136,6 +137,8 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
+    | InternalLinkClicked String
     | NameChanged String
     | SlugChanged String
     | Submit
@@ -161,6 +164,12 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         NameChanged val ->
             noCmd globals { model | name = val }

@@ -6,6 +6,7 @@ defmodule Level.Mutations do
   import Level.Gettext
 
   alias Level.Groups
+  alias Level.Notifications
   alias Level.Nudges
   alias Level.Posts
   alias Level.Schemas.Nudge
@@ -1027,7 +1028,7 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
          {:ok, reply} <- Posts.get_reply(post, args.reply_id),
-         {:ok, reaction} <- Posts.create_reply_reaction(space_user, reply) do
+         {:ok, reaction} <- Posts.create_reply_reaction(space_user, post, reply) do
       {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
     else
       %Ecto.Changeset{} = changeset ->
@@ -1063,6 +1064,27 @@ defmodule Level.Mutations do
       err ->
         err
     end
+  end
+
+  @doc """
+  Dismisses notifications.
+  """
+  @spec dismiss_notifications(map(), info()) ::
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             topic: String.t()
+           }}
+          | {:error, String.t()}
+  def dismiss_notifications(%{topic: topic}, %{context: %{current_user: user}}) do
+    {:ok, topic} = Notifications.dismiss(user, topic)
+    {:ok, %{success: true, errors: [], topic: topic}}
+  end
+
+  def dismiss_notifications(_args, %{context: %{current_user: user}}) do
+    {:ok, topic} = Notifications.dismiss(user, nil)
+    {:ok, %{success: true, errors: [], topic: topic}}
   end
 
   defp can_manage_members?(space_user) do

@@ -11,7 +11,8 @@ export function initialize() {
       apiToken: getInitialApiToken(),
       supportsNotifications: ServiceWorker.isPushSupported(),
       timeZone: jstz.determine().name(),
-      device: isMobile() ? "MOBILE" : "DESKTOP"
+      device: isMobile() ? "MOBILE" : "DESKTOP",
+      now: Date.now()
     }
   });
 

@@ -102,8 +102,8 @@ defmodule LevelWeb.Schema.Enums do
   end
 
   enum :order_direction do
-    value(:asc)
-    value(:desc)
+    value :asc
+    value :desc
   end
 
   enum :group_state do
@@ -138,6 +138,21 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :last_activity_filter do
     value :today
+    value :all
+  end
+
+  enum :notification_state do
+    value :undismissed, as: "UNDISMISSED"
+    value :dismissed, as: "DISMISSED"
+  end
+
+  enum :notification_order_field do
+    value :occurred_at
+  end
+
+  enum :notification_state_filter do
+    value :undismissed
+    value :dismissed
     value :all
   end
 end

@@ -10,6 +10,7 @@ import Flash exposing (Flash)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import InboxStateFilter
@@ -19,6 +20,10 @@ import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
+import Notification
+import NotificationPanel exposing (NotificationPanel)
+import NotificationSet exposing (NotificationSet)
+import NotificationStateFilter exposing (NotificationStateFilter)
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -45,6 +50,7 @@ import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
+import ResolvedNotification
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import ResolvedSpace exposing (ResolvedSpace)
 import Response exposing (Response)
@@ -72,6 +78,8 @@ import Subscription.SpaceSubscription as SpaceSubscription
 import Subscription.SpaceUserSubscription as SpaceUserSubscription
 import Subscription.UserSubscription as UserSubscription
 import Task exposing (Task)
+import Time exposing (Posix, Zone)
+import TimeWithZone exposing (TimeWithZone)
 import Url exposing (Url)
 import User exposing (User)
 import View.Helpers exposing (viewIf)
@@ -111,6 +119,9 @@ type alias Model =
     , flash : Flash
     , going : Bool
     , showKeyboardCommands : Bool
+    , showNotifications : Bool
+    , notificationPanel : NotificationPanel
+    , now : TimeWithZone
     }
 
 
@@ -119,6 +130,7 @@ type alias Flags =
     , supportsNotifications : Bool
     , timeZone : String
     , device : String
+    , now : Int
     }
 
 
@@ -131,16 +143,14 @@ init flags url navKey =
     let
         model =
             buildModel flags navKey
-
-        initCmd =
-            model.session
-                |> MainInit.request
-                |> Task.attempt (AppInitialized url)
     in
     ( model
     , Cmd.batch
-        [ initCmd
+        [ model.session
+            |> MainInit.request
+            |> Task.attempt (AppInitialized url)
         , ServiceWorker.getPushSubscription
+        , Task.perform TimeZoneFetched Time.here
         ]
     )
 
@@ -161,6 +171,9 @@ buildModel flags navKey =
         Flash.init
         False
         False
+        False
+        NotificationPanel.init
+        (TimeWithZone.init Time.utc (Time.millisToPosix flags.now))
 
 
 setup : MainInit.Response -> Url -> Model -> ( Model, Cmd Msg )
@@ -169,11 +182,11 @@ setup resp url model =
         modelWithRepo =
             { model | repo = Repo.union resp.repo model.repo }
 
-        ( modelWithNavigation, navigateToUrl ) =
+        ( newModel, navigateToUrl ) =
             navigateTo (Route.fromUrl url) modelWithRepo
 
         subscribeToSpaces =
-            modelWithNavigation.repo
+            newModel.repo
                 |> Repo.getAllSpaces
                 |> List.map (SpaceSubscription.subscribe << Space.id)
                 |> Cmd.batch
@@ -186,21 +199,27 @@ setup resp url model =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone resp.currentUser /= modelWithNavigation.timeZone then
+            if User.timeZone resp.currentUser /= newModel.timeZone then
                 model.session
-                    |> UpdateUser.request (UpdateUser.timeZoneVariables modelWithNavigation.timeZone)
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables newModel.timeZone)
                     |> Task.attempt TimeZoneUpdated
 
             else
                 Cmd.none
+
+        setupNotifications =
+            newModel.notificationPanel
+                |> NotificationPanel.setup (buildGlobals newModel)
+                |> Cmd.map NotificationPanelMsg
     in
-    ( { modelWithNavigation | currentUser = Loaded resp.currentUser }
+    ( { newModel | currentUser = Loaded resp.currentUser }
     , Cmd.batch
         [ navigateToUrl
         , UserSubscription.subscribe
         , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
+        , setupNotifications
         ]
     )
 
@@ -216,6 +235,8 @@ buildGlobals model =
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
     , showKeyboardCommands = model.showKeyboardCommands
+    , showNotifications = model.showNotifications
+    , now = model.now
     }
 
 
@@ -224,11 +245,16 @@ buildGlobals model =
 
 
 type Msg
-    = UrlChange Url
+    = TimeZoneFetched Zone
+    | Tick Posix
+    | UrlChange Url
     | UrlRequest UrlRequest
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
+    | ToggleNotifications
+    | NotificationPanelMsg NotificationPanel.Msg
+    | InternalLinkClicked String
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
     | SpacesMsg Page.Spaces.Msg
@@ -268,20 +294,28 @@ updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
 updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     let
+        ( newModel, cmd ) =
+            updateGlobals newGlobals model
+    in
+    ( { newModel | page = toPage newPageModel }
+    , Cmd.batch [ Cmd.map toPageMsg pageCmd, cmd ]
+    )
+
+
+updateGlobals : Globals -> Model -> ( Model, Cmd Msg )
+updateGlobals globals model =
+    let
         ( newFlash, flashCmd ) =
-            Flash.startTimer FlashExpired newGlobals.flash
+            Flash.startTimer FlashExpired globals.flash
     in
     ( { model
-        | session = newGlobals.session
-        , repo = newGlobals.repo
-        , page = toPage newPageModel
+        | session = globals.session
+        , repo = globals.repo
+        , showKeyboardCommands = globals.showKeyboardCommands
+        , showNotifications = globals.showNotifications
         , flash = newFlash
-        , showKeyboardCommands = newGlobals.showKeyboardCommands
       }
-    , Cmd.batch
-        [ Cmd.map toPageMsg pageCmd
-        , flashCmd
-        ]
+    , flashCmd
     )
 
 
@@ -292,6 +326,12 @@ update msg model =
             buildGlobals model
     in
     case ( msg, model.page ) of
+        ( TimeZoneFetched zone, _ ) ->
+            ( { model | now = TimeWithZone.setZone zone model.now }, Cmd.none )
+
+        ( Tick posix, _ ) ->
+            ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none )
+
         ( UrlChange url, _ ) ->
             navigateTo (Route.fromUrl url) model
 
@@ -335,6 +375,24 @@ update msg model =
 
         ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
+
+        ( ToggleNotifications, _ ) ->
+            ( { model | showNotifications = not model.showNotifications }, Cmd.none )
+
+        ( NotificationPanelMsg compMsg, _ ) ->
+            let
+                ( ( newNotificationPanel, compCmd ), newGlobals ) =
+                    NotificationPanel.update compMsg globals model.notificationPanel
+
+                ( newModel, cmd ) =
+                    updateGlobals newGlobals model
+            in
+            ( { newModel | notificationPanel = newNotificationPanel }
+            , Cmd.batch [ cmd, Cmd.map NotificationPanelMsg compCmd ]
+            )
+
+        ( InternalLinkClicked pathname, _ ) ->
+            ( model, Nav.pushUrl model.navKey pathname )
 
         ( PageInitialized pageInit, _ ) ->
             setupPage pageInit model
@@ -1552,6 +1610,38 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.NotificationCreated resolvedNotification ->
+            let
+                newRepo =
+                    ResolvedNotification.addToRepo resolvedNotification model.repo
+
+                newNotificationPanel =
+                    model.notificationPanel
+                        |> NotificationPanel.notificationCreated resolvedNotification
+            in
+            ( { model
+                | notificationPanel = newNotificationPanel
+                , repo = newRepo
+              }
+            , Cmd.none
+            )
+
+        Event.NotificationsDismissed maybeTopic ->
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic model.repo
+
+                newNotificationPanel =
+                    model.notificationPanel
+                        |> NotificationPanel.refresh newRepo
+            in
+            ( { model
+                | notificationPanel = newNotificationPanel
+                , repo = newRepo
+              }
+            , Cmd.none
+            )
+
         Event.Unknown payload ->
             ( model, Cmd.none )
 
@@ -1716,7 +1806,8 @@ sendPresenceToPage event model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Socket.receive SocketIn
+        [ Time.every 1000 Tick
+        , Socket.receive SocketIn
         , ServiceWorker.receive ServiceWorkerIn
         , Presence.receive PresenceIn
         , KeyboardShortcuts.subscribe KeyPressed
@@ -1733,6 +1824,8 @@ view model =
     Document (pageTitle model.repo model.page)
         [ pageView (buildGlobals model) model.page
         , centerNoticeView model
+        , viewIf (model.page /= Blank) (rightmostSidebar model)
+        , viewIf model.showNotifications (notificationPanel model)
         ]
 
 
@@ -1747,3 +1840,33 @@ centerNoticeView model =
                     ]
                 ]
             ]
+
+
+rightmostSidebar : Model -> Html Msg
+rightmostSidebar model =
+    div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
+        [ button
+            [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , onClick ToggleNotifications
+            ]
+            [ Icons.notification Icons.Off
+            , div
+                [ classList
+                    [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
+                    , ( "opacity-100", NotificationPanel.hasUndismissed model.notificationPanel )
+                    ]
+                , style "width" "10px"
+                , style "height" "10px"
+                , style "margin-right" "9px"
+                , style "margin-top" "3px"
+                ]
+                []
+            ]
+        ]
+
+
+notificationPanel : Model -> Html Msg
+notificationPanel model =
+    model.notificationPanel
+        |> NotificationPanel.view (buildGlobals model)
+        |> Html.map NotificationPanelMsg

@@ -1,6 +1,7 @@
 module Page.SpaceUser exposing (Model, Msg(..), consumeEvent, init, setup, teardown, title, update, view)
 
 import Avatar
+import Browser.Navigation as Nav
 import Device exposing (Device)
 import Event exposing (Event)
 import Flash
@@ -138,6 +139,8 @@ teardown model =
 type Msg
     = NoOp
     | ToggleKeyboardCommands
+    | ToggleNotifications
+    | InternalLinkClicked String
     | TogglePermissionsModal
     | RevokeAccess
     | AccessRevoked (Result Session.Error ( Session, RevokeSpaceAccess.Response ))
@@ -156,6 +159,12 @@ update msg globals model =
 
         ToggleKeyboardCommands ->
             ( ( model, Cmd.none ), { globals | showKeyboardCommands = not globals.showKeyboardCommands } )
+
+        ToggleNotifications ->
+            ( ( model, Cmd.none ), { globals | showNotifications = not globals.showNotifications } )
+
+        InternalLinkClicked pathname ->
+            ( ( model, Nav.pushUrl globals.navKey pathname ), globals )
 
         TogglePermissionsModal ->
             case resolveData globals.repo model of

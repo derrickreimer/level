@@ -73,7 +73,7 @@ defmodule LevelWeb.GraphQL.ReplyReactionsTest do
              }
            }
 
-    {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+    {:ok, _} = Posts.create_reply_reaction(space_user, post, reply)
 
     conn =
       conn
@@ -136,7 +136,7 @@ defmodule LevelWeb.GraphQL.ReplyReactionsTest do
       }
     """
 
-    {:ok, _} = Posts.create_reply_reaction(space_user, reply)
+    {:ok, _} = Posts.create_reply_reaction(space_user, post, reply)
 
     variables = %{
       space_id: space_user.space_id,
