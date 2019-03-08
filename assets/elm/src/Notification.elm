@@ -1,9 +1,9 @@
 module Notification exposing
-    ( Notification, Event(..)
-    , id, occurredAt, event, isUndismissed, setDismissed
+    ( Notification, Event(..), State(..)
+    , id, occurredAt, event, state, isUndismissed, setDismissed
     , fragment
     , decoder
-    , withUndismissed, withTopic
+    , withUndismissed, withState, withTopic
     )
 
 {-| A Notification represents activity that occurred in someone's Inbox.
@@ -11,12 +11,12 @@ module Notification exposing
 
 # Types
 
-@docs Notification, Event
+@docs Notification, Event, State
 
 
 # API
 
-@docs id, occurredAt, event, isUndismissed, setDismissed
+@docs id, occurredAt, event, state, isUndismissed, setDismissed
 
 
 # GraphQL
@@ -31,7 +31,7 @@ module Notification exposing
 
 # Filtering
 
-@docs withUndismissed, withTopic
+@docs withUndismissed, withState, withTopic
 
 -}
 
@@ -94,6 +94,11 @@ occurredAt (Notification data) =
 event : Notification -> Event
 event (Notification data) =
     data.event
+
+
+state : Notification -> State
+state (Notification data) =
+    data.state
 
 
 isUndismissed : Notification -> Bool
@@ -251,8 +256,8 @@ eventDecoder =
 stateDecoder : Decoder State
 stateDecoder =
     let
-        convert state =
-            case state of
+        convert stateString =
+            case stateString of
                 "UNDISMISSED" ->
                     Decode.succeed Undismissed
 
@@ -273,6 +278,11 @@ stateDecoder =
 withUndismissed : Notification -> Bool
 withUndismissed (Notification data) =
     data.state == Undismissed
+
+
+withState : State -> Notification -> Bool
+withState testState (Notification data) =
+    data.state == testState
 
 
 withTopic : String -> Notification -> Bool

@@ -18,13 +18,12 @@ import Json.Decode as Decode exposing (decodeString)
 import KeyboardShortcuts exposing (Modifier(..))
 import Lazy exposing (Lazy(..))
 import ListHelpers exposing (insertUniqueBy, removeBy)
-import Mutation.DismissNotifications as DismissNotifications
 import Mutation.RegisterPushSubscription as RegisterPushSubscription
 import Mutation.UpdateUser as UpdateUser
 import Notification
+import NotificationPanel exposing (NotificationPanel)
 import NotificationSet exposing (NotificationSet)
-import NotificationStateFilter
-import NotificationView
+import NotificationStateFilter exposing (NotificationStateFilter)
 import Page.Apps
 import Page.Group
 import Page.GroupSettings
@@ -50,7 +49,6 @@ import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
-import Query.Notifications as Notifications
 import Repo exposing (Repo)
 import ResolvedNotification
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -122,7 +120,7 @@ type alias Model =
     , going : Bool
     , showKeyboardCommands : Bool
     , showNotifications : Bool
-    , notifications : NotificationSet
+    , notificationPanel : NotificationPanel
     , now : TimeWithZone
     }
 
@@ -151,9 +149,6 @@ init flags url navKey =
         [ model.session
             |> MainInit.request
             |> Task.attempt (AppInitialized url)
-        , model.session
-            |> Notifications.request (Notifications.variables NotificationStateFilter.All 50 Nothing)
-            |> Task.attempt (NotificationsFetched 50)
         , ServiceWorker.getPushSubscription
         , Task.perform TimeZoneFetched Time.here
         ]
@@ -177,7 +172,7 @@ buildModel flags navKey =
         False
         False
         False
-        NotificationSet.empty
+        NotificationPanel.init
         (TimeWithZone.init Time.utc (Time.millisToPosix flags.now))
 
 
@@ -187,11 +182,11 @@ setup resp url model =
         modelWithRepo =
             { model | repo = Repo.union resp.repo model.repo }
 
-        ( modelWithNavigation, navigateToUrl ) =
+        ( newModel, navigateToUrl ) =
             navigateTo (Route.fromUrl url) modelWithRepo
 
         subscribeToSpaces =
-            modelWithNavigation.repo
+            newModel.repo
                 |> Repo.getAllSpaces
                 |> List.map (SpaceSubscription.subscribe << Space.id)
                 |> Cmd.batch
@@ -204,21 +199,27 @@ setup resp url model =
             -- Note: It would be better to present the user with a notice that their
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
-            if User.timeZone resp.currentUser /= modelWithNavigation.timeZone then
+            if User.timeZone resp.currentUser /= newModel.timeZone then
                 model.session
-                    |> UpdateUser.request (UpdateUser.timeZoneVariables modelWithNavigation.timeZone)
+                    |> UpdateUser.request (UpdateUser.timeZoneVariables newModel.timeZone)
                     |> Task.attempt TimeZoneUpdated
 
             else
                 Cmd.none
+
+        setupNotifications =
+            newModel.notificationPanel
+                |> NotificationPanel.setup (buildGlobals newModel)
+                |> Cmd.map NotificationPanelMsg
     in
-    ( { modelWithNavigation | currentUser = Loaded resp.currentUser }
+    ( { newModel | currentUser = Loaded resp.currentUser }
     , Cmd.batch
         [ navigateToUrl
         , UserSubscription.subscribe
         , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
+        , setupNotifications
         ]
     )
 
@@ -235,7 +236,6 @@ buildGlobals model =
     , currentRoute = routeFor model.page
     , showKeyboardCommands = model.showKeyboardCommands
     , showNotifications = model.showNotifications
-    , notifications = model.notifications
     , now = model.now
     }
 
@@ -252,11 +252,8 @@ type Msg
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
-    | MoreNotificationsRequested
-    | NotificationsFetched Int (Result Session.Error ( Session, Notifications.Response ))
     | ToggleNotifications
-    | DismissAllNotificationsClicked
-    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
+    | NotificationPanelMsg NotificationPanel.Msg
     | InternalLinkClicked String
     | PageInitialized PageInit
     | HomeMsg Page.Home.Msg
@@ -297,21 +294,28 @@ updatePage toPage toPageMsg model ( pageModel, pageCmd ) =
 updatePageWithGlobals : (a -> Page) -> (b -> Msg) -> Model -> ( ( a, Cmd b ), Globals ) -> ( Model, Cmd Msg )
 updatePageWithGlobals toPage toPageMsg model ( ( newPageModel, pageCmd ), newGlobals ) =
     let
+        ( newModel, cmd ) =
+            updateGlobals newGlobals model
+    in
+    ( { newModel | page = toPage newPageModel }
+    , Cmd.batch [ Cmd.map toPageMsg pageCmd, cmd ]
+    )
+
+
+updateGlobals : Globals -> Model -> ( Model, Cmd Msg )
+updateGlobals globals model =
+    let
         ( newFlash, flashCmd ) =
-            Flash.startTimer FlashExpired newGlobals.flash
+            Flash.startTimer FlashExpired globals.flash
     in
     ( { model
-        | session = newGlobals.session
-        , repo = newGlobals.repo
-        , page = toPage newPageModel
+        | session = globals.session
+        , repo = globals.repo
+        , showKeyboardCommands = globals.showKeyboardCommands
+        , showNotifications = globals.showNotifications
         , flash = newFlash
-        , showKeyboardCommands = newGlobals.showKeyboardCommands
-        , showNotifications = newGlobals.showNotifications
       }
-    , Cmd.batch
-        [ Cmd.map toPageMsg pageCmd
-        , flashCmd
-        ]
+    , flashCmd
     )
 
 
@@ -372,70 +376,20 @@ update msg model =
         ( TimeZoneUpdated _, _ ) ->
             ( model, Cmd.none )
 
-        ( MoreNotificationsRequested, _ ) ->
-            let
-                cursor =
-                    NotificationSet.firstOccurredAt model.repo model.notifications
-            in
-            ( model
-            , model.session
-                |> Notifications.request (Notifications.variables NotificationStateFilter.All 50 cursor)
-                |> Task.attempt (NotificationsFetched 50)
-            )
-
-        ( NotificationsFetched limit (Ok ( newSession, resp )), _ ) ->
-            let
-                newRepo =
-                    Repo.union resp.repo model.repo
-
-                notificationIds =
-                    resp.resolvedNotifications
-                        |> List.map (Notification.id << .notification)
-
-                newNotifications =
-                    model.notifications
-                        |> NotificationSet.addMany notificationIds
-                        |> NotificationSet.setLoaded
-                        |> NotificationSet.setHasMore (List.length notificationIds >= limit)
-            in
-            ( { model
-                | repo = newRepo
-                , session = newSession
-                , notifications = newNotifications
-              }
-            , Cmd.none
-            )
-
-        ( NotificationsFetched _ (Err Session.Expired), _ ) ->
-            ( model, Route.toLogin )
-
-        ( NotificationsFetched _ _, _ ) ->
-            ( model, Cmd.none )
-
         ( ToggleNotifications, _ ) ->
             ( { model | showNotifications = not model.showNotifications }, Cmd.none )
 
-        ( DismissAllNotificationsClicked, _ ) ->
+        ( NotificationPanelMsg compMsg, _ ) ->
             let
-                cmd =
-                    model.session
-                        |> DismissNotifications.request (DismissNotifications.variables Nothing)
-                        |> Task.attempt NotificationsDismissed
+                ( ( newNotificationPanel, compCmd ), newGlobals ) =
+                    NotificationPanel.update compMsg globals model.notificationPanel
+
+                ( newModel, cmd ) =
+                    updateGlobals newGlobals model
             in
-            ( model, cmd )
-
-        ( NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )), _ ) ->
-            let
-                newRepo =
-                    Repo.dismissNotifications maybeTopic globals.repo
-            in
-            ( { model | session = newSession, repo = newRepo }, Cmd.none )
-
-        ( NotificationsDismissed (Err Session.Expired), _ ) ->
-            ( model, Route.toLogin )
-
-        ( NotificationsDismissed _, _ ) ->
-            ( model, Cmd.none )
+            ( { newModel | notificationPanel = newNotificationPanel }
+            , Cmd.batch [ cmd, Cmd.map NotificationPanelMsg compCmd ]
+            )
 
         ( InternalLinkClicked pathname, _ ) ->
             ( model, Nav.pushUrl model.navKey pathname )
@@ -1661,18 +1615,30 @@ consumeEvent event ({ page } as model) =
                 newRepo =
                     ResolvedNotification.addToRepo resolvedNotification model.repo
 
-                newNotifications =
-                    NotificationSet.add (Notification.id resolvedNotification.notification) model.notifications
+                newNotificationPanel =
+                    model.notificationPanel
+                        |> NotificationPanel.notificationCreated resolvedNotification
             in
             ( { model
-                | notifications = newNotifications
+                | notificationPanel = newNotificationPanel
                 , repo = newRepo
               }
             , Cmd.none
             )
 
         Event.NotificationsDismissed maybeTopic ->
-            ( { model | repo = Repo.dismissNotifications maybeTopic model.repo }
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic model.repo
+
+                newNotificationPanel =
+                    model.notificationPanel
+                        |> NotificationPanel.refresh newRepo
+            in
+            ( { model
+                | notificationPanel = newNotificationPanel
+                , repo = newRepo
+              }
             , Cmd.none
             )
 
@@ -1887,7 +1853,7 @@ rightmostSidebar model =
             , div
                 [ classList
                     [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
-                    , ( "opacity-100", NotificationSet.hasUndismissed model.repo model.notifications )
+                    , ( "opacity-100", NotificationPanel.hasUndismissed model.notificationPanel )
                     ]
                 , style "width" "10px"
                 , style "height" "10px"
@@ -1901,13 +1867,6 @@ rightmostSidebar model =
 
 notificationPanel : Model -> Html Msg
 notificationPanel model =
-    let
-        config =
-            { globals = buildGlobals model
-            , onInternalLinkClicked = InternalLinkClicked
-            , onToggleNotifications = ToggleNotifications
-            , onMoreRequested = MoreNotificationsRequested
-            , onDismissAllClicked = DismissAllNotificationsClicked
-            }
-    in
-    NotificationView.panelView config model.notifications
+    model.notificationPanel
+        |> NotificationPanel.view (buildGlobals model)
+        |> Html.map NotificationPanelMsg

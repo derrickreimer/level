@@ -1,8 +1,7 @@
 module NotificationSet exposing
-    ( NotificationSet, State(..)
+    ( NotificationSet, LoadingState(..)
     , empty, isLoaded, setLoaded
-    , add, hasUndismissed, resolve, hasMore, setHasMore, firstOccurredAt
-    , addMany
+    , add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve
     )
 
 {-| A NotificationSet represents a list of notifications.
@@ -10,7 +9,7 @@ module NotificationSet exposing
 
 # Types
 
-@docs NotificationSet, State
+@docs NotificationSet, LoadingState
 
 
 # Initialization
@@ -20,12 +19,12 @@ module NotificationSet exposing
 
 # Operations
 
-@docs add, hasUndismissed, resolve, hasMore, setHasMore, firstOccurredAt
+@docs add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve
 
 -}
 
 import Id exposing (Id)
-import Notification exposing (Notification)
+import Notification exposing (Notification, State(..))
 import Repo exposing (Repo)
 import ResolvedNotification exposing (ResolvedNotification)
 import Set exposing (Set)
@@ -42,12 +41,12 @@ type NotificationSet
 
 type alias Internal =
     { ids : Set Id
-    , state : State
+    , state : LoadingState
     , hasMore : Bool
     }
 
 
-type State
+type LoadingState
     = Loading
     | Loaded
 
@@ -81,23 +80,18 @@ add id (NotificationSet internal) =
 
 
 addMany : List Id -> NotificationSet -> NotificationSet
-addMany ids notifications =
-    List.foldr add notifications ids
+addMany ids (NotificationSet internal) =
+    NotificationSet { internal | ids = Set.union internal.ids (Set.fromList ids) }
 
 
-hasUndismissed : Repo -> NotificationSet -> Bool
-hasUndismissed repo set =
-    set
-        |> resolveUnsorted repo
-        |> List.filter (Notification.withUndismissed << .notification)
-        |> (not << List.isEmpty)
+removeMany : List Id -> NotificationSet -> NotificationSet
+removeMany ids (NotificationSet internal) =
+    NotificationSet { internal | ids = Set.diff internal.ids (Set.fromList ids) }
 
 
-resolve : Repo -> NotificationSet -> List ResolvedNotification
-resolve repo set =
-    set
-        |> resolveUnsorted repo
-        |> sort
+isEmpty : NotificationSet -> Bool
+isEmpty (NotificationSet internal) =
+    Set.isEmpty internal.ids
 
 
 hasMore : NotificationSet -> Bool
@@ -119,15 +113,16 @@ firstOccurredAt repo set =
         |> Maybe.map (Notification.occurredAt << .notification)
 
 
-
--- PRIVATE
-
-
-resolveUnsorted : Repo -> NotificationSet -> List ResolvedNotification
-resolveUnsorted repo (NotificationSet internal) =
+resolve : Repo -> NotificationSet -> List ResolvedNotification
+resolve repo (NotificationSet internal) =
     internal.ids
         |> Set.toList
         |> List.filterMap (ResolvedNotification.resolve repo)
+        |> sort
+
+
+
+-- PRIVATE
 
 
 sort : List ResolvedNotification -> List ResolvedNotification

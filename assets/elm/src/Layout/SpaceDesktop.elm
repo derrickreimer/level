@@ -10,10 +10,7 @@ import Html.Events exposing (..)
 import Icons
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
-import NotificationSet exposing (NotificationSet)
-import NotificationView
 import Repo exposing (Repo)
-import ResolvedNotification exposing (ResolvedNotification)
 import Route exposing (Route)
 import Route.Apps
 import Route.Group

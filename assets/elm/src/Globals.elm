@@ -3,7 +3,6 @@ module Globals exposing (Globals)
 import Browser.Navigation as Nav
 import Device exposing (Device)
 import Flash exposing (Flash)
-import NotificationSet exposing (NotificationSet)
 import PushStatus exposing (PushStatus)
 import Repo exposing (Repo)
 import Route exposing (Route)
@@ -22,6 +21,5 @@ type alias Globals =
     , currentRoute : Maybe Route
     , showKeyboardCommands : Bool
     , showNotifications : Bool
-    , notifications : NotificationSet
     , now : TimeWithZone
     }
