@@ -869,7 +869,7 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-3 bg-white z-40" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-2 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink" ]
                         [ span [ class "font-bold text-2xl" ] [ text "Home" ]
@@ -878,7 +878,7 @@ resolvedDesktopView globals model data =
                     ]
                 ]
             , desktopPostComposerView globals model data
-            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "60px" ]
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "52px" ]
                 [ div [ class "flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params

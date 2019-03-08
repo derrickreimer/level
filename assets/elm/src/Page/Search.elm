@@ -365,7 +365,7 @@ resolvedDesktopView globals model data =
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
             [ div [ class "sticky pin-t mb-3 bg-white z-50" ]
-                [ div [ class "py-3 border-b" ]
+                [ div [ class "py-2 border-b" ]
                     [ div [ class "flex items-center" ]
                         [ h2 [ class "flex-no-shrink font-bold text-2xl" ] [ text "Search" ]
                         , controlsView model data

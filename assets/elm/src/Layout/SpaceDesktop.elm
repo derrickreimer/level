@@ -172,15 +172,17 @@ spacesSidebar config =
                 Icons.Off
     in
     div [ class "fixed h-full z-40" ]
-        [ div [ class "p-3" ]
+        [ div [ class "p-3 pt-2" ]
             [ a
                 [ Route.href Route.Home
                 , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
                 ]
                 [ Icons.home homeToggle ]
             ]
-        , div [ class "px-3 absolute overflow-y-scroll", style "top" "65px", style "bottom" "70px" ]
-            [ div [ class "mb-4" ] <| List.map (spaceLink config) spaces
+        , div [ class "px-3 absolute overflow-y-scroll", style "top" "60px", style "bottom" "70px" ]
+            [ viewIf (List.length spaces > 1) <|
+                div [ class "mb-4" ] <|
+                    List.map (spaceLink config) spaces
             , a
                 [ Route.href Route.NewSpace
                 , class "flex items-center mb-3 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
@@ -228,13 +230,13 @@ fullSidebar config =
             [ ( "fixed w-48 h-full min-h-screen z-30", True )
             ]
         ]
-        [ div [ class "p-4 pt-2" ]
+        [ div [ class "p-4 pt-1" ]
             [ a [ Route.href (Route.Posts (Route.Posts.init spaceSlug)), class "block p-2 rounded no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
                 , div [ class "font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
                 ]
             ]
-        , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
+        , div [ class "absolute pl-3 w-full overflow-y-auto", style "top" "102px", style "bottom" "70px" ]
             [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                 [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
                 ]

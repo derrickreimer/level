@@ -308,7 +308,7 @@ view globals model =
     in
     div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-dropdown z-50" ]
         [ div []
-            [ div [ class "flex items-center p-3 pl-4 trans-border-b-grey" ]
+            [ div [ class "flex items-center py-2 pl-4 pr-3 trans-border-b-grey" ]
                 [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
                 , button
                     [ classList
@@ -347,7 +347,7 @@ view globals model =
                     [ text "Dismissed" ]
                 ]
             ]
-        , div [ class "absolute pin overflow-y-auto", style "top" "111px" ]
+        , div [ class "absolute pin overflow-y-auto", style "top" "103px" ]
             [ div [] itemViews
             , viewIf (NotificationSet.isEmpty visibleSet) <|
                 div [ class "pt-16 pb-16 font-headline text-center text-lg text-dusty-blue-dark" ]

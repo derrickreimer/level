@@ -1304,7 +1304,7 @@ resolvedDesktopView globals model data =
     in
     Layout.SpaceDesktop.layout config
         [ div [ class "mx-auto px-8 max-w-lg leading-normal" ]
-            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-3 bg-white z-40" ]
+            [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-2 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ nameView data.group model.nameEditor
                     , viewIf (Group.isPrivate data.group) <|
@@ -1326,7 +1326,7 @@ resolvedDesktopView globals model data =
                         [ button [ class "btn btn-red btn-sm", onClick ReopenClicked ] [ text "Reopen the channel" ]
                         ]
                     ]
-            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "60px" ]
+            , div [ class "sticky mb-4 pt-1 px-3 bg-white z-30", style "top" "52px" ]
                 [ div [ class "flex items-baseline trans-border-b-grey" ]
                     [ filterTab Device.Desktop "Inbox" (undismissedParams model.params) model.params
                     , filterTab Device.Desktop "Everything" (feedParams model.params) model.params

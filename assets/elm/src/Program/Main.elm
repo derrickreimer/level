@@ -1844,7 +1844,7 @@ centerNoticeView model =
 
 rightmostSidebar : Model -> Html Msg
 rightmostSidebar model =
-    div [ class "fixed h-full z-40 p-3 pin-r pin-t" ]
+    div [ class "fixed h-full z-40 p-3 pt-2 pin-r pin-t" ]
         [ button
             [ class "relative flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             , onClick ToggleNotifications
