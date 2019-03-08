@@ -6,28 +6,35 @@ defmodule LevelWeb.GraphQL.NotificationsTest do
 
   @query """
     query GetNotifications(
-      $cursor: Timestamp,
-      $limit: Int
+      $after: Timestamp,
+      $first: Int
     ) {
-      notifications(cursor: $cursor, limit: $limit) {
-        __typename
-        ... on PostCreatedNotification {
-          id
-        }
-        ... on PostClosedNotification {
-          id
-        }
-        ... on PostReopenedNotification {
-          id
-        }
-        ... on ReplyCreatedNotification {
-          id
-        }
-        ... on PostReactionCreatedNotification {
-          id
-        }
-        ... on ReplyReactionCreatedNotification {
-          id
+      notifications(
+        after: $after,
+        first: $first
+      ) {
+        edges {
+          node {
+            __typename
+            ... on PostCreatedNotification {
+              id
+            }
+            ... on PostClosedNotification {
+              id
+            }
+            ... on PostReopenedNotification {
+              id
+            }
+            ... on ReplyCreatedNotification {
+              id
+            }
+            ... on PostReactionCreatedNotification {
+              id
+            }
+            ... on ReplyReactionCreatedNotification {
+              id
+            }
+          }
         }
       }
     }
@@ -48,12 +55,12 @@ defmodule LevelWeb.GraphQL.NotificationsTest do
     conn =
       conn
       |> put_graphql_headers()
-      |> post("/graphql", %{query: @query})
+      |> post("/graphql", %{query: @query, variables: %{first: 20}})
 
-    %{"data" => %{"notifications" => results}} = json_response(conn, 200)
+    %{"data" => %{"notifications" => %{"edges" => edges}}} = json_response(conn, 200)
 
-    assert Enum.any?(results, fn result ->
-             result["id"] == notification.id
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["id"] == notification.id
            end)
   end
 end

@@ -99,4 +99,9 @@ defmodule LevelWeb.Schema.InputObjects do
     """
     field :last_activity, :last_activity_filter, default_value: :all
   end
+
+  @desc "Filtering criteria for notification connections."
+  input_object :notification_filters do
+    field :state, :notification_state_filter, default_value: :all
+  end
 end

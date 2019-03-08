@@ -173,4 +173,25 @@ defmodule LevelWeb.Schema.Connections do
     @desc "The total count of items in the connection."
     field :total_count, non_null(:integer)
   end
+
+  @desc "An edge in the notification connection."
+  object :notification_edge do
+    @desc "The item at the edge of the node."
+    field :node, :notification
+
+    @desc "A cursor for use in pagination."
+    field :cursor, non_null(:timestamp)
+  end
+
+  @desc "A list of notifications."
+  object :notification_connection do
+    @desc "A list of edges."
+    field :edges, list_of(:notification_edge)
+
+    @desc "Pagination data for the connection."
+    field :page_info, non_null(:page_info)
+
+    @desc "The total count of items in the connection."
+    field :total_count, non_null(:integer)
+  end
 end

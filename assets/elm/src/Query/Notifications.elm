@@ -14,13 +14,13 @@ import Time exposing (Posix)
 
 
 type alias Response =
-    { resolvedNotifications : List ResolvedNotification
+    { resolvedNotifications : Connection ResolvedNotification
     , repo : Repo
     }
 
 
 type alias Data =
-    { resolvedNotifications : List ResolvedNotification
+    { resolvedNotifications : Connection ResolvedNotification
     }
 
 
@@ -29,26 +29,28 @@ document =
     GraphQL.toDocument
         """
         query Notifications(
-          $cursor: Timestamp,
-          $limit: Int,
+          $after: Timestamp,
+          $first: Int,
           $orderField: NotificationOrderField,
           $orderDirection: OrderDirection,
           $state: NotificationStateFilter
         ) {
           notifications(
-            cursor: $cursor,
-            limit: $limit,
+            after: $after,
+            first: $first,
             orderBy: {
               field: $orderField,
               direction: $orderDirection
             },
-            state: $state
+            filters: {
+              state: $state
+            }
           ) {
-            ...NotificationFields
+            ...NotificationConnectionFields
           }
         }
         """
-        [ Notification.fragment
+        [ Connection.fragment "NotificationConnection" Notification.fragment
         ]
 
 
@@ -58,15 +60,15 @@ variables state limit maybeCursor =
         pairs =
             case maybeCursor of
                 Just cursor ->
-                    [ ( "cursor", Encode.int (Time.posixToMillis cursor) )
-                    , ( "limit", Encode.int limit )
+                    [ ( "after", Encode.int (Time.posixToMillis cursor) )
+                    , ( "first", Encode.int limit )
                     , ( "orderField", Encode.string "OCCURRED_AT" )
                     , ( "orderDirection", Encode.string "DESC" )
                     , ( "state", Encode.string <| NotificationStateFilter.toEnum state )
                     ]
 
                 Nothing ->
-                    [ ( "limit", Encode.int limit )
+                    [ ( "first", Encode.int limit )
                     , ( "orderField", Encode.string "OCCURRED_AT" )
                     , ( "orderDirection", Encode.string "DESC" )
                     , ( "state", Encode.string <| NotificationStateFilter.toEnum state )
@@ -79,7 +81,7 @@ decoder : Decoder Data
 decoder =
     Decode.at [ "data", "notifications" ] <|
         Decode.map Data
-            (list ResolvedNotification.decoder)
+            (Connection.decoder ResolvedNotification.decoder)
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )
@@ -87,7 +89,7 @@ buildResponse ( session, data ) =
     let
         repo =
             Repo.empty
-                |> ResolvedNotification.addManyToRepo data.resolvedNotifications
+                |> ResolvedNotification.addManyToRepo (Connection.toList data.resolvedNotifications)
 
         resp =
             Response

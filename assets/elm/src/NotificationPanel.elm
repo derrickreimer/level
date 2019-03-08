@@ -31,6 +31,7 @@ module NotificationPanel exposing
 
 import Avatar
 import Browser.Navigation as Nav
+import Connection exposing (Connection)
 import Globals exposing (Globals)
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -199,13 +200,14 @@ update msg globals model =
 
                 newIds =
                     resp.resolvedNotifications
+                        |> Connection.toList
                         |> List.map (Notification.id << .notification)
 
                 newUndismissed =
                     model.undismissed
                         |> NotificationSet.addMany newIds
                         |> NotificationSet.setLoaded
-                        |> NotificationSet.setHasMore (List.length resp.resolvedNotifications >= limit)
+                        |> NotificationSet.setHasMore (Connection.hasNextPage resp.resolvedNotifications)
             in
             ( ( { model | undismissed = newUndismissed }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
@@ -224,13 +226,14 @@ update msg globals model =
 
                 newIds =
                     resp.resolvedNotifications
+                        |> Connection.toList
                         |> List.map (Notification.id << .notification)
 
                 newDismissed =
                     model.dismissed
                         |> NotificationSet.addMany newIds
                         |> NotificationSet.setLoaded
-                        |> NotificationSet.setHasMore (List.length resp.resolvedNotifications >= limit)
+                        |> NotificationSet.setHasMore (Connection.hasNextPage resp.resolvedNotifications)
             in
             ( ( { model | dismissed = newDismissed }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }

@@ -56,11 +56,13 @@ defmodule LevelWeb.Schema do
     end
 
     @desc "Fetches notifications."
-    field :notifications, list_of(:notification) do
-      arg :limit, :integer, default_value: 20
-      arg :cursor, :timestamp
+    field :notifications, non_null(:notification_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :timestamp
+      arg :after, :timestamp
       arg :order_by, :notification_order
-      arg :state, :notification_state_filter, default_value: :all
+      arg :filters, :notification_filters
 
       resolve &Level.Resolvers.notifications/2
     end
