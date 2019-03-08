@@ -157,14 +157,14 @@ spacesSidebar config =
                 Icons.Off
     in
     div [ class "fixed h-full z-40" ]
-        [ div [ class "p-3" ]
+        [ div [ class "p-3 pt-2" ]
             [ a
                 [ Route.href Route.Home
                 , class "flex items-center mb-4 justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
                 ]
                 [ Icons.home homeToggle ]
             ]
-        , div [ class "px-3 absolute overflow-y-scroll", style "top" "65px", style "bottom" "70px" ]
+        , div [ class "px-3 absolute overflow-y-scroll", style "top" "60px", style "bottom" "70px" ]
             [ div [ class "mb-4" ] <| List.map (spaceLink config) spaces
             , a
                 [ Route.href Route.NewSpace
