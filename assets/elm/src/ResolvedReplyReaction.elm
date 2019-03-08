@@ -49,7 +49,7 @@ resolve repo reaction =
         (Just reaction)
         (Repo.getSpaceUser (ReplyReaction.spaceUserId reaction) repo)
         (ResolvedPost.resolve repo (ReplyReaction.postId reaction))
-        (ResolvedReply.resolve repo (ReplyReaction.postId reaction))
+        (ResolvedReply.resolve repo (ReplyReaction.replyId reaction))
 
 
 unresolve : ResolvedReplyReaction -> ReplyReaction
