@@ -500,10 +500,20 @@ update msg globals model =
 
         PostSelected postId ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.select postId model.postViews
+
+                cmd =
+                    case PostSet.selected newPostViews of
+                        Just postView ->
+                            postView
+                                |> PostView.recordView globals
+                                |> Cmd.map (PostViewMsg postId)
+
+                        Nothing ->
+                            Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, Cmd.none ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         PushSubscribeClicked ->
             ( ( model, ServiceWorker.pushSubscribe ), globals )
@@ -702,33 +712,43 @@ consumeKeyboardEvent globals event model =
 
         ( "k", [] ) ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.selectPrev model.postViews
 
                 cmd =
-                    case PostSet.selected newPostComps of
+                    case PostSet.selected newPostViews of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
+                            Cmd.batch
+                                [ Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost) 85
+                                , currentPost
+                                    |> PostView.recordView globals
+                                    |> Cmd.map (PostViewMsg currentPost.id)
+                                ]
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         ( "j", [] ) ->
             let
-                newPostComps =
+                newPostViews =
                     PostSet.selectNext model.postViews
 
                 cmd =
-                    case PostSet.selected newPostComps of
+                    case PostSet.selected newPostViews of
                         Just currentPost ->
-                            Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost.id) 85
+                            Cmd.batch
+                                [ Scroll.toAnchor Scroll.Document (PostView.postNodeId currentPost) 85
+                                , currentPost
+                                    |> PostView.recordView globals
+                                    |> Cmd.map (PostViewMsg currentPost.id)
+                                ]
 
                         Nothing ->
                             Cmd.none
             in
-            ( ( { model | postViews = newPostComps }, cmd ), globals )
+            ( ( { model | postViews = newPostViews }, cmd ), globals )
 
         ( "e", [] ) ->
             case PostSet.selected model.postViews of
