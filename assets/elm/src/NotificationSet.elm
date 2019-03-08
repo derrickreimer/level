@@ -1,7 +1,7 @@
 module NotificationSet exposing
     ( NotificationSet, LoadingState(..)
     , empty, isLoaded, setLoaded
-    , add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve
+    , add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve, toList
     )
 
 {-| A NotificationSet represents a list of notifications.
@@ -19,7 +19,7 @@ module NotificationSet exposing
 
 # Operations
 
-@docs add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve
+@docs add, addMany, removeMany, isEmpty, hasMore, setHasMore, firstOccurredAt, resolve, toList
 
 -}
 
@@ -119,6 +119,12 @@ resolve repo (NotificationSet internal) =
         |> Set.toList
         |> List.filterMap (ResolvedNotification.resolve repo)
         |> sort
+
+
+toList : NotificationSet -> List Id
+toList (NotificationSet internal) =
+    internal.ids
+        |> Set.toList
 
 
 

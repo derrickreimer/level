@@ -88,16 +88,16 @@ setup globals model =
     Cmd.batch
         [ globals.session
             |> Query.Notifications.request (Query.Notifications.variables NotificationStateFilter.Undismissed 50 Nothing)
-            |> Task.attempt (UndismissedFetched 50)
+            |> Task.attempt UndismissedFetched
         , globals.session
             |> Query.Notifications.request (Query.Notifications.variables NotificationStateFilter.Dismissed 50 Nothing)
-            |> Task.attempt (DismissedFetched 50)
+            |> Task.attempt DismissedFetched
         ]
 
 
 hasUndismissed : NotificationPanel -> Bool
 hasUndismissed model =
-    not (NotificationSet.isEmpty model.undismissed)
+    not (NotificationSet.isEmpty model.undismissed) || NotificationSet.hasMore model.undismissed
 
 
 notificationCreated : ResolvedNotification -> NotificationPanel -> NotificationPanel
@@ -120,9 +120,8 @@ refresh : Repo -> NotificationPanel -> NotificationPanel
 refresh repo model =
     let
         newlyDismissedIds =
-            model.undismissed
-                |> NotificationSet.resolve repo
-                |> List.map .notification
+            repo
+                |> Repo.getNotifications (NotificationSet.toList model.undismissed)
                 |> List.filter (Notification.withState Notification.Dismissed)
                 |> List.map Notification.id
 
@@ -148,8 +147,8 @@ type Msg
     | CloseClicked
     | MoreUndismissedRequested
     | MoreDismissedRequested
-    | UndismissedFetched Int (Result Session.Error ( Session, Query.Notifications.Response ))
-    | DismissedFetched Int (Result Session.Error ( Session, Query.Notifications.Response ))
+    | UndismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
+    | DismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissAllClicked
     | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
 
@@ -177,7 +176,7 @@ update msg globals model =
                 cmd =
                     globals.session
                         |> Query.Notifications.request (Query.Notifications.variables NotificationStateFilter.Undismissed 50 cursor)
-                        |> Task.attempt (UndismissedFetched 50)
+                        |> Task.attempt UndismissedFetched
             in
             ( ( model, cmd ), globals )
 
@@ -189,11 +188,11 @@ update msg globals model =
                 cmd =
                     globals.session
                         |> Query.Notifications.request (Query.Notifications.variables NotificationStateFilter.Dismissed 50 cursor)
-                        |> Task.attempt (DismissedFetched 50)
+                        |> Task.attempt DismissedFetched
             in
             ( ( model, cmd ), globals )
 
-        UndismissedFetched limit (Ok ( newSession, resp )) ->
+        UndismissedFetched (Ok ( newSession, resp )) ->
             let
                 newRepo =
                     Repo.union resp.repo globals.repo
@@ -202,24 +201,27 @@ update msg globals model =
                     resp.resolvedNotifications
                         |> Connection.toList
                         |> List.map (Notification.id << .notification)
+
+                hasNextPage =
+                    Connection.hasNextPage resp.resolvedNotifications
 
                 newUndismissed =
                     model.undismissed
                         |> NotificationSet.addMany newIds
                         |> NotificationSet.setLoaded
-                        |> NotificationSet.setHasMore (Connection.hasNextPage resp.resolvedNotifications)
+                        |> NotificationSet.setHasMore hasNextPage
             in
             ( ( { model | undismissed = newUndismissed }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
             )
 
-        UndismissedFetched _ (Err Session.Expired) ->
+        UndismissedFetched (Err Session.Expired) ->
             ( ( model, Route.toLogin ), globals )
 
-        UndismissedFetched _ _ ->
+        UndismissedFetched _ ->
             ( ( model, Cmd.none ), globals )
 
-        DismissedFetched limit (Ok ( newSession, resp )) ->
+        DismissedFetched (Ok ( newSession, resp )) ->
             let
                 newRepo =
                     Repo.union resp.repo globals.repo
@@ -229,20 +231,23 @@ update msg globals model =
                         |> Connection.toList
                         |> List.map (Notification.id << .notification)
 
+                hasNextPage =
+                    Connection.hasNextPage resp.resolvedNotifications
+
                 newDismissed =
                     model.dismissed
                         |> NotificationSet.addMany newIds
                         |> NotificationSet.setLoaded
-                        |> NotificationSet.setHasMore (Connection.hasNextPage resp.resolvedNotifications)
+                        |> NotificationSet.setHasMore hasNextPage
             in
             ( ( { model | dismissed = newDismissed }, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
             )
 
-        DismissedFetched _ (Err Session.Expired) ->
+        DismissedFetched (Err Session.Expired) ->
             ( ( model, Route.toLogin ), globals )
 
-        DismissedFetched _ _ ->
+        DismissedFetched _ ->
             ( ( model, Cmd.none ), globals )
 
         DismissAllClicked ->
@@ -258,8 +263,19 @@ update msg globals model =
             let
                 newRepo =
                     Repo.dismissNotifications maybeTopic globals.repo
+
+                newModel =
+                    case maybeTopic of
+                        Nothing ->
+                            { model
+                                | undismissed = NotificationSet.setHasMore False model.undismissed
+                                , dismissed = NotificationSet.setHasMore True model.dismissed
+                            }
+
+                        Just _ ->
+                            model
             in
-            ( ( model, Cmd.none )
+            ( ( newModel, Cmd.none )
             , { globals | repo = newRepo, session = newSession }
             )
 
