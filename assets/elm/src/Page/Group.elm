@@ -1656,7 +1656,7 @@ desktopPostView globals spaceUsers groups model data postView =
     in
     div
         [ classList
-            [ ( "relative mb-3 p-3", True )
+            [ ( "relative p-3", True )
             ]
         , onClick (PostSelected postView.id)
         ]

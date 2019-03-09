@@ -389,7 +389,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ authorDisplayName resolvedPost.author
