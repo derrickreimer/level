@@ -1066,7 +1066,12 @@ groupsLabel space groups =
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
     div []
-        [ div [ class "markdown pb-3/2 break-words" ]
+        [ div
+            [ classList
+                [ ( "markdown pb-3/2 break-words", True )
+                , ( "text-lg", String.length (Post.body post) <= 144 )
+                ]
+            ]
             [ RenderedHtml.node
                 { html = Post.bodyHtml post
                 , onInternalLinkClicked = InternalLinkClicked
