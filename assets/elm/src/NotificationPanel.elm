@@ -407,7 +407,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ authorDisplayName resolvedPost.author
@@ -425,7 +425,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ authorDisplayName resolvedPost.author
@@ -443,7 +443,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ authorDisplayName resolvedReply.author
@@ -461,7 +461,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ spaceUserDisplayName resolvedReaction.spaceUser
@@ -479,7 +479,7 @@ notificationView globals resolvedNotification =
                 , classes
                 ]
                 [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
-                , div [ class "min-w-0" ]
+                , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
                             [ spaceUserDisplayName resolvedReaction.spaceUser
