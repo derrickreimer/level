@@ -1,4 +1,4 @@
-module Page.Post exposing (Model, Msg(..), consumeEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
+module Page.Post exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
 import Browser.Navigation as Nav
 import Connection
@@ -11,6 +11,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Id exposing (Id)
 import Json.Decode as Decode
+import KeyboardShortcuts exposing (Modifier(..))
 import Layout.SpaceDesktop
 import Layout.SpaceMobile
 import Lazy exposing (Lazy(..))
@@ -18,7 +19,7 @@ import ListHelpers exposing (insertUniqueBy, removeBy)
 import Mutation.ClosePost as ClosePost
 import Mutation.DismissNotifications as DismissNotifications
 import Mutation.DismissPosts as DismissPosts
-import Mutation.MarkAsUnread as MarkAsUnread
+import Mutation.MarkAsRead as MarkAsRead
 import Mutation.RecordPostView as RecordPostView
 import Mutation.RecordReplyViews as RecordReplyViews
 import Mutation.ReopenPost as ReopenPost
@@ -204,7 +205,7 @@ type Msg
     | DismissPostClicked
     | PostDismissed (Result Session.Error ( Session, DismissPosts.Response ))
     | MoveToInboxClicked
-    | PostMovedToInbox (Result Session.Error ( Session, MarkAsUnread.Response ))
+    | PostMovedToInbox (Result Session.Error ( Session, MarkAsRead.Response ))
     | BackClicked
       -- MOBILE
     | NavToggled
@@ -369,7 +370,7 @@ update msg globals model =
             let
                 cmd =
                     globals.session
-                        |> MarkAsUnread.request model.spaceId [ model.postId ]
+                        |> MarkAsRead.request model.spaceId [ model.postId ]
                         |> Task.attempt PostMovedToInbox
             in
             ( ( { model | isChangingInboxState = True }, cmd ), globals )
@@ -472,6 +473,55 @@ handleJoin presence globals model =
                 |> GetSpaceUser.request model.spaceId (Presence.getUserId presence)
                 |> Task.attempt SpaceUserFetched
             )
+
+
+
+-- EVENTS
+
+
+consumeKeyboardEvent : Globals -> KeyboardShortcuts.Event -> Model -> ( ( Model, Cmd Msg ), Globals )
+consumeKeyboardEvent globals event model =
+    case ( event.key, event.modifiers ) of
+        ( "e", [] ) ->
+            let
+                cmd =
+                    globals.session
+                        |> DismissPosts.request model.spaceId [ model.postView.id ]
+                        |> Task.attempt PostDismissed
+            in
+            ( ( model, cmd ), globals )
+
+        ( "e", [ Meta ] ) ->
+            let
+                cmd =
+                    globals.session
+                        |> MarkAsRead.request model.spaceId [ model.postView.id ]
+                        |> Task.attempt PostMovedToInbox
+            in
+            ( ( model, cmd ), globals )
+
+        ( "y", [] ) ->
+            let
+                cmd =
+                    globals.session
+                        |> ClosePost.request model.spaceId model.postView.id
+                        |> Task.attempt PostClosed
+            in
+            ( ( model, cmd ), globals )
+
+        ( "r", [] ) ->
+            let
+                ( ( newPostView, compCmd ), newGlobals ) =
+                    PostView.expandReplyComposer globals model.postView
+            in
+            ( ( { model | postView = newPostView }
+              , Cmd.map PostViewMsg compCmd
+              )
+            , globals
+            )
+
+        _ ->
+            ( ( model, Cmd.none ), globals )
 
 
 

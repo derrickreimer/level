@@ -1763,6 +1763,11 @@ sendKeyboardEventToPage event model =
             buildGlobals model
     in
     case model.page of
+        Post pageModel ->
+            pageModel
+                |> Page.Post.consumeKeyboardEvent globals event
+                |> updatePageWithGlobals Post PostMsg model
+
         Posts pageModel ->
             pageModel
                 |> Page.Posts.consumeKeyboardEvent globals event
