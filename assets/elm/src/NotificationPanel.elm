@@ -308,7 +308,7 @@ view globals model =
     in
     div [ class "fixed font-sans font-antialised w-80 xl:w-88 pin-t pin-r pin-b bg-white shadow-dropdown z-50" ]
         [ div []
-            [ div [ class "flex items-center py-2 pl-4 pr-3 trans-border-b-grey" ]
+            [ div [ class "flex items-center py-2 pl-4 pr-3" ]
                 [ h2 [ class "text-lg flex-grow" ] [ text "Notifications" ]
                 , button
                     [ classList
@@ -344,7 +344,7 @@ view globals model =
                         ]
                     , onClick (TabChanged Dismissed)
                     ]
-                    [ text "Dismissed" ]
+                    [ text "Read" ]
                 ]
             ]
         , div [ class "absolute pin overflow-y-auto", style "top" "103px" ]
