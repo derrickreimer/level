@@ -1108,7 +1108,7 @@ resolvedMobileView globals model data =
         [ div [ class "mx-auto leading-normal" ]
             [ div [ class "flex justify-center items-baseline mb-3 px-3 pt-2 border-b" ]
                 [ filterTab Device.Mobile "Inbox" (undismissedParams model.params) model.params
-                , filterTab Device.Mobile "Feed" (feedParams model.params) model.params
+                , filterTab Device.Mobile "Everything" (feedParams model.params) model.params
                 ]
             , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , mobileFlushQueueButton model
