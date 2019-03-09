@@ -1824,8 +1824,8 @@ view model =
     Document (pageTitle model.repo model.page)
         [ pageView (buildGlobals model) model.page
         , centerNoticeView model
-        , viewIf (model.page /= Blank) (rightmostSidebar model)
-        , viewIf model.showNotifications (notificationPanel model)
+        , viewIf (model.page /= Blank && model.device == Device.Desktop) (rightmostSidebar model)
+        , viewIf (model.showNotifications && model.device == Device.Desktop) (notificationPanel model)
         ]
 
 
