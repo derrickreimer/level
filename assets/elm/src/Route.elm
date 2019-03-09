@@ -144,7 +144,7 @@ isCurrent testRoute maybeCurrentRoute =
 
 
 
--- INTERNAL --
+-- INTERNAL
 
 
 toString : Route -> String

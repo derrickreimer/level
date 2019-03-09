@@ -19,6 +19,7 @@ type alias Globals =
     , device : Device
     , pushStatus : PushStatus
     , currentRoute : Maybe Route
+    , isNavigatingBack : Bool
     , showKeyboardCommands : Bool
     , showNotifications : Bool
     , now : TimeWithZone

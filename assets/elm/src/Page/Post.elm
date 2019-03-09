@@ -385,7 +385,7 @@ update msg globals model =
             noCmd globals { model | isChangingInboxState = True }
 
         BackClicked ->
-            ( ( model, Nav.back globals.navKey 1 ), globals )
+            ( ( model, Nav.back globals.navKey 1 ), { globals | isNavigatingBack = True } )
 
         NavToggled ->
             ( ( { model | showNav = not model.showNav }, Cmd.none ), globals )

@@ -118,6 +118,7 @@ type alias Model =
     , timeZone : String
     , flash : Flash
     , going : Bool
+    , isNavigatingBack : Bool
     , showKeyboardCommands : Bool
     , showNotifications : Bool
     , notificationPanel : NotificationPanel
@@ -169,6 +170,7 @@ buildModel flags navKey =
         NotLoaded
         flags.timeZone
         Flash.init
+        False
         False
         False
         False
@@ -234,6 +236,7 @@ buildGlobals model =
     , device = model.device
     , pushStatus = model.pushStatus
     , currentRoute = routeFor model.page
+    , isNavigatingBack = model.isNavigatingBack
     , showKeyboardCommands = model.showKeyboardCommands
     , showNotifications = model.showNotifications
     , now = model.now
@@ -311,6 +314,7 @@ updateGlobals globals model =
     ( { model
         | session = globals.session
         , repo = globals.repo
+        , isNavigatingBack = globals.isNavigatingBack
         , showKeyboardCommands = globals.showKeyboardCommands
         , showNotifications = globals.showNotifications
         , flash = newFlash
@@ -333,7 +337,26 @@ update msg model =
             ( { model | now = TimeWithZone.setPosix posix model.now }, Cmd.none )
 
         ( UrlChange url, _ ) ->
-            navigateTo (Route.fromUrl url) model
+            let
+                currentRoute =
+                    routeFor model.page
+
+                nextRoute =
+                    Route.fromUrl url
+            in
+            -- This is here to mitigate a race condition that happens in Chrome
+            -- when a Nav.back command is run. At time of writing, two `UrlChange`
+            -- messages hit the `update` function when a back command is run:
+            --
+            -- 1) A change event with the current URL (shouldn't be happening)
+            -- 2) A change event with the next URL (should happen)
+            --
+            -- This doesn't not appear to happen in Firefox.
+            if model.isNavigatingBack && currentRoute == nextRoute then
+                ( model, Cmd.none )
+
+            else
+                navigateTo nextRoute { model | isNavigatingBack = False }
 
         ( UrlRequest request, _ ) ->
             case request of
