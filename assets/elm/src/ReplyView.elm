@@ -329,6 +329,9 @@ resolvedView config replyView data =
 
         reactors =
             data.resolvedReply.reactors
+
+        bodyLength =
+            String.length (Reply.body reply)
     in
     div
         [ id (nodeId replyView.id)
@@ -355,7 +358,13 @@ resolvedView config replyView data =
                 ]
             , viewUnless (PostEditor.isExpanded replyView.editor) <|
                 div []
-                    [ div [ class "markdown pb-1 break-words" ]
+                    [ div
+                        [ classList
+                            [ ( "markdown pb-1 break-words", True )
+                            , ( "text-lg", bodyLength <= 6 )
+                            , ( "text-2xl", bodyLength <= 3 )
+                            ]
+                        ]
                         [ RenderedHtml.node
                             { html = Reply.bodyHtml reply
                             , onInternalLinkClicked = InternalLinkClicked

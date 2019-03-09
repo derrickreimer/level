@@ -1065,11 +1065,17 @@ groupsLabel space groups =
 
 bodyView : Space -> Post -> Html Msg
 bodyView space post =
+    let
+        bodyLength =
+            String.length (Post.body post)
+    in
     div []
         [ div
             [ classList
                 [ ( "markdown pb-3/2 break-words", True )
-                , ( "text-lg", String.length (Post.body post) <= 144 )
+                , ( "text-lg", bodyLength > 15 && bodyLength <= 144 )
+                , ( "text-xl", bodyLength <= 15 )
+                , ( "text-3xl", bodyLength <= 6 )
                 ]
             ]
             [ RenderedHtml.node
