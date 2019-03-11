@@ -200,22 +200,22 @@ export const attachPorts = app => {
     });
   });
 
-  app.ports.scrollToBottom.subscribe(arg => {
-    const { containerId } = arg;
-
-    requestAnimationFrame(() => {
-      if (containerId === "DOCUMENT") {
-        let container = document.documentElement;
-        container.scrollTop = container.scrollHeight;
-      } else {
-        let container = document.getElementById(containerId);
-        if (!container) return;
-        container.scrollTop = container.scrollHeight;
-      }
-
-      logEvent("scrollToBottom")(arg);
-    });
-  });
+  // app.ports.scrollToBottom.subscribe(arg => {
+  //   const { containerId } = arg;
+  //
+  //   requestAnimationFrame(() => {
+  //     if (containerId === "DOCUMENT") {
+  //       let container = document.documentElement;
+  //       container.scrollTop = container.scrollHeight;
+  //     } else {
+  //       let container = document.getElementById(containerId);
+  //       if (!container) return;
+  //       container.scrollTop = container.scrollHeight;
+  //     }
+  //
+  //     logEvent("scrollToBottom")(arg);
+  //   });
+  // });
 
   app.ports.select.subscribe(id => {
     requestAnimationFrame(() => {

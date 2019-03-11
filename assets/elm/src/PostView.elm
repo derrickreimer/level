@@ -1095,8 +1095,7 @@ bodyView space post =
         [ div
             [ classList
                 [ ( "markdown pb-3/2 break-words", True )
-                , ( "text-lg", bodyLength > 15 && bodyLength <= 144 )
-                , ( "text-xl", bodyLength <= 15 )
+                , ( "text-lg", bodyLength <= 144 )
                 ]
             ]
             [ RenderedHtml.node
