@@ -400,7 +400,10 @@ update msg globals postView =
         NewReplyEscaped ->
             if PostEditor.getBody postView.replyComposer == "" then
                 ( ( { postView | replyComposer = PostEditor.collapse postView.replyComposer }
-                  , unsetFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
+                  , Cmd.batch
+                        [ unsetFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
+                        , recordView globals postView
+                        ]
                   )
                 , globals
                 )
@@ -448,11 +451,8 @@ update msg globals postView =
 
                 newPostView =
                     { postView | replyViews = newReplyViews }
-
-                viewCmd =
-                    markVisibleRepliesAsViewed newGlobals newPostView
             in
-            ( ( newPostView, viewCmd ), newGlobals )
+            ( ( newPostView, recordView newGlobals newPostView ), newGlobals )
 
         PreviousRepliesFetched _ (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -495,12 +495,14 @@ update msg globals postView =
             ( ( postView, cmd ), { globals | repo = newRepo } )
 
         Dismissed (Ok ( newSession, _ )) ->
-            ( ( postView, Cmd.none )
-            , { globals
-                | session = newSession
-                , flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
-              }
-            )
+            let
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "Dismissed from inbox" 3000 globals.flash
+                    }
+            in
+            ( ( postView, recordView newGlobals postView ), newGlobals )
 
         Dismissed (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -527,12 +529,14 @@ update msg globals postView =
             ( ( postView, cmd ), { globals | repo = newRepo } )
 
         PostMovedToInbox (Ok ( newSession, _ )) ->
-            ( ( postView, Cmd.none )
-            , { globals
-                | session = newSession
-                , flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash
-              }
-            )
+            let
+                newGlobals =
+                    { globals
+                        | session = newSession
+                        , flash = Flash.set Flash.Notice "Moved to inbox" 3000 globals.flash
+                    }
+            in
+            ( ( postView, recordView newGlobals postView ), newGlobals )
 
         PostMovedToInbox (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -541,11 +545,11 @@ update msg globals postView =
             noCmd globals postView
 
         MarkedAsRead (Ok ( newSession, _ )) ->
-            ( ( postView, Cmd.none )
-            , { globals
-                | session = newSession
-              }
-            )
+            let
+                newGlobals =
+                    { globals | session = newSession }
+            in
+            ( ( postView, recordView newGlobals postView ), newGlobals )
 
         MarkedAsRead (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -553,17 +557,17 @@ update msg globals postView =
         MarkedAsRead (Err _) ->
             noCmd globals postView
 
-        NotificationsDismissed (Ok ( newSession, _ )) ->
-            ( ( postView, Cmd.none )
-            , { globals
-                | session = newSession
-              }
-            )
+        NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
+            let
+                newRepo =
+                    Repo.dismissNotifications maybeTopic globals.repo
+            in
+            noCmd { globals | session = newSession, repo = newRepo } postView
 
         NotificationsDismissed (Err Session.Expired) ->
             redirectToLogin globals postView
 
-        NotificationsDismissed (Err _) ->
+        NotificationsDismissed _ ->
             noCmd globals postView
 
         ExpandPostEditor ->
@@ -705,7 +709,7 @@ update msg globals postView =
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( postView, markAsRead newGlobals postView ), newGlobals )
+            ( ( postView, recordView newGlobals postView ), newGlobals )
 
         PostReactionCreated (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -730,7 +734,7 @@ update msg globals postView =
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( postView, markAsRead newGlobals postView ), newGlobals )
+            ( ( postView, recordView newGlobals postView ), newGlobals )
 
         PostReactionDeleted (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -779,7 +783,7 @@ update msg globals postView =
                         |> PostEditor.setNotSubmitting
                         |> PostEditor.collapse
             in
-            ( ( { postView | replyComposer = newReplyComposer }, markAsRead newGlobals postView )
+            ( ( { postView | replyComposer = newReplyComposer }, recordView newGlobals postView )
             , newGlobals
             )
 

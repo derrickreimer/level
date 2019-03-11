@@ -136,10 +136,8 @@ buildModel spaceSlug globals ( newSession, resp ) =
 setup : Globals -> Model -> Cmd Msg
 setup globals ({ postView } as model) =
     Cmd.batch
-        [ Cmd.map PostViewMsg (PostView.setup globals postView)
-        , dismissNotifications globals model
+        [ Cmd.map PostViewMsg (PostView.recordView globals postView)
         , recordView globals model
-        , recordReplyViews globals model
         , Presence.join (viewingTopic model)
         ]
 
@@ -152,36 +150,11 @@ teardown globals ({ postView } as model) =
         ]
 
 
-dismissNotifications : Globals -> Model -> Cmd Msg
-dismissNotifications globals model =
-    globals.session
-        |> DismissNotifications.request (DismissNotifications.variables (Just <| "post:" ++ model.postId))
-        |> Task.attempt NotificationsDismissed
-
-
 recordView : Globals -> Model -> Cmd Msg
 recordView globals model =
     globals.session
         |> RecordPostView.request model.spaceId model.postView.id Nothing
         |> Task.attempt ViewRecorded
-
-
-recordReplyViews : Globals -> Model -> Cmd Msg
-recordReplyViews globals model =
-    let
-        unviewedReplyIds =
-            globals.repo
-                |> Repo.getReplies (ReplySet.map .id model.postView.replyViews)
-                |> List.filter (\reply -> not (Reply.hasViewed reply))
-                |> List.map Reply.id
-    in
-    if List.length unviewedReplyIds > 0 then
-        globals.session
-            |> RecordReplyViews.request model.spaceId unviewedReplyIds
-            |> Task.attempt ReplyViewsRecorded
-
-    else
-        Cmd.none
 
 
 
@@ -194,9 +167,7 @@ type Msg
     | ToggleNotifications
     | InternalLinkClicked String
     | PostViewMsg PostView.Msg
-    | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
-    | ReplyViewsRecorded (Result Session.Error ( Session, RecordReplyViews.Response ))
     | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
@@ -239,19 +210,6 @@ update msg globals model =
             , newGlobals
             )
 
-        NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
-            let
-                newRepo =
-                    Repo.dismissNotifications maybeTopic globals.repo
-            in
-            noCmd { globals | session = newSession, repo = newRepo } model
-
-        NotificationsDismissed (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        NotificationsDismissed _ ->
-            noCmd globals model
-
         ViewRecorded (Ok ( newSession, _ )) ->
             noCmd { globals | session = newSession } model
 
@@ -259,15 +217,6 @@ update msg globals model =
             redirectToLogin globals model
 
         ViewRecorded (Err _) ->
-            noCmd globals model
-
-        ReplyViewsRecorded (Ok ( newSession, _ )) ->
-            noCmd { globals | session = newSession } model
-
-        ReplyViewsRecorded (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        ReplyViewsRecorded (Err _) ->
             noCmd globals model
 
         SpaceUserFetched (Ok ( newSession, response )) ->
@@ -413,26 +362,7 @@ redirectToLogin globals model =
 
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
-    case event of
-        Event.ReplyCreated reply ->
-            let
-                ( newPostComp, cmd ) =
-                    PostView.refreshFromCache globals model.postView
-
-                viewCmd =
-                    globals.session
-                        |> RecordReplyViews.request model.spaceId [ Reply.id reply ]
-                        |> Task.attempt ReplyViewsRecorded
-
-                scrollCmd =
-                    Scroll.toBottom Scroll.Document
-            in
-            ( { model | postView = newPostComp }
-            , Cmd.batch [ Cmd.map PostViewMsg cmd, viewCmd, scrollCmd ]
-            )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )
 
 
 receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
