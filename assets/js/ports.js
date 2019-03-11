@@ -33,16 +33,12 @@ export const attachPorts = app => {
   };
 
   phoenixSocket.onOpen(args => {
-    console.log("Socket opened", phoenixSocket, args);
-
     const payload = { type: "opened" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
   });
 
   phoenixSocket.onError(args => {
-    console.log("Socket error", phoenixSocket, args);
-
     fetchApiToken()
       .then(newToken => {
         console.log("New token fetched", newToken);
@@ -54,8 +50,6 @@ export const attachPorts = app => {
   });
 
   phoenixSocket.onClose(e => {
-    console.log("Socket closed", phoenixSocket, e);
-
     const payload = { type: "closed" };
     app.ports.socketIn.send(payload);
     logEvent("socketIn")(payload);
