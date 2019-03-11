@@ -35,10 +35,10 @@ defmodule LevelWeb.GraphQL.DismissNotificationsTest do
   } do
     p1 = %Post{id: "abc"}
     {:ok, n1} = Notifications.record_post_created(space_user, p1)
-    {:ok, n2} = Notifications.record_post_closed(space_user, p1)
+    {:ok, n2} = Notifications.record_post_closed(space_user, p1, space_user)
 
     p2 = %Post{id: "def"}
-    {:ok, n3} = Notifications.record_post_closed(space_user, p2)
+    {:ok, n3} = Notifications.record_post_closed(space_user, p2, space_user)
 
     variables = %{
       topic: "post:abc"
@@ -74,10 +74,10 @@ defmodule LevelWeb.GraphQL.DismissNotificationsTest do
   } do
     p1 = %Post{id: "abc"}
     {:ok, n1} = Notifications.record_post_created(space_user, p1)
-    {:ok, n2} = Notifications.record_post_closed(space_user, p1)
+    {:ok, n2} = Notifications.record_post_closed(space_user, p1, space_user)
 
     p2 = %Post{id: "def"}
-    {:ok, n3} = Notifications.record_post_closed(space_user, p2)
+    {:ok, n3} = Notifications.record_post_closed(space_user, p2, space_user)
 
     variables = %{}
 

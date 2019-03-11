@@ -6,6 +6,7 @@ defmodule Level.NotificationsTest do
   alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
   alias Level.Schemas.ReplyReaction
+  alias Level.Schemas.SpaceUser
 
   describe "record_post_created/2" do
     test "inserts a notification record" do
@@ -36,26 +37,38 @@ defmodule Level.NotificationsTest do
   describe "record_post_closed/2" do
     test "inserts a notification record" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+      actor = %SpaceUser{id: "zzz"}
       post = %Post{id: "abc"}
-      {:ok, notification} = Notifications.record_post_closed(space_user, post)
+      {:ok, notification} = Notifications.record_post_closed(space_user, post, actor)
 
       assert notification.topic == "post:abc"
       assert notification.state == "UNDISMISSED"
       assert notification.event == "POST_CLOSED"
-      assert notification.data == %{"post_id" => "abc"}
+
+      assert notification.data == %{
+               "post_id" => "abc",
+               "actor_id" => "zzz",
+               "actor_type" => "SpaceUser"
+             }
     end
   end
 
   describe "record_post_reopened/2" do
     test "inserts a notification record" do
       {:ok, %{space_user: space_user}} = create_user_and_space()
+      actor = %SpaceUser{id: "zzz"}
       post = %Post{id: "abc"}
-      {:ok, notification} = Notifications.record_post_reopened(space_user, post)
+      {:ok, notification} = Notifications.record_post_reopened(space_user, post, actor)
 
       assert notification.topic == "post:abc"
       assert notification.state == "UNDISMISSED"
       assert notification.event == "POST_REOPENED"
-      assert notification.data == %{"post_id" => "abc"}
+
+      assert notification.data == %{
+               "post_id" => "abc",
+               "actor_id" => "zzz",
+               "actor_type" => "SpaceUser"
+             }
     end
   end
 
@@ -100,7 +113,7 @@ defmodule Level.NotificationsTest do
       topic = "post:#{post_id}"
 
       {:ok, _} = Notifications.record_post_created(space_user, post)
-      {:ok, _} = Notifications.record_post_closed(space_user, post)
+      {:ok, _} = Notifications.record_post_closed(space_user, post, space_user)
 
       {:ok, ^topic} = Notifications.dismiss(user, topic)
 

@@ -73,10 +73,10 @@ defmodule Level.Notifications do
   @doc """
   Records a post closed notification.
   """
-  @spec record_post_closed(SpaceUser.t(), Post.t()) ::
+  @spec record_post_closed(SpaceUser.t(), Post.t(), SpaceUser.t()) ::
           {:ok, Notification.t()} | {:error, String.t()}
-  def record_post_closed(%SpaceUser{} = space_user, %Post{id: post_id}) do
-    data = %{"post_id" => post_id}
+  def record_post_closed(%SpaceUser{} = space_user, %Post{id: post_id}, %SpaceUser{id: actor_id}) do
+    data = %{"post_id" => post_id, "actor_id" => actor_id, "actor_type" => "SpaceUser"}
 
     space_user
     |> insert_record("POST_CLOSED", "post:#{post_id}", data)
@@ -86,10 +86,10 @@ defmodule Level.Notifications do
   @doc """
   Records a post reopened notification.
   """
-  @spec record_post_reopened(SpaceUser.t(), Post.t()) ::
+  @spec record_post_reopened(SpaceUser.t(), Post.t(), SpaceUser.t()) ::
           {:ok, Notification.t()} | {:error, String.t()}
-  def record_post_reopened(%SpaceUser{} = space_user, %Post{id: post_id}) do
-    data = %{"post_id" => post_id}
+  def record_post_reopened(%SpaceUser{} = space_user, %Post{id: post_id}, %SpaceUser{id: actor_id}) do
+    data = %{"post_id" => post_id, "actor_id" => actor_id, "actor_type" => "SpaceUser"}
 
     space_user
     |> insert_record("POST_REOPENED", "post:#{post_id}", data)

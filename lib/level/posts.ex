@@ -632,7 +632,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== closer.id do
-        Notifications.record_post_closed(subscriber, post)
+        Notifications.record_post_closed(subscriber, post, closer)
       end
     end)
   end
@@ -669,7 +669,7 @@ defmodule Level.Posts do
 
     Enum.each(subscribers, fn subscriber ->
       if subscriber.id !== reopener.id do
-        Notifications.record_post_reopened(subscriber, post)
+        Notifications.record_post_reopened(subscriber, post, reopener)
       end
     end)
   end
