@@ -29,6 +29,7 @@ module NotificationPanel exposing
 
 -}
 
+import Actor exposing (Actor)
 import Avatar
 import Browser.Navigation as Nav
 import Connection exposing (Connection)
@@ -401,7 +402,7 @@ notificationView globals resolvedNotification =
                     ]
                 ]
 
-        PostClosed (Just resolvedPost) ->
+        PostClosed (Just resolvedPost) (Just actor) ->
             a
                 [ href (Post.url resolvedPost.post)
                 , classes
@@ -410,7 +411,7 @@ notificationView globals resolvedNotification =
                 , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
-                            [ authorDisplayName resolvedPost.author
+                            [ actorDisplayName actor
                             , span [] [ text " resolved a post" ]
                             ]
                         , timestamp
@@ -419,7 +420,7 @@ notificationView globals resolvedNotification =
                     ]
                 ]
 
-        PostReopened (Just resolvedPost) ->
+        PostReopened (Just resolvedPost) (Just actor) ->
             a
                 [ href (Post.url resolvedPost.post)
                 , classes
@@ -428,7 +429,7 @@ notificationView globals resolvedNotification =
                 , div [ class "flex-grow min-w-0" ]
                     [ div [ class "flex items-baseline pt-1 pb-4" ]
                         [ div [ class "flex-grow mr-1" ]
-                            [ authorDisplayName resolvedPost.author
+                            [ actorDisplayName actor
                             , span [] [ text " reopened a post" ]
                             ]
                         , timestamp
@@ -503,6 +504,12 @@ authorDisplayName : ResolvedAuthor -> Html Msg
 authorDisplayName resolvedAuthor =
     span [ class "font-bold" ]
         [ text <| ResolvedAuthor.displayName resolvedAuthor ]
+
+
+actorDisplayName : Actor -> Html Msg
+actorDisplayName actor =
+    span [ class "font-bold" ]
+        [ text <| Actor.displayName actor ]
 
 
 spaceUserDisplayName : SpaceUser -> Html Msg

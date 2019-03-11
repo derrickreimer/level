@@ -35,6 +35,7 @@ module Notification exposing
 
 -}
 
+import Actor exposing (Actor, ActorId)
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, maybe, string)
@@ -65,8 +66,8 @@ type alias Data =
 
 type Event
     = PostCreated (Maybe Id)
-    | PostClosed (Maybe Id)
-    | PostReopened (Maybe Id)
+    | PostClosed (Maybe Id) (Maybe ActorId)
+    | PostReopened (Maybe Id) (Maybe ActorId)
     | ReplyCreated (Maybe Id)
     | PostReactionCreated (Maybe PostReaction)
     | ReplyReactionCreated (Maybe ReplyReaction)
@@ -138,6 +139,9 @@ fragment =
                 post {
                   ...PostFields
                 }
+                actor {
+                  ...ActorFields
+                }
                 occurredAt
               }
               ... on PostReopenedNotification {
@@ -146,6 +150,9 @@ fragment =
                 state
                 post {
                   ...PostFields
+                }
+                actor {
+                  ...ActorFields
                 }
                 occurredAt
               }
@@ -180,7 +187,8 @@ fragment =
             """
     in
     GraphQL.toFragment queryBody
-        [ Post.fragment
+        [ Actor.fragment
+        , Post.fragment
         , Reply.fragment
         , PostReaction.fragment
         , ReplyReaction.fragment
@@ -213,12 +221,14 @@ eventDecoder =
                         field "post" (maybe (field "id" Id.decoder))
 
                 "PostClosedNotification" ->
-                    Decode.map PostClosed <|
-                        field "post" (maybe (field "id" Id.decoder))
+                    Decode.map2 PostClosed
+                        (field "post" (maybe (field "id" Id.decoder)))
+                        (field "actor" (maybe Actor.idDecoder))
 
                 "PostReopenedNotification" ->
-                    Decode.map PostReopened <|
-                        field "post" (maybe (field "id" Id.decoder))
+                    Decode.map2 PostReopened
+                        (field "post" (maybe (field "id" Id.decoder)))
+                        (field "actor" (maybe Actor.idDecoder))
 
                 "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated <|

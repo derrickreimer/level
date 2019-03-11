@@ -1,5 +1,6 @@
 module ResolvedNotification exposing (Event(..), ResolvedNotification, addManyToRepo, addToRepo, decoder, resolve, unresolve)
 
+import Actor exposing (Actor)
 import Connection exposing (Connection)
 import Group exposing (Group)
 import Id exposing (Id)
@@ -22,8 +23,8 @@ type alias ResolvedNotification =
 
 type Event
     = PostCreated (Maybe ResolvedPost)
-    | PostClosed (Maybe ResolvedPost)
-    | PostReopened (Maybe ResolvedPost)
+    | PostClosed (Maybe ResolvedPost) (Maybe Actor)
+    | PostReopened (Maybe ResolvedPost) (Maybe Actor)
     | ReplyCreated (Maybe ResolvedReply)
     | PostReactionCreated (Maybe ResolvedPostReaction)
     | ReplyReactionCreated (Maybe ResolvedReplyReaction)
@@ -47,12 +48,14 @@ eventDecoder =
                         (field "post" (maybe ResolvedPost.decoder))
 
                 "PostClosedNotification" ->
-                    Decode.map PostClosed
+                    Decode.map2 PostClosed
                         (field "post" (maybe ResolvedPost.decoder))
+                        (field "actor" (maybe Actor.decoder))
 
                 "PostReopenedNotification" ->
-                    Decode.map PostReopened
+                    Decode.map2 PostReopened
                         (field "post" (maybe ResolvedPost.decoder))
+                        (field "actor" (maybe Actor.decoder))
 
                 "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated
@@ -81,11 +84,15 @@ addToRepo resolvedNotification repo =
                 PostCreated (Just resolvedPost) ->
                     ResolvedPost.addToRepo resolvedPost repo
 
-                PostClosed (Just resolvedPost) ->
-                    ResolvedPost.addToRepo resolvedPost repo
+                PostClosed (Just resolvedPost) (Just actor) ->
+                    repo
+                        |> ResolvedPost.addToRepo resolvedPost
+                        |> Repo.setActor actor
 
-                PostReopened (Just resolvedPost) ->
-                    ResolvedPost.addToRepo resolvedPost repo
+                PostReopened (Just resolvedPost) (Just actor) ->
+                    repo
+                        |> ResolvedPost.addToRepo resolvedPost
+                        |> Repo.setActor actor
 
                 ReplyCreated (Just resolvedReply) ->
                     ResolvedReply.addToRepo resolvedReply repo
@@ -119,15 +126,15 @@ resolve repo id =
                                 |> Maybe.map (ResolvedPost.resolve repo)
                                 |> Maybe.map PostCreated
 
-                        Notification.PostClosed maybePostId ->
-                            maybePostId
-                                |> Maybe.map (ResolvedPost.resolve repo)
-                                |> Maybe.map PostClosed
+                        Notification.PostClosed maybePostId maybeActorId ->
+                            Maybe.map2 PostClosed
+                                (Maybe.map (ResolvedPost.resolve repo) maybePostId)
+                                (Maybe.map (\actorId -> Repo.getActor actorId repo) maybeActorId)
 
-                        Notification.PostReopened maybePostId ->
-                            maybePostId
-                                |> Maybe.map (ResolvedPost.resolve repo)
-                                |> Maybe.map PostReopened
+                        Notification.PostReopened maybePostId maybeActorId ->
+                            Maybe.map2 PostReopened
+                                (Maybe.map (ResolvedPost.resolve repo) maybePostId)
+                                (Maybe.map (\actorId -> Repo.getActor actorId repo) maybeActorId)
 
                         Notification.ReplyCreated maybeReplyId ->
                             maybeReplyId

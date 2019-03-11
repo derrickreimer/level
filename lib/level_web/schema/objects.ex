@@ -784,6 +784,10 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
     field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+
+    field :actor, :actor do
+      resolve &Resolvers.notification_actor/3
+    end
   end
 
   object :post_reopened_notification do
@@ -792,6 +796,10 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:notification_state)
     field :post, :post, resolve: notification_post_resolver()
     field :occurred_at, non_null(:timestamp), resolve: notification_timestamp_resolver()
+
+    field :actor, :actor do
+      resolve &Resolvers.notification_actor/3
+    end
   end
 
   object :reply_created_notification do

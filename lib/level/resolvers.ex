@@ -23,6 +23,7 @@ defmodule Level.Resolvers do
   alias Level.Resolvers.UserGroupMembershipConnection
   alias Level.Schemas.Group
   alias Level.Schemas.GroupUser
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostUser
   alias Level.Schemas.Reply
@@ -550,6 +551,35 @@ defmodule Level.Resolvers do
   @spec notifications(map(), info()) :: paginated_result()
   def notifications(args, info) do
     NotificationConnection.get(struct(NotificationConnection, args), info)
+  end
+
+  @doc """
+  Fetches the actor attached to a notification.
+  """
+  @spec notification_actor(Notification.t(), map(), info()) ::
+          {:ok, SpaceUser.t() | SpaceBot.t() | nil}
+  def notification_actor(%Notification{data: %{"actor_type" => "SpaceUser"} = data}, _, %{
+        context: %{loader: loader}
+      }) do
+    loader
+    |> Dataloader.load(:db, SpaceUser, data["actor_id"])
+    |> on_load(fn loader ->
+      {:ok, Dataloader.get(loader, :db, SpaceUser, data["actor_id"])}
+    end)
+  end
+
+  def notification_actor(%Notification{data: %{"actor_type" => "SpaceBot"} = data}, _, %{
+        context: %{loader: loader}
+      }) do
+    loader
+    |> Dataloader.load(:db, SpaceBot, data["actor_id"])
+    |> on_load(fn loader ->
+      {:ok, Dataloader.get(loader, :db, SpaceBot, data["actor_id"])}
+    end)
+  end
+
+  def notification_actor(%Notification{}, _, _) do
+    {:ok, nil}
   end
 
   # Dataloader helpers

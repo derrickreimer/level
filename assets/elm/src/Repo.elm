@@ -128,7 +128,7 @@ union (Repo newer) (Repo older) =
 -- USERS
 
 
-getUser : String -> Repo -> Maybe User
+getUser : Id -> Repo -> Maybe User
 getUser id (Repo data) =
     Dict.get id data.users
 
@@ -142,12 +142,12 @@ setUser user (Repo data) =
 -- SPACES
 
 
-getSpace : String -> Repo -> Maybe Space
+getSpace : Id -> Repo -> Maybe Space
 getSpace id (Repo data) =
     Dict.get id data.spaces
 
 
-getSpaces : List String -> Repo -> List Space
+getSpaces : List Id -> Repo -> List Space
 getSpaces ids repo =
     List.filterMap (\id -> getSpace id repo) ids
 
@@ -179,12 +179,12 @@ getSpaceBySlug slug (Repo data) =
 -- SPACE USERS
 
 
-getSpaceUser : String -> Repo -> Maybe SpaceUser
+getSpaceUser : Id -> Repo -> Maybe SpaceUser
 getSpaceUser id (Repo data) =
     Dict.get id data.spaceUsers
 
 
-getSpaceUsers : List String -> Repo -> List SpaceUser
+getSpaceUsers : List Id -> Repo -> List SpaceUser
 getSpaceUsers ids repo =
     List.filterMap (\id -> getSpaceUser id repo) ids
 
@@ -233,7 +233,7 @@ setSpaceUsers spaceUsers repo =
 -- SPACE BOTS
 
 
-getSpaceBot : String -> Repo -> Maybe SpaceBot
+getSpaceBot : Id -> Repo -> Maybe SpaceBot
 getSpaceBot id (Repo data) =
     Dict.get id data.spaceBots
 
@@ -244,7 +244,7 @@ setSpaceBot spaceBot (Repo data) =
 
 
 
--- SPACE BOTS
+-- ACTORS
 
 
 getActor : ActorId -> Repo -> Maybe Actor
@@ -273,12 +273,12 @@ setActor actor repo =
 -- GROUPS
 
 
-getGroup : String -> Repo -> Maybe Group
+getGroup : Id -> Repo -> Maybe Group
 getGroup id (Repo data) =
     Dict.get id data.groups
 
 
-getGroups : List String -> Repo -> List Group
+getGroups : List Id -> Repo -> List Group
 getGroups ids repo =
     List.filterMap (\id -> getGroup id repo) ids
 
@@ -379,7 +379,7 @@ getPostsByGroup groupId maybeBefore (Repo data) =
 -- REPLIES
 
 
-getReply : String -> Repo -> Maybe Reply
+getReply : Id -> Repo -> Maybe Reply
 getReply id (Repo data) =
     Dict.get id data.replies
 
