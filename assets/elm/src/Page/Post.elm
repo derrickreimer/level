@@ -362,7 +362,21 @@ redirectToLogin globals model =
 
 consumeEvent : Globals -> Event -> Model -> ( Model, Cmd Msg )
 consumeEvent globals event model =
-    ( model, Cmd.none )
+    case event of
+        Event.ReplyCreated reply ->
+            let
+                ( newPostComp, cmd ) =
+                    PostView.refreshFromCache globals model.postView
+
+                scrollCmd =
+                    Scroll.toBottom Scroll.Document
+            in
+            ( { model | postView = newPostComp }
+            , Cmd.batch [ Cmd.map PostViewMsg cmd, scrollCmd ]
+            )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )

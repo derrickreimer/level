@@ -375,6 +375,9 @@ update msg globals postView =
 
         NewReplySubmitted (Ok ( newSession, reply )) ->
             let
+                newGlobals =
+                    { globals | session = newSession }
+
                 ( newReplyComposer, cmd ) =
                     postView.replyComposer
                         |> PostEditor.reset
@@ -386,9 +389,10 @@ update msg globals postView =
               , Cmd.batch
                     [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                     , cmd
+                    , recordView newGlobals newPostView
                     ]
               )
-            , { globals | session = newSession }
+            , newGlobals
             )
 
         NewReplySubmitted (Err Session.Expired) ->
