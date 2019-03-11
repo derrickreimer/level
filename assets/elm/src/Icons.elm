@@ -6,7 +6,7 @@ module Icons exposing
     , bookmark, lock, lockLarge
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
-    , ex, home, logOut, menu, notification, people, plus, search, settings, zapWhite
+    , ex, exSmall, home, logOut, menu, notification, people, plus, search, settings, zapWhite
     , logo, logomark, postbot
     )
 
@@ -50,7 +50,7 @@ module Icons exposing
 
 # Navigation
 
-@docs ex, home, logOut, menu, notification, people, plus, search, settings, zapWhite
+@docs ex, exSmall, home, logOut, menu, notification, people, plus, search, settings, zapWhite
 
 
 # Identity
@@ -292,6 +292,12 @@ ex : Html msg
 ex =
     iconView <|
         svg [ width "14px", height "14px", viewBox "0 0 14 14", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "x", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M12,0 L0,12", id "Path" ] [], Svg.path [ d "M0,0 L12,12", id "Path" ] [] ] ] ]
+
+
+exSmall : Html msg
+exSmall =
+    iconView <|
+        svg [ width "10px", height "10px", viewBox "0 0 10 10", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "x-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M8,0 L0,8", id "Path" ] [], Svg.path [ d "M0,0 L8,8", id "Path" ] [] ] ] ]
 
 
 home : Toggle -> Html msg

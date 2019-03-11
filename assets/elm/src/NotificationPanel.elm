@@ -57,6 +57,7 @@ import Route
 import Session exposing (Session)
 import SpaceUser exposing (SpaceUser)
 import Task exposing (Task)
+import Time exposing (Posix)
 import TimeWithZone exposing (TimeWithZone)
 import View.Helpers exposing (viewIf)
 
@@ -151,6 +152,7 @@ type Msg
     | UndismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissAllClicked
+    | DismissTopicClicked String
     | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
 
 
@@ -260,6 +262,15 @@ update msg globals model =
             in
             ( ( model, cmd ), globals )
 
+        DismissTopicClicked topic ->
+            let
+                cmd =
+                    globals.session
+                        |> DismissNotifications.request (DismissNotifications.variables (Just topic))
+                        |> Task.attempt NotificationsDismissed
+            in
+            ( ( model, cmd ), globals )
+
         NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
             let
                 newRepo =
@@ -289,6 +300,18 @@ update msg globals model =
 
 
 -- VIEW
+
+
+type alias CardConfig =
+    { topic : String
+    , url : String
+    , icon : Html Msg
+    , displayName : Html Msg
+    , action : String
+    , occurredAt : Posix
+    , preview : Html Msg
+    , isUndismissed : Bool
+    }
 
 
 view : Globals -> NotificationPanel -> Html Msg
@@ -385,112 +408,76 @@ notificationView globals resolvedNotification =
     in
     case resolvedNotification.event of
         PostCreated (Just resolvedPost) ->
-            a
-                [ href (Post.url resolvedPost.post)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.postCreated ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ authorDisplayName resolvedPost.author
-                            , span [] [ text " posted" ]
-                            ]
-                        , timestamp
-                        ]
-                    , postPreview globals resolvedPost
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Post.url resolvedPost.post
+                , icon = Icons.postCreated
+                , displayName = authorDisplayName resolvedPost.author
+                , action = "posted"
+                , occurredAt = Notification.occurredAt notification
+                , preview = postPreview globals resolvedPost
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         PostClosed (Just resolvedPost) (Just actor) ->
-            a
-                [ href (Post.url resolvedPost.post)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ actorDisplayName actor
-                            , span [] [ text " resolved a post" ]
-                            ]
-                        , timestamp
-                        ]
-                    , postPreview globals resolvedPost
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Post.url resolvedPost.post
+                , icon = Icons.postClosed
+                , displayName = actorDisplayName actor
+                , action = "resolved a post"
+                , occurredAt = Notification.occurredAt notification
+                , preview = postPreview globals resolvedPost
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         PostReopened (Just resolvedPost) (Just actor) ->
-            a
-                [ href (Post.url resolvedPost.post)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.postClosed ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ actorDisplayName actor
-                            , span [] [ text " reopened a post" ]
-                            ]
-                        , timestamp
-                        ]
-                    , postPreview globals resolvedPost
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Post.url resolvedPost.post
+                , icon = Icons.postClosed
+                , displayName = actorDisplayName actor
+                , action = "reopened a post"
+                , occurredAt = Notification.occurredAt notification
+                , preview = postPreview globals resolvedPost
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         ReplyCreated (Just resolvedReply) ->
-            a
-                [ href (Reply.url resolvedReply.reply)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.replyCreated ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ authorDisplayName resolvedReply.author
-                            , span [] [ text " replied" ]
-                            ]
-                        , timestamp
-                        ]
-                    , replyPreview globals resolvedReply
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Reply.url resolvedReply.reply
+                , icon = Icons.replyCreated
+                , displayName = authorDisplayName resolvedReply.author
+                , action = "replied"
+                , occurredAt = Notification.occurredAt notification
+                , preview = replyPreview globals resolvedReply
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         PostReactionCreated (Just resolvedReaction) ->
-            a
-                [ href (Post.url resolvedReaction.resolvedPost.post)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ spaceUserDisplayName resolvedReaction.spaceUser
-                            , span [] [ text " acknowledged" ]
-                            ]
-                        , timestamp
-                        ]
-                    , postPreview globals resolvedReaction.resolvedPost
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Post.url resolvedReaction.resolvedPost.post
+                , icon = Icons.reactionCreated
+                , displayName = spaceUserDisplayName resolvedReaction.spaceUser
+                , action = "acknowledged"
+                , occurredAt = Notification.occurredAt notification
+                , preview = postPreview globals resolvedReaction.resolvedPost
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         ReplyReactionCreated (Just resolvedReaction) ->
-            a
-                [ href (Reply.url resolvedReaction.resolvedReply.reply)
-                , classes
-                ]
-                [ div [ class "mr-3 w-6" ] [ Icons.reactionCreated ]
-                , div [ class "flex-grow min-w-0" ]
-                    [ div [ class "flex items-baseline pt-1 pb-4" ]
-                        [ div [ class "flex-grow mr-1" ]
-                            [ spaceUserDisplayName resolvedReaction.spaceUser
-                            , span [] [ text " acknowledged" ]
-                            ]
-                        , timestamp
-                        ]
-                    , replyPreview globals resolvedReaction.resolvedReply
-                    ]
-                ]
+            cardTemplate globals
+                { topic = Notification.topic notification
+                , url = Reply.url resolvedReaction.resolvedReply.reply
+                , icon = Icons.reactionCreated
+                , displayName = spaceUserDisplayName resolvedReaction.spaceUser
+                , action = "acknowledged"
+                , occurredAt = Notification.occurredAt notification
+                , preview = replyPreview globals resolvedReaction.resolvedReply
+                , isUndismissed = Notification.isUndismissed notification
+                }
 
         _ ->
             text ""
@@ -498,6 +485,39 @@ notificationView globals resolvedNotification =
 
 
 -- PRIVATE
+
+
+cardTemplate : Globals -> CardConfig -> Html Msg
+cardTemplate globals config =
+    div
+        [ classList
+            [ ( "flex text-dusty-blue-darker px-4 py-4 border-b text-left w-full leading-normal no-underline", True )
+            , ( "hover:bg-grey-light", not config.isUndismissed )
+            , ( "bg-blue-lightest hover:bg-blue-light", config.isUndismissed )
+            ]
+        ]
+        [ div [ class "mr-3 w-6" ] [ config.icon ]
+        , a [ href config.url, class "block no-underline flex-grow min-w-0" ]
+            [ div [ class "flex items-baseline pt-1/2 pb-4" ]
+                [ div [ class "flex-grow mr-1 text-dusty-blue-darker" ]
+                    [ config.displayName
+                    , span [] [ text (" " ++ config.action) ]
+                    ]
+                , View.Helpers.timeTag globals.now
+                    (TimeWithZone.setPosix config.occurredAt globals.now)
+                    [ class "block flex-no-grow text-sm text-dusty-blue-dark whitespace-no-wrap" ]
+                ]
+            , config.preview
+            ]
+        , viewIf config.isUndismissed <|
+            div [ class "ml-3" ]
+                [ button
+                    [ class "-mt-px flex items-center justify-center w-7 h-7 rounded-full bg-transparent hover:bg-grey transition-bg"
+                    , onClick (DismissTopicClicked config.topic)
+                    ]
+                    [ Icons.exSmall ]
+                ]
+        ]
 
 
 authorDisplayName : ResolvedAuthor -> Html Msg
