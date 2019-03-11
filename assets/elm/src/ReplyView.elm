@@ -342,7 +342,7 @@ resolvedView config replyView data =
         , div [ class "flex-no-shrink mr-3 z-10 pt-1" ] [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Small author) ]
         , div
             [ classList
-                [ ( "min-w-0 leading-normal -ml-6 px-5 py-2 bg-grey-light rounded-xl", True )
+                [ ( "min-w-0 leading-normal -ml-6 px-6 py-2 bg-grey-light rounded-xl", True )
                 , ( "flex-grow", PostEditor.isExpanded replyView.editor )
                 ]
             ]
@@ -362,7 +362,7 @@ resolvedView config replyView data =
                         [ classList
                             [ ( "markdown pb-1 break-words", True )
                             , ( "text-lg", bodyLength <= 6 )
-                            , ( "text-2xl", bodyLength <= 3 )
+                            , ( "text-xl", bodyLength <= 3 )
                             ]
                         ]
                         [ RenderedHtml.node
