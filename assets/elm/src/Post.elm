@@ -1,6 +1,7 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
     , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+    , setInboxState
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
@@ -18,6 +19,11 @@ module Post exposing
 # Properties
 
 @docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+
+
+# Mutations
+
+@docs setInboxState
 
 
 # GraphQL
@@ -211,6 +217,15 @@ isPrivate (Post data) =
 isInGroup : Id -> Post -> Bool
 isInGroup groupId (Post data) =
     List.member groupId data.groupIds
+
+
+
+-- MUTATIONS
+
+
+setInboxState : InboxState -> Post -> Post
+setInboxState newState (Post data) =
+    Post { data | inboxState = newState }
 
 
 

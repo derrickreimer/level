@@ -1182,39 +1182,57 @@ consumeKeyboardEvent globals event model =
 
         ( "e", [] ) ->
             case PostSet.selected model.postViews of
-                Just currentPost ->
+                Just currentPostView ->
                     let
+                        newRepo =
+                            case Repo.getPost currentPostView.id globals.repo of
+                                Just post ->
+                                    globals.repo
+                                        |> Repo.setPost (Post.setInboxState Post.Dismissed post)
+
+                                Nothing ->
+                                    globals.repo
+
                         cmd =
                             globals.session
-                                |> DismissPosts.request model.spaceId [ currentPost.id ]
+                                |> DismissPosts.request model.spaceId [ currentPostView.id ]
                                 |> Task.attempt PostsDismissed
                     in
-                    ( ( model, cmd ), globals )
+                    ( ( model, cmd ), { globals | repo = newRepo } )
 
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
         ( "e", [ Meta ] ) ->
             case PostSet.selected model.postViews of
-                Just currentPost ->
+                Just currentPostView ->
                     let
+                        newRepo =
+                            case Repo.getPost currentPostView.id globals.repo of
+                                Just post ->
+                                    globals.repo
+                                        |> Repo.setPost (Post.setInboxState Post.Read post)
+
+                                Nothing ->
+                                    globals.repo
+
                         cmd =
                             globals.session
-                                |> MarkAsRead.request model.spaceId [ currentPost.id ]
+                                |> MarkAsRead.request model.spaceId [ currentPostView.id ]
                                 |> Task.attempt PostsMarkedAsRead
                     in
-                    ( ( model, cmd ), globals )
+                    ( ( model, cmd ), { globals | repo = newRepo } )
 
                 Nothing ->
                     ( ( model, Cmd.none ), globals )
 
         ( "y", [] ) ->
             case PostSet.selected model.postViews of
-                Just currentPost ->
+                Just currentPostView ->
                     let
                         cmd =
                             globals.session
-                                |> ClosePost.request model.spaceId currentPost.id
+                                |> ClosePost.request model.spaceId currentPostView.id
                                 |> Task.attempt PostClosed
                     in
                     ( ( model, cmd ), globals )
@@ -1224,16 +1242,16 @@ consumeKeyboardEvent globals event model =
 
         ( "r", [] ) ->
             case PostSet.selected model.postViews of
-                Just currentPost ->
+                Just currentPostView ->
                     let
                         ( ( newCurrentPost, compCmd ), newGlobals ) =
-                            PostView.expandReplyComposer globals currentPost
+                            PostView.expandReplyComposer globals currentPostView
 
                         newPostComps =
                             PostSet.update newCurrentPost model.postViews
                     in
                     ( ( { model | postViews = newPostComps }
-                      , Cmd.map (PostViewMsg currentPost.id) compCmd
+                      , Cmd.map (PostViewMsg currentPostView.id) compCmd
                       )
                     , globals
                     )

@@ -478,12 +478,21 @@ update msg globals postView =
 
         DismissClicked ->
             let
+                newRepo =
+                    case Repo.getPost postView.id globals.repo of
+                        Just post ->
+                            globals.repo
+                                |> Repo.setPost (Post.setInboxState Post.Dismissed post)
+
+                        Nothing ->
+                            globals.repo
+
                 cmd =
                     globals.session
                         |> DismissPosts.request postView.spaceId [ postView.id ]
                         |> Task.attempt Dismissed
             in
-            ( ( postView, cmd ), globals )
+            ( ( postView, cmd ), { globals | repo = newRepo } )
 
         Dismissed (Ok ( newSession, _ )) ->
             ( ( postView, Cmd.none )
@@ -501,12 +510,21 @@ update msg globals postView =
 
         MoveToInboxClicked ->
             let
+                newRepo =
+                    case Repo.getPost postView.id globals.repo of
+                        Just post ->
+                            globals.repo
+                                |> Repo.setPost (Post.setInboxState Post.Read post)
+
+                        Nothing ->
+                            globals.repo
+
                 cmd =
                     globals.session
                         |> MarkAsRead.request postView.spaceId [ postView.id ]
                         |> Task.attempt PostMovedToInbox
             in
-            ( ( postView, cmd ), globals )
+            ( ( postView, cmd ), { globals | repo = newRepo } )
 
         PostMovedToInbox (Ok ( newSession, _ )) ->
             ( ( postView, Cmd.none )
