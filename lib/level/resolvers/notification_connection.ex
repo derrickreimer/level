@@ -26,7 +26,7 @@ defmodule Level.Resolvers.NotificationConnection do
           last: integer() | nil,
           before: DateTime.t() | nil,
           after: DateTime.t() | nil,
-          order_by: %{field: :occurred_at, direction: :asc | :desc},
+          order_by: %{field: :occurred_at | :updated_at, direction: :asc | :desc},
           filters: %{state: :all | :undismissed | :dismissed}
         }
 

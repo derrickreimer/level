@@ -148,6 +148,7 @@ defmodule LevelWeb.Schema.Enums do
 
   enum :notification_order_field do
     value :occurred_at
+    value :updated_at
   end
 
   enum :notification_state_filter do
