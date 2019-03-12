@@ -699,13 +699,12 @@ defmodule Level.Posts do
     PostLog.post_reaction_created(post, space_user)
     Events.post_reaction_created(space_user_ids, post, reaction)
 
-    {:ok, subscribers} = get_subscribers(post)
+    # Notify the post author if the author is not a bot
+    post = Repo.preload(post, :space_user)
 
-    Enum.each(subscribers, fn subscriber ->
-      if subscriber.id !== space_user.id do
-        Notifications.record_post_reaction_created(subscriber, reaction)
-      end
-    end)
+    if post.space_user && post.space_user.id != space_user.id do
+      Notifications.record_post_reaction_created(post.space_user, reaction)
+    end
 
     {:ok, reaction}
   end
@@ -763,19 +762,18 @@ defmodule Level.Posts do
     |> after_create_reply_reaction(space_user, post, reply)
   end
 
-  defp after_create_reply_reaction({:ok, reaction}, space_user, post, reply) do
+  defp after_create_reply_reaction({:ok, reaction}, space_user, _post, reply) do
     {:ok, space_user_ids} = get_accessor_ids(reply)
 
     PostLog.reply_reaction_created(reply, space_user)
     Events.reply_reaction_created(space_user_ids, reply, reaction)
 
-    {:ok, subscribers} = get_subscribers(post)
+    # Notify the reply author if the author is not a bot
+    reply = Repo.preload(reply, :space_user)
 
-    Enum.each(subscribers, fn subscriber ->
-      if subscriber.id !== space_user.id do
-        Notifications.record_reply_reaction_created(subscriber, reaction)
-      end
-    end)
+    if reply.space_user && reply.space_user.id != space_user.id do
+      Notifications.record_reply_reaction_created(reply.space_user, reaction)
+    end
 
     {:ok, reaction}
   end

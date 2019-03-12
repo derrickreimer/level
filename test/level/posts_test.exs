@@ -846,11 +846,10 @@ defmodule Level.PostsTest do
 
     test "records a notification for all subscribers" do
       {:ok, %{space_user: reactor, space: space}} = create_user_and_space()
-      {:ok, %{space_user: subscriber}} = create_space_member(space)
+      {:ok, %{space_user: author}} = create_space_member(space)
       {:ok, %{group: group}} = create_group(reactor)
-      {:ok, %{post: post}} = create_post(reactor, group)
+      {:ok, %{post: post}} = create_post(author, group)
 
-      Posts.subscribe(subscriber, [post])
       {:ok, _} = Posts.create_post_reaction(reactor, post)
 
       # Does not record a notification for the reactor
@@ -858,7 +857,7 @@ defmodule Level.PostsTest do
                notification.event == "POST_REACTION_CREATED"
              end)
 
-      assert Enum.any?(Notifications.list(subscriber, post), fn notification ->
+      assert Enum.any?(Notifications.list(author, post), fn notification ->
                notification.event == "POST_REACTION_CREATED"
              end)
     end
@@ -917,14 +916,13 @@ defmodule Level.PostsTest do
                Posts.create_reply_reaction(space_user, post, reply)
     end
 
-    test "records a notification for all subscribers" do
+    test "records a notification for the reply author" do
       {:ok, %{space_user: reactor, space: space}} = create_user_and_space()
-      {:ok, %{space_user: subscriber}} = create_space_member(space)
+      {:ok, %{space_user: author}} = create_space_member(space)
       {:ok, %{group: group}} = create_group(reactor)
       {:ok, %{post: post}} = create_post(reactor, group)
-      {:ok, %{reply: reply}} = create_reply(reactor, post)
+      {:ok, %{reply: reply}} = create_reply(author, post)
 
-      Posts.subscribe(subscriber, [post])
       {:ok, _} = Posts.create_reply_reaction(reactor, post, reply)
 
       # Does not record a notification for the reactor
@@ -932,7 +930,7 @@ defmodule Level.PostsTest do
                notification.event == "REPLY_REACTION_CREATED"
              end)
 
-      assert Enum.any?(Notifications.list(subscriber, post), fn notification ->
+      assert Enum.any?(Notifications.list(author, post), fn notification ->
                notification.event == "REPLY_REACTION_CREATED"
              end)
     end
