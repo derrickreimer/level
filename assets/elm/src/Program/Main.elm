@@ -114,6 +114,7 @@ type alias Model =
     , isTransitioning : Bool
     , pushStatus : PushStatus
     , socketState : SocketState
+    , lastSocketMessageAt : Maybe Posix
     , currentUser : Lazy User
     , timeZone : String
     , flash : Flash
@@ -167,6 +168,7 @@ buildModel flags navKey =
         True
         (PushStatus.init flags.supportsNotifications)
         SocketState.Unknown
+        Nothing
         NotLoaded
         flags.timeZone
         Flash.init
@@ -521,6 +523,10 @@ update msg model =
                 |> updatePageWithGlobals Apps AppsMsg model
 
         ( SocketIn value, page ) ->
+            let
+                justNow =
+                    Just (TimeWithZone.getPosix model.now)
+            in
             case Socket.decodeEvent value of
                 Socket.MessageReceived messageData ->
                     let
@@ -533,10 +539,17 @@ update msg model =
                         ( newModel2, cmd2 ) =
                             sendEventToPage (buildGlobals newModel) event newModel
                     in
-                    ( newModel2, Cmd.batch [ cmd, cmd2 ] )
+                    ( { newModel2 | lastSocketMessageAt = justNow }
+                    , Cmd.batch [ cmd, cmd2 ]
+                    )
 
                 Socket.Opened ->
-                    ( { model | socketState = SocketState.Open }, Cmd.none )
+                    ( { model
+                        | socketState = SocketState.Open
+                        , lastSocketMessageAt = justNow
+                      }
+                    , Cmd.none
+                    )
 
                 Socket.Closed ->
                     ( { model | socketState = SocketState.Closed }, Cmd.none )
