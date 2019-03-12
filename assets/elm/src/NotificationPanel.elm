@@ -1,6 +1,6 @@
 module NotificationPanel exposing
     ( NotificationPanel
-    , init, setup, hasUndismissed, notificationCreated, refresh
+    , init, setup, catchUp, hasUndismissed, notificationCreated, refresh
     , Msg(..), update
     , view
     )
@@ -15,7 +15,7 @@ module NotificationPanel exposing
 
 # API
 
-@docs init, setup, hasUndismissed, notificationCreated, refresh
+@docs init, setup, catchUp, hasUndismissed, notificationCreated, refresh
 
 
 # Update
@@ -97,6 +97,13 @@ setup globals model =
         ]
 
 
+catchUp : Globals -> Posix -> NotificationPanel -> Cmd Msg
+catchUp globals lastContactAt model =
+    globals.session
+        |> Query.Notifications.request (Query.Notifications.catchUpVariables 1000 lastContactAt)
+        |> Task.attempt CatchUpReceived
+
+
 hasUndismissed : NotificationPanel -> Bool
 hasUndismissed model =
     not (NotificationSet.isEmpty model.undismissed) || NotificationSet.hasMore model.undismissed
@@ -151,6 +158,7 @@ type Msg
     | MoreDismissedRequested
     | UndismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
+    | CatchUpReceived (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissAllClicked
     | DismissTopicClicked String
     | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
@@ -251,6 +259,34 @@ update msg globals model =
             ( ( model, Route.toLogin ), globals )
 
         DismissedFetched _ ->
+            ( ( model, Cmd.none ), globals )
+
+        CatchUpReceived (Ok ( newSession, resp )) ->
+            let
+                newRepo =
+                    Repo.union resp.repo globals.repo
+
+                newIds =
+                    resp.resolvedNotifications
+                        |> Connection.toList
+                        |> List.map (Notification.id << .notification)
+
+                newUndismissed =
+                    model.undismissed
+                        |> NotificationSet.addMany newIds
+
+                newModel =
+                    { model | undismissed = newUndismissed }
+                        |> refresh newRepo
+            in
+            ( ( newModel, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        CatchUpReceived (Err Session.Expired) ->
+            ( ( model, Route.toLogin ), globals )
+
+        CatchUpReceived _ ->
             ( ( model, Cmd.none ), globals )
 
         DismissAllClicked ->

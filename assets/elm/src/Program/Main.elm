@@ -114,7 +114,7 @@ type alias Model =
     , isTransitioning : Bool
     , pushStatus : PushStatus
     , socketState : SocketState
-    , lastSocketMessageAt : Maybe Posix
+    , lastContactAt : Maybe Posix
     , currentUser : Lazy User
     , timeZone : String
     , flash : Flash
@@ -539,16 +539,25 @@ update msg model =
                         ( newModel2, cmd2 ) =
                             sendEventToPage (buildGlobals newModel) event newModel
                     in
-                    ( { newModel2 | lastSocketMessageAt = justNow }
+                    ( { newModel2 | lastContactAt = justNow }
                     , Cmd.batch [ cmd, cmd2 ]
                     )
 
                 Socket.Opened ->
+                    let
+                        cmd =
+                            case model.lastContactAt of
+                                Just lastContactAt ->
+                                    catchUp model lastContactAt
+
+                                Nothing ->
+                                    Cmd.none
+                    in
                     ( { model
                         | socketState = SocketState.Open
-                        , lastSocketMessageAt = justNow
+                        , lastContactAt = justNow
                       }
-                    , Cmd.none
+                    , cmd
                     )
 
                 Socket.Closed ->
@@ -630,6 +639,19 @@ update msg model =
         ( _, _ ) ->
             -- Disregard incoming messages that arrived for the wrong page
             ( model, Cmd.none )
+
+
+catchUp : Model -> Posix -> Cmd Msg
+catchUp model lastContactAt =
+    let
+        globals =
+            buildGlobals model
+    in
+    Cmd.batch
+        [ model.notificationPanel
+            |> NotificationPanel.catchUp globals lastContactAt
+            |> Cmd.map NotificationPanelMsg
+        ]
 
 
 

@@ -1,4 +1,4 @@
-module Query.Notifications exposing (Response, request, variables)
+module Query.Notifications exposing (Response, catchUpVariables, request, variables)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -73,6 +73,19 @@ variables state limit maybeCursor =
                     , ( "orderDirection", Encode.string "DESC" )
                     , ( "state", Encode.string <| NotificationStateFilter.toEnum state )
                     ]
+    in
+    Just (Encode.object pairs)
+
+
+catchUpVariables : Int -> Posix -> Maybe Encode.Value
+catchUpVariables limit cursor =
+    let
+        pairs =
+            [ ( "after", Encode.int (Time.posixToMillis cursor) )
+            , ( "first", Encode.int limit )
+            , ( "orderField", Encode.string "UPDATED_AT" )
+            , ( "orderDirection", Encode.string "ASC" )
+            ]
     in
     Just (Encode.object pairs)
 
