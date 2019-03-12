@@ -1,6 +1,6 @@
 module Route.Posts exposing
     ( Params
-    , init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Posts exposing
 
 # API
 
-@docs init, getSpaceSlug, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
 
 
 # Parsing
@@ -43,8 +43,6 @@ type Params
 
 type alias Internal =
     { spaceSlug : String
-    , after : Maybe String
-    , before : Maybe String
     , state : PostStateFilter
     , inboxState : InboxStateFilter
     , lastActivity : LastActivityFilter
@@ -60,8 +58,6 @@ init spaceSlug =
     Params
         (Internal
             spaceSlug
-            Nothing
-            Nothing
             PostStateFilter.All
             InboxStateFilter.Undismissed
             LastActivityFilter.All
@@ -71,21 +67,6 @@ init spaceSlug =
 getSpaceSlug : Params -> String
 getSpaceSlug (Params internal) =
     internal.spaceSlug
-
-
-getAfter : Params -> Maybe String
-getAfter (Params internal) =
-    internal.after
-
-
-getBefore : Params -> Maybe String
-getBefore (Params internal) =
-    internal.before
-
-
-setCursors : Maybe String -> Maybe String -> Params -> Params
-setCursors before after (Params internal) =
-    Params { internal | before = before, after = after }
 
 
 getState : Params -> PostStateFilter
@@ -121,7 +102,6 @@ setLastActivity newState (Params internal) =
 clearFilters : Params -> Params
 clearFilters params =
     params
-        |> setCursors Nothing Nothing
         |> setLastActivity LastActivityFilter.All
         |> setState PostStateFilter.All
         |> setInboxState InboxStateFilter.All
@@ -143,15 +123,13 @@ parser =
 feedParser : Parser (Internal -> a) a
 feedParser =
     let
-        toInternal : String -> Maybe String -> Maybe String -> PostStateFilter -> LastActivityFilter -> Internal
-        toInternal spaceSlug afterCursor beforeCursor state lastActivity =
-            Internal spaceSlug afterCursor beforeCursor state InboxStateFilter.All lastActivity
+        toInternal : String -> PostStateFilter -> LastActivityFilter -> Internal
+        toInternal spaceSlug state lastActivity =
+            Internal spaceSlug state InboxStateFilter.All lastActivity
     in
     map toInternal
         (string
             </> s "feed"
-            <?> Query.string "after"
-            <?> Query.string "before"
             <?> Query.map parseFeedPostState (Query.string "state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
         )
@@ -162,8 +140,6 @@ inboxParser =
     map Internal
         (string
             </> s "inbox"
-            <?> Query.string "after"
-            <?> Query.string "before"
             <?> Query.map parseInboxPostState (Query.string "state")
             <?> Query.map parseInboxState (Query.string "inbox_state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
@@ -278,9 +254,7 @@ castInboxState state =
 buildFeedQuery : Internal -> List QueryParameter
 buildFeedQuery internal =
     buildStringParams
-        [ ( "after", internal.after )
-        , ( "before", internal.before )
-        , ( "state", castFeedPostState internal.state )
+        [ ( "state", castFeedPostState internal.state )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         ]
 
@@ -288,9 +262,7 @@ buildFeedQuery internal =
 buildInboxQuery : Internal -> List QueryParameter
 buildInboxQuery internal =
     buildStringParams
-        [ ( "after", internal.after )
-        , ( "before", internal.before )
-        , ( "state", castInboxPostState internal.state )
+        [ ( "state", castInboxPostState internal.state )
         , ( "inbox_state", castInboxState internal.inboxState )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         ]
