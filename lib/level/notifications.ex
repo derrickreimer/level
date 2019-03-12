@@ -160,6 +160,7 @@ defmodule Level.Notifications do
     user
     |> query()
     |> with_topic(topic)
+    |> where([n], state: "UNDISMISSED")
     |> Repo.update_all(set: [state: "DISMISSED", updated_at: now])
     |> after_dismiss(user, topic)
   end

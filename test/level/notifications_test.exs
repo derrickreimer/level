@@ -2,6 +2,8 @@ defmodule Level.NotificationsTest do
   use Level.DataCase, async: true
 
   alias Level.Notifications
+  alias Level.Repo
+  alias Level.Schemas.Notification
   alias Level.Schemas.Post
   alias Level.Schemas.PostReaction
   alias Level.Schemas.Reply
@@ -123,6 +125,24 @@ defmodule Level.NotificationsTest do
       assert Enum.all?(notifications, fn notification ->
                notification.state == "DISMISSED"
              end)
+    end
+
+    test "does not touch timestamp on already dismissed notifications" do
+      {:ok, %{user: user, space_user: space_user}} = create_user_and_space()
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, %{post: post}} = create_post(space_user, group)
+
+      post_id = post.id
+      topic = "post:#{post_id}"
+      earlier_time = ~N[2018-11-01 10:00:00.000000]
+      now = ~N[2018-11-02 10:00:00.000000]
+
+      {:ok, notification} = Notifications.record_post_created(space_user, post)
+      {:ok, ^topic} = Notifications.dismiss(user, topic, earlier_time)
+      {:ok, ^topic} = Notifications.dismiss(user, topic, now)
+
+      updated_notification = Repo.get(Notification, notification.id)
+      assert updated_notification.updated_at == earlier_time
     end
   end
 end
