@@ -112,5 +112,12 @@ defmodule Level.MarkdownTest do
       {:ok, result, _} = Markdown.to_html("#devs #marketing Hey!")
       assert result == ~s(<p>Hey!</p>)
     end
+
+    test "does not mangle hashs in URLs" do
+      {:ok, result, _} = Markdown.to_html("Here: https://level.app/#stuff")
+
+      assert result ==
+               ~s(<p><span>Here: <a href=\"https://level.app/#stuff\">https://level.app/#stuff</a></span></p>)
+    end
   end
 end

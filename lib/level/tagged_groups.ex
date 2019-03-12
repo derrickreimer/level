@@ -15,7 +15,7 @@ defmodule Level.TaggedGroups do
   """
   def hashtag_pattern do
     ~r/
-      (?:^|\W)                    # beginning of string or non-word char
+      (?:^|\s)                    # beginning of string or non-word char
       \#((?>[a-z0-9][a-z0-9-]*))  # hashtag
       (?!\/)                      # without a trailing slash
       (?=
