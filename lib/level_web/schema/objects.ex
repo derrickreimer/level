@@ -475,6 +475,8 @@ defmodule LevelWeb.Schema.Objects do
       end
     end
 
+    field :is_urgent, non_null(:boolean)
+
     field :last_activity_at, non_null(:timestamp) do
       resolve fn
         %Post{last_activity_at: last_activity_at}, _, _ when not is_nil(last_activity_at) ->

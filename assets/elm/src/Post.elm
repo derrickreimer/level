@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
     , setInboxState
     , fragment
     , decoder, decoderWithReplies
@@ -18,7 +18,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isInGroup
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
 
 
 # Mutations
@@ -108,6 +108,7 @@ type alias Data =
     , reactorIds : List Id
     , url : String
     , isPrivate : Bool
+    , isUrgent : Bool
     , lastActivityAt : Posix
     , fetchedAt : Posix
     }
@@ -214,6 +215,11 @@ isPrivate (Post data) =
     data.isPrivate
 
 
+isUrgent : Post -> Bool
+isUrgent (Post data) =
+    data.isUrgent
+
+
 isInGroup : Id -> Post -> Bool
 isInGroup groupId (Post data) =
     List.member groupId data.groupIds
@@ -268,10 +274,11 @@ fragment =
                 totalCount
               }
               url
-              lastActivityAt
               canEdit
               hasReacted
               isPrivate
+              isUrgent
+              lastActivityAt
               fetchedAt
             }
             """
@@ -309,6 +316,7 @@ decoder =
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "url" string
             |> required "isPrivate" bool
+            |> required "isUrgent" bool
             |> required "lastActivityAt" dateDecoder
             |> required "fetchedAt" dateDecoder
         )

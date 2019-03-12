@@ -977,6 +977,12 @@ resolvedView config postView data =
                             [ text "Edit" ]
                     ]
                 , inboxButton data.post
+                , viewIf (Post.isUrgent data.post) <|
+                    div
+                        [ class "tooltip tooltip-bottom mr-3"
+                        , attribute "data-tooltip" "Marked as urgent"
+                        ]
+                        [ Icons.alertSmall ]
                 , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 ]
             , viewIf (config.showGroups || List.length (Post.groupIds data.post) > 1) <|

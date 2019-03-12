@@ -2,7 +2,7 @@ module Icons exposing
     ( Toggle(..)
     , arrowLeft, arrowRight
     , check, chevronDown, chevronUp
-    , alert, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
+    , alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
     , bookmark, lock, lockLarge
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
@@ -30,7 +30,7 @@ module Icons exposing
 
 # Posts
 
-@docs alert, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
+@docs alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
 
 
 # Channels
@@ -132,6 +132,12 @@ alert toggle =
         On ->
             iconView <|
                 svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy", transform "translate(1.000000, 1.000000)" ] [ circle [ id "Oval", stroke "#FF1E12", fill "#FF1E12", strokeLinecap "round", strokeLinejoin "round", cx "9", cy "9", r "9" ] [], Svg.path [ d "M9,5.4 L9,9", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "9", cy "12.6", r "1" ] [] ] ] ]
+
+
+alertSmall : Html msg
+alertSmall =
+    iconView <|
+        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy-2" ] [ circle [ id "Oval", fill "#FF1E12", cx "8", cy "8", r "8" ] [], Svg.path [ d "M8,4.8 L8,8", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "8", cy "11.2", r "1" ] [] ] ] ]
 
 
 closed : Html msg
