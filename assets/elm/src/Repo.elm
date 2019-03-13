@@ -4,8 +4,8 @@ module Repo exposing
     , getUser, setUser
     , getSpace, getSpaces, getAllSpaces, setSpace, setSpaces, getSpaceBySlug
     , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, getSpaceUserByHandle, setSpaceUser, setSpaceUsers
-    , getSpaceBot, setSpaceBot
-    , getActor, setActor
+    , getSpaceBot, setSpaceBot, getSpaceBotByHandle
+    , getActor, setActor, getActorByHandle
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
@@ -42,12 +42,12 @@ module Repo exposing
 
 # Space Bots
 
-@docs getSpaceBot, setSpaceBot
+@docs getSpaceBot, setSpaceBot, getSpaceBotByHandle
 
 
 # Actors
 
-@docs getActor, setActor
+@docs getActor, setActor, getActorByHandle
 
 
 # Groups
@@ -243,6 +243,14 @@ setSpaceBot spaceBot (Repo data) =
     Repo { data | spaceBots = Dict.insert (SpaceBot.id spaceBot) spaceBot data.spaceBots }
 
 
+getSpaceBotByHandle : Id -> String -> Repo -> Maybe SpaceBot
+getSpaceBotByHandle spaceId handle (Repo data) =
+    data.spaceBots
+        |> Dict.values
+        |> List.filter (\su -> SpaceBot.spaceId su == spaceId && SpaceBot.handle su == handle)
+        |> List.head
+
+
 
 -- ACTORS
 
@@ -267,6 +275,18 @@ setActor actor repo =
 
         Actor.Bot bot ->
             setSpaceBot bot repo
+
+
+getActorByHandle : Id -> String -> Repo -> Maybe Actor
+getActorByHandle spaceId handle repo =
+    case getSpaceUserByHandle spaceId handle repo of
+        Just spaceUser ->
+            Just (Actor.User spaceUser)
+
+        Nothing ->
+            repo
+                |> getSpaceBotByHandle spaceId handle
+                |> Maybe.map Actor.Bot
 
 
 

@@ -5,7 +5,7 @@ module Post exposing
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
-    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
+    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor
     )
 
 {-| A post represents a message posted to group.
@@ -43,10 +43,11 @@ module Post exposing
 
 # Filtering
 
-@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing
+@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor
 
 -}
 
+import Actor exposing (Actor)
 import Author exposing (Author)
 import Connection exposing (Connection)
 import File exposing (File)
@@ -462,3 +463,13 @@ withFollowing subscribedGroupIds post =
         || subscriptionState post
         == Subscribed
         || withAnyGroups subscribedGroupIds post
+
+
+withAuthor : Maybe Actor -> Post -> Bool
+withAuthor maybeActor post =
+    case maybeActor of
+        Just actor ->
+            Author.actorId (author post) == Actor.id actor
+
+        Nothing ->
+            True
