@@ -1,4 +1,4 @@
-defmodule LevelWeb.GraphQL.NotificationsDismissedTest do
+defmodule LevelWeb.GraphQL.NotificationDismissedTest do
   use LevelWeb.ChannelCase
 
   alias Level.Notifications
@@ -8,8 +8,12 @@ defmodule LevelWeb.GraphQL.NotificationsDismissedTest do
     subscription UserSubscription {
       userSubscription {
         __typename
-        ... on NotificationsDismissedPayload {
-          topic
+        ... on NotificationDismissedPayload {
+          notification {
+            ... on PostCreatedNotification {
+              id
+            }
+          }
         }
       }
     }
@@ -20,25 +24,27 @@ defmodule LevelWeb.GraphQL.NotificationsDismissedTest do
     {:ok, Map.put(result, :socket, build_socket(result.user))}
   end
 
-  test "receives an event when notifications are dismissed", %{
+  test "receives an event when a notification is dismissed", %{
     socket: socket,
     user: user,
     space_user: space_user
   } do
     post = %Post{id: "abc"}
-    {:ok, _} = Notifications.record_post_created(space_user, post)
+    {:ok, notification} = Notifications.record_post_created(space_user, post)
 
     ref = push_subscription(socket, @operation, %{})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, _} = Notifications.dismiss_topic(user, "post:abc")
+    {:ok, _} = Notifications.dismiss_notification(user, notification)
 
     push_data = %{
       result: %{
         data: %{
           "userSubscription" => %{
-            "__typename" => "NotificationsDismissedPayload",
-            "topic" => "post:abc"
+            "__typename" => "NotificationDismissedPayload",
+            "notification" => %{
+              "id" => notification.id
+            }
           }
         }
       },

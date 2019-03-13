@@ -105,7 +105,7 @@ defmodule Level.NotificationsTest do
     end
   end
 
-  describe "dismiss/2" do
+  describe "dismiss_topic/2" do
     test "transitions notifications to dismissed" do
       {:ok, %{user: user, space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
@@ -117,7 +117,7 @@ defmodule Level.NotificationsTest do
       {:ok, _} = Notifications.record_post_created(space_user, post)
       {:ok, _} = Notifications.record_post_closed(space_user, post, space_user)
 
-      {:ok, ^topic} = Notifications.dismiss(user, topic)
+      {:ok, ^topic} = Notifications.dismiss_topic(user, topic)
 
       notifications = Notifications.list(space_user, post)
       assert Enum.count(notifications) == 2
@@ -138,8 +138,8 @@ defmodule Level.NotificationsTest do
       now = ~N[2018-11-02 10:00:00.000000]
 
       {:ok, notification} = Notifications.record_post_created(space_user, post)
-      {:ok, ^topic} = Notifications.dismiss(user, topic, earlier_time)
-      {:ok, ^topic} = Notifications.dismiss(user, topic, now)
+      {:ok, ^topic} = Notifications.dismiss_topic(user, topic, earlier_time)
+      {:ok, ^topic} = Notifications.dismiss_topic(user, topic, now)
 
       updated_notification = Repo.get(Notification, notification.id)
       assert updated_notification.updated_at == earlier_time

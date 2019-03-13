@@ -470,6 +470,13 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Mutations.dismiss_notifications/2
     end
+
+    @desc "Dismisses a notification."
+    field :dismiss_notification, :dismiss_notification_payload do
+      arg :id, :id
+
+      resolve &Level.Mutations.dismiss_notification/2
+    end
   end
 
   subscription do

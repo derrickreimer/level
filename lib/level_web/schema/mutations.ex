@@ -873,4 +873,22 @@ defmodule LevelWeb.Schema.Mutations do
 
     interface :validatable
   end
+
+  @desc "The response to dismissing a notification."
+  object :dismiss_notification_payload do
+    @desc """
+    A boolean indicating if the mutation was successful. If true, the errors
+    list will be empty. Otherwise, errors may contain objects describing why
+    the mutation failed.
+    """
+    field :success, non_null(:boolean)
+
+    @desc "A list of validation errors."
+    field :errors, list_of(:error)
+
+    @desc "The notification."
+    field :notification, :notification
+
+    interface :validatable
+  end
 end

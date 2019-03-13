@@ -1078,13 +1078,37 @@ defmodule Level.Mutations do
            }}
           | {:error, String.t()}
   def dismiss_notifications(%{topic: topic}, %{context: %{current_user: user}}) do
-    {:ok, topic} = Notifications.dismiss(user, topic)
+    {:ok, topic} = Notifications.dismiss_topic(user, topic)
     {:ok, %{success: true, errors: [], topic: topic}}
   end
 
   def dismiss_notifications(_args, %{context: %{current_user: user}}) do
-    {:ok, topic} = Notifications.dismiss(user, nil)
+    {:ok, topic} = Notifications.dismiss_topic(user, nil)
     {:ok, %{success: true, errors: [], topic: topic}}
+  end
+
+  @doc """
+  Dismisses a notification.
+  """
+  @spec dismiss_notification(map(), info()) ::
+          {:ok,
+           %{
+             success: boolean(),
+             errors: validation_errors(),
+             topic: String.t()
+           }}
+          | {:error, String.t()}
+  def dismiss_notification(%{id: id}, %{context: %{current_user: user}}) do
+    with {:ok, notification} <- Notifications.get_notification(user, id),
+         {:ok, dismissed_notification} <- Notifications.dismiss_notification(user, notification) do
+      {:ok, %{success: true, errors: [], notification: dismissed_notification}}
+    else
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:ok, %{success: false, errors: format_errors(changeset), notification: nil}}
+
+      err ->
+        err
+    end
   end
 
   defp can_manage_members?(space_user) do

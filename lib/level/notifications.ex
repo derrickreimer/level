@@ -4,6 +4,7 @@ defmodule Level.Notifications do
   """
 
   import Ecto.Query
+  import Level.Gettext
 
   alias Level.Events
   alias Level.Repo
@@ -42,6 +43,25 @@ defmodule Level.Notifications do
     space_user
     |> query(post)
     |> Repo.all()
+  end
+
+  @doc """
+  Fetches a notification by id.
+  """
+  @spec get_notification(User.t(), String.t()) :: {:ok, Notification.t()} | {:error, String.t()}
+  def get_notification(%User{} = user, id) do
+    user
+    |> query()
+    |> Repo.get(id)
+    |> after_get_notification()
+  end
+
+  defp after_get_notification(%Notification{} = notification) do
+    {:ok, notification}
+  end
+
+  defp after_get_notification(_) do
+    {:error, dgettext("errors", "Notification not found")}
   end
 
   @doc """
@@ -151,10 +171,10 @@ defmodule Level.Notifications do
   defp after_record(err, _), do: err
 
   @doc """
-  Dismiss notifications.
+  Dismiss notifications by topic.
   """
-  @spec dismiss(User.t(), String.t(), NaiveDateTime.t()) :: {:ok, String.t()}
-  def dismiss(%User{} = user, topic, now \\ nil) do
+  @spec dismiss_topic(User.t(), String.t(), NaiveDateTime.t()) :: {:ok, String.t()}
+  def dismiss_topic(%User{} = user, topic, now \\ nil) do
     now = now || NaiveDateTime.utc_now()
 
     user
@@ -162,14 +182,33 @@ defmodule Level.Notifications do
     |> with_topic(topic)
     |> where([n], state: "UNDISMISSED")
     |> Repo.update_all(set: [state: "DISMISSED", updated_at: now])
-    |> after_dismiss(user, topic)
+    |> after_dismiss_topic(user, topic)
   end
 
   defp with_topic(query, nil), do: query
   defp with_topic(query, topic), do: where(query, [n], n.topic == ^topic)
 
-  defp after_dismiss(_, user, topic) do
+  defp after_dismiss_topic(_, user, topic) do
     Events.notifications_dismissed(user.id, topic)
     {:ok, topic}
   end
+
+  @doc """
+  Dismiss notification by ID.
+  """
+  @spec dismiss_notification(User.t(), Notification.t()) ::
+          {:ok, Notification.t()} | {:error, Ecto.Changeset.t()}
+  def dismiss_notification(%User{} = user, %Notification{} = notification) do
+    notification
+    |> Ecto.Changeset.change(state: "DISMISSED")
+    |> Repo.update()
+    |> after_dismiss_notification(user)
+  end
+
+  defp after_dismiss_notification({:ok, notification}, user) do
+    Events.notification_dismissed(user.id, notification)
+    {:ok, notification}
+  end
+
+  defp after_dismiss_notification(err, _), do: err
 end

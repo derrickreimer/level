@@ -22,6 +22,10 @@ defmodule Level.Events do
     publish_to_user(id, :notification_created, %{notification: notification})
   end
 
+  def notification_dismissed(id, notification) do
+    publish_to_user(id, :notification_dismissed, %{notification: notification})
+  end
+
   def notifications_dismissed(id, topic) do
     publish_to_user(id, :notifications_dismissed, %{topic: topic})
   end

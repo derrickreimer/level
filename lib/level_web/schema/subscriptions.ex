@@ -7,7 +7,13 @@ defmodule LevelWeb.Schema.Subscriptions do
 
   @desc "The payload for messages propagated to a user topic."
   union :user_subscription_payload do
-    types [:space_joined_payload, :notification_created_payload, :notifications_dismissed_payload]
+    types [
+      :space_joined_payload,
+      :notification_created_payload,
+      :notification_dismissed_payload,
+      :notifications_dismissed_payload
+    ]
+
     resolve_type &type_resolver/2
   end
 
@@ -258,7 +264,13 @@ defmodule LevelWeb.Schema.Subscriptions do
     field :notification, :notification
   end
 
-  @desc "The payload for the notification created event."
+  @desc "The payload for the notification dismissed event."
+  object :notification_dismissed_payload do
+    @desc "The notification."
+    field :notification, :notification
+  end
+
+  @desc "The payload for the notifications dismissed event."
   object :notifications_dismissed_payload do
     @desc "The topic."
     field :topic, :string
