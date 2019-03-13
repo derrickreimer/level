@@ -1,6 +1,6 @@
 module Route.Posts exposing
     ( Params
-    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, clearFilters
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Posts exposing
 
 # API
 
-@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, clearFilters
 
 
 # Parsing
@@ -46,6 +46,7 @@ type alias Internal =
     , state : PostStateFilter
     , inboxState : InboxStateFilter
     , lastActivity : LastActivityFilter
+    , author : Maybe String
     }
 
 
@@ -61,6 +62,7 @@ init spaceSlug =
             PostStateFilter.All
             InboxStateFilter.Undismissed
             LastActivityFilter.All
+            Nothing
         )
 
 
@@ -99,12 +101,23 @@ setLastActivity newState (Params internal) =
     Params { internal | lastActivity = newState }
 
 
+getAuthor : Params -> Maybe String
+getAuthor (Params internal) =
+    internal.author
+
+
+setAuthor : Maybe String -> Params -> Params
+setAuthor newAuthor (Params internal) =
+    Params { internal | author = newAuthor }
+
+
 clearFilters : Params -> Params
 clearFilters params =
     params
         |> setLastActivity LastActivityFilter.All
         |> setState PostStateFilter.All
         |> setInboxState InboxStateFilter.All
+        |> setAuthor Nothing
 
 
 
@@ -123,15 +136,16 @@ parser =
 feedParser : Parser (Internal -> a) a
 feedParser =
     let
-        toInternal : String -> PostStateFilter -> LastActivityFilter -> Internal
-        toInternal spaceSlug state lastActivity =
-            Internal spaceSlug state InboxStateFilter.All lastActivity
+        toInternal : String -> PostStateFilter -> LastActivityFilter -> Maybe String -> Internal
+        toInternal spaceSlug state lastActivity author =
+            Internal spaceSlug state InboxStateFilter.All lastActivity author
     in
     map toInternal
         (string
             </> s "feed"
             <?> Query.map parseFeedPostState (Query.string "state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+            <?> Query.string "author"
         )
 
 
@@ -143,6 +157,7 @@ inboxParser =
             <?> Query.map parseInboxPostState (Query.string "state")
             <?> Query.map parseInboxState (Query.string "inbox_state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+            <?> Query.string "author"
         )
 
 
