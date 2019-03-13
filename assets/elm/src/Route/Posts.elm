@@ -117,7 +117,6 @@ clearFilters params =
         |> setLastActivity LastActivityFilter.All
         |> setState PostStateFilter.All
         |> setInboxState InboxStateFilter.All
-        |> setAuthor Nothing
 
 
 
@@ -271,6 +270,7 @@ buildFeedQuery internal =
     buildStringParams
         [ ( "state", castFeedPostState internal.state )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
+        , ( "author", internal.author )
         ]
 
 
@@ -280,6 +280,7 @@ buildInboxQuery internal =
         [ ( "state", castInboxPostState internal.state )
         , ( "inbox_state", castInboxState internal.inboxState )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
+        , ( "author", internal.author )
         ]
 
 
