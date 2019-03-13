@@ -38,6 +38,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
+import Mutation.DismissNotification as DismissNotification
 import Mutation.DismissNotifications as DismissNotifications
 import Notification exposing (State(..))
 import NotificationSet exposing (NotificationSet)
@@ -160,7 +162,8 @@ type Msg
     | DismissedFetched (Result Session.Error ( Session, Query.Notifications.Response ))
     | CatchUpReceived (Result Session.Error ( Session, Query.Notifications.Response ))
     | DismissAllClicked
-    | DismissTopicClicked String
+    | DismissClicked Id
+    | NotificationDismissed (Result Session.Error ( Session, DismissNotification.Response ))
     | NotificationsDismissed (Result Session.Error ( Session, DismissNotifications.Response ))
 
 
@@ -298,14 +301,32 @@ update msg globals model =
             in
             ( ( model, cmd ), globals )
 
-        DismissTopicClicked topic ->
+        DismissClicked id ->
             let
                 cmd =
                     globals.session
-                        |> DismissNotifications.request (DismissNotifications.variables (Just topic))
-                        |> Task.attempt NotificationsDismissed
+                        |> DismissNotification.request (DismissNotification.variables id)
+                        |> Task.attempt NotificationDismissed
             in
             ( ( model, cmd ), globals )
+
+        NotificationDismissed (Ok ( newSession, DismissNotification.Success resolvedNotification )) ->
+            let
+                newRepo =
+                    ResolvedNotification.addToRepo resolvedNotification globals.repo
+
+                newModel =
+                    refresh newRepo model
+            in
+            ( ( newModel, Cmd.none )
+            , { globals | repo = newRepo, session = newSession }
+            )
+
+        NotificationDismissed (Err Session.Expired) ->
+            ( ( model, Route.toLogin ), globals )
+
+        NotificationDismissed _ ->
+            ( ( model, Cmd.none ), globals )
 
         NotificationsDismissed (Ok ( newSession, DismissNotifications.Success maybeTopic )) ->
             let
@@ -339,7 +360,8 @@ update msg globals model =
 
 
 type alias CardConfig =
-    { topic : String
+    { id : Id
+    , topic : String
     , url : String
     , icon : Html Msg
     , displayName : Html Msg
@@ -445,7 +467,8 @@ notificationView globals resolvedNotification =
     case resolvedNotification.event of
         PostCreated (Just resolvedPost) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Post.url resolvedPost.post
                 , icon = Icons.postCreated
                 , displayName = authorDisplayName resolvedPost.author
@@ -457,7 +480,8 @@ notificationView globals resolvedNotification =
 
         PostClosed (Just resolvedPost) (Just actor) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Post.url resolvedPost.post
                 , icon = Icons.postClosed
                 , displayName = actorDisplayName actor
@@ -469,7 +493,8 @@ notificationView globals resolvedNotification =
 
         PostReopened (Just resolvedPost) (Just actor) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Post.url resolvedPost.post
                 , icon = Icons.postClosed
                 , displayName = actorDisplayName actor
@@ -481,7 +506,8 @@ notificationView globals resolvedNotification =
 
         ReplyCreated (Just resolvedReply) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Reply.url resolvedReply.reply
                 , icon = Icons.replyCreated
                 , displayName = authorDisplayName resolvedReply.author
@@ -493,7 +519,8 @@ notificationView globals resolvedNotification =
 
         PostReactionCreated (Just resolvedReaction) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Post.url resolvedReaction.resolvedPost.post
                 , icon = Icons.reactionCreated
                 , displayName = spaceUserDisplayName resolvedReaction.spaceUser
@@ -505,7 +532,8 @@ notificationView globals resolvedNotification =
 
         ReplyReactionCreated (Just resolvedReaction) ->
             cardTemplate globals
-                { topic = Notification.topic notification
+                { id = Notification.id notification
+                , topic = Notification.topic notification
                 , url = Reply.url resolvedReaction.resolvedReply.reply
                 , icon = Icons.reactionCreated
                 , displayName = spaceUserDisplayName resolvedReaction.spaceUser
@@ -549,7 +577,7 @@ cardTemplate globals config =
             div [ class "ml-3" ]
                 [ button
                     [ class "-mt-px flex items-center justify-center w-7 h-7 rounded-full bg-transparent hover:bg-grey transition-bg"
-                    , onClick (DismissTopicClicked config.topic)
+                    , onClick (DismissClicked config.id)
                     ]
                     [ Icons.exSmall ]
                 ]

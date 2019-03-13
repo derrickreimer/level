@@ -1684,6 +1684,22 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
+        Event.NotificationDismissed resolvedNotification ->
+            let
+                newRepo =
+                    ResolvedNotification.addToRepo resolvedNotification model.repo
+
+                newNotificationPanel =
+                    model.notificationPanel
+                        |> NotificationPanel.refresh newRepo
+            in
+            ( { model
+                | notificationPanel = newNotificationPanel
+                , repo = newRepo
+              }
+            , Cmd.none
+            )
+
         Event.NotificationsDismissed maybeTopic ->
             let
                 newRepo =

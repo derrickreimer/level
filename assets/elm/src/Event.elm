@@ -49,6 +49,7 @@ type Event
     | SpaceUpdated Space
     | SpaceUserUpdated SpaceUser
     | NotificationCreated ResolvedNotification
+    | NotificationDismissed ResolvedNotification
     | NotificationsDismissed (Maybe String)
     | Unknown Decode.Value
 
@@ -69,6 +70,7 @@ eventDecoder =
         [ -- USER EVENTS
           Decode.map SpaceJoined UserSubscription.spaceJoinedDecoder
         , Decode.map NotificationCreated UserSubscription.notificationCreatedDecoder
+        , Decode.map NotificationDismissed UserSubscription.notificationDismissedDecoder
         , Decode.map NotificationsDismissed UserSubscription.notificationsDismissedDecoder
 
         -- SPACE USER EVENTS

@@ -1,4 +1,4 @@
-module Subscription.UserSubscription exposing (notificationCreatedDecoder, notificationsDismissedDecoder, spaceJoinedDecoder, subscribe, unsubscribe)
+module Subscription.UserSubscription exposing (notificationCreatedDecoder, notificationDismissedDecoder, notificationsDismissedDecoder, spaceJoinedDecoder, subscribe, unsubscribe)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -51,6 +51,14 @@ notificationCreatedDecoder =
         ResolvedNotification.decoder
 
 
+notificationDismissedDecoder : Decode.Decoder ResolvedNotification
+notificationDismissedDecoder =
+    Subscription.decoder "user"
+        "NotificationDismissed"
+        "notification"
+        ResolvedNotification.decoder
+
+
 notificationsDismissedDecoder : Decode.Decoder (Maybe String)
 notificationsDismissedDecoder =
     Subscription.decoder "user"
@@ -84,6 +92,11 @@ document =
               }
             }
             ... on NotificationCreatedPayload {
+              notification {
+                ...NotificationFields
+              }
+            }
+            ... on NotificationDismissedPayload {
               notification {
                 ...NotificationFields
               }
