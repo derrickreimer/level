@@ -10,7 +10,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
       $following_state: FollowingStateFilter,
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
-      $last_activity: LastActivityFilter
+      $last_activity: LastActivityFilter,
+      $author_id: ID
     ) {
       space(id: $space_id) {
         posts(
@@ -19,7 +20,8 @@ defmodule LevelWeb.GraphQL.PostsTest do
             followingState: $following_state,
             inboxState: $inbox_state,
             state: $state,
-            lastActivity: $last_activity
+            lastActivity: $last_activity,
+            authorId: $author_id
           }
         ) {
           edges {
@@ -268,6 +270,41 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     refute Enum.any?(edges, fn edge ->
              edge["node"]["body"] == "I'm open"
+           end)
+  end
+
+  test "filtering author", %{conn: conn, space: space, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+    {:ok, %{post: _authored_post}} = create_post(space_user, group, %{body: "I'm right"})
+    {:ok, %{post: _non_authored_post}} = create_post(another_user, group, %{body: "I'm wrong"})
+
+    variables = %{
+      space_id: space_user.space_id,
+      author_id: space_user.id
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm right"
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm wrong"
            end)
   end
 end

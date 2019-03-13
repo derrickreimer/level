@@ -35,7 +35,8 @@ defmodule Level.Resolvers.PostConnection do
             following_state: :is_following | :all,
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
             state: :open | :closed | :all,
-            last_activity: :today | :all
+            last_activity: :today | :all,
+            author_id: String.t()
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -57,6 +58,7 @@ defmodule Level.Resolvers.PostConnection do
       |> apply_inbox_state(args)
       |> apply_state(args)
       |> apply_last_activity(args)
+      |> apply_author(args)
 
     pagination_args =
       args
@@ -135,4 +137,10 @@ defmodule Level.Resolvers.PostConnection do
   defp apply_last_activity(base_query, _) do
     base_query
   end
+
+  defp apply_author(base_query, %{filter: %{author_id: author_id}}) do
+    Posts.Query.where_authored_by(base_query, author_id)
+  end
+
+  defp apply_author(base_query, _), do: base_query
 end
