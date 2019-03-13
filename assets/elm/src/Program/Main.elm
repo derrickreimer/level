@@ -842,8 +842,8 @@ pageTitle repo page =
         NewSpace _ ->
             Page.NewSpace.title
 
-        Posts _ ->
-            Page.Posts.title
+        Posts pageModel ->
+            Page.Posts.title repo pageModel
 
         SpaceUser _ ->
             Page.SpaceUser.title

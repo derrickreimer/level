@@ -100,9 +100,18 @@ resolveData repo model =
 -- PAGE PROPERTIES
 
 
-title : String
-title =
-    "Home"
+title : Repo -> Model -> String
+title repo model =
+    case resolveData repo model of
+        Just data ->
+            if Route.Posts.getAuthor model.params == Just (SpaceUser.handle data.viewer) then
+                "Sent"
+
+            else
+                "Home"
+
+        Nothing ->
+            "Home"
 
 
 
@@ -896,7 +905,7 @@ resolvedDesktopView globals model data =
             [ div [ class "scrolled-top-no-border sticky pin-t trans-border-b-grey py-2 bg-white z-40" ]
                 [ div [ class "flex items-center" ]
                     [ h2 [ class "flex-no-shrink" ]
-                        [ span [ class "font-bold text-2xl" ] [ text "Home" ]
+                        [ span [ class "font-bold text-2xl" ] [ text <| title globals.repo model ]
                         ]
                     , controlsView model
                     ]
@@ -1110,7 +1119,7 @@ resolvedMobileView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , title = "Home"
+            , title = title globals.repo model
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled

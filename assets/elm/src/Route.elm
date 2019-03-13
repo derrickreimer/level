@@ -116,8 +116,8 @@ toSpace slug =
 isCurrent : Route -> Maybe Route -> Bool
 isCurrent testRoute maybeCurrentRoute =
     case ( testRoute, maybeCurrentRoute ) of
-        ( Posts _, Just (Posts _) ) ->
-            True
+        ( Posts testParams, Just (Posts currentParams) ) ->
+            Route.Posts.getAuthor testParams == Route.Posts.getAuthor currentParams
 
         ( Settings _, Just (Settings _) ) ->
             True

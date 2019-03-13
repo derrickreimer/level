@@ -11,6 +11,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import InboxStateFilter
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
 import Repo
@@ -70,6 +71,12 @@ layout config children =
             config.globals.repo
                 |> Repo.getBookmarks (Space.id config.space)
                 |> List.sortBy Group.name
+
+        sentByMeParams =
+            spaceSlug
+                |> Route.Posts.init
+                |> Route.Posts.setAuthor (Just <| SpaceUser.handle config.spaceUser)
+                |> Route.Posts.setInboxState InboxStateFilter.All
     in
     div [ class "font-sans font-antialised", style "padding-top" "60px" ]
         [ div [ class "fixed pin-t w-full flex items-center p-3 border-b bg-white z-40" ]
@@ -99,6 +106,7 @@ layout config children =
                     , div [ class "absolute px-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
                             [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
+                            , sidebarTab "Sent" Nothing (Route.Posts sentByMeParams) config.globals.currentRoute
                             ]
                         , viewUnless (List.isEmpty bookmarks) <|
                             div []
