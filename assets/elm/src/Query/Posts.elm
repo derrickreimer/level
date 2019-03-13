@@ -46,7 +46,8 @@ document =
           $followingStateFilter: FollowingStateFilter!,
           $stateFilter: PostStateFilter!,
           $inboxStateFilter: InboxStateFilter!,
-          $lastActivityFilter: LastActivityFilter!
+          $lastActivityFilter: LastActivityFilter!,
+          $author: String
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             space {
@@ -59,7 +60,8 @@ document =
                   followingState: $followingStateFilter,
                   state: $stateFilter,
                   inboxState: $inboxStateFilter,
-                  lastActivity: $lastActivityFilter
+                  lastActivity: $lastActivityFilter,
+                  author: $author
                 }
               ) {
                 ...PostConnectionFields
@@ -83,9 +85,6 @@ document =
 variables : Params -> Int -> Maybe Posix -> Maybe Encode.Value
 variables params limit maybeAfter =
     let
-        spaceSlug =
-            Encode.string (Route.Posts.getSpaceSlug params)
-
         followingStateFilter =
             case Route.Posts.getInboxState params of
                 InboxStateFilter.All ->
@@ -95,7 +94,7 @@ variables params limit maybeAfter =
                     "ALL"
 
         filters =
-            [ ( "spaceSlug", spaceSlug )
+            [ ( "spaceSlug", Encode.string (Route.Posts.getSpaceSlug params) )
             , ( "stateFilter", Encode.string (PostStateFilter.toEnum (Route.Posts.getState params)) )
             , ( "followingStateFilter", Encode.string followingStateFilter )
             , ( "inboxStateFilter", Encode.string (InboxStateFilter.toEnum (Route.Posts.getInboxState params)) )
@@ -112,8 +111,16 @@ variables params limit maybeAfter =
                 Nothing ->
                     [ ( "first", Encode.int limit )
                     ]
+
+        authorFilter =
+            case Route.Posts.getAuthor params of
+                Just author ->
+                    [ ( "author", Encode.string author ) ]
+
+                Nothing ->
+                    []
     in
-    Just (Encode.object (filters ++ cursors))
+    Just (Encode.object (filters ++ cursors ++ authorFilter))
 
 
 decoder : Decoder Data

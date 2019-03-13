@@ -182,9 +182,11 @@ defmodule Level.Posts.Query do
   Filters a posts query for posts that are authored by a particular user.
   """
   @spec where_authored_by(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
-  def where_authored_by(query, author_id) do
-    from [p] in query,
-      where: p.space_user_id == ^author_id or p.space_bot_id == ^author_id
+  def where_authored_by(query, handle) do
+    from p in query,
+      left_join: u_author in assoc(p, :space_user),
+      left_join: b_author in assoc(p, :space_bot),
+      where: u_author.handle == ^handle or b_author.handle == ^handle
   end
 
   @doc """

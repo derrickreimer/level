@@ -36,7 +36,7 @@ defmodule Level.Resolvers.PostConnection do
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
             state: :open | :closed | :all,
             last_activity: :today | :all,
-            author_id: String.t()
+            author: String.t()
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -138,8 +138,8 @@ defmodule Level.Resolvers.PostConnection do
     base_query
   end
 
-  defp apply_author(base_query, %{filter: %{author_id: author_id}}) do
-    Posts.Query.where_authored_by(base_query, author_id)
+  defp apply_author(base_query, %{filter: %{author: handle}}) do
+    Posts.Query.where_authored_by(base_query, handle)
   end
 
   defp apply_author(base_query, _), do: base_query

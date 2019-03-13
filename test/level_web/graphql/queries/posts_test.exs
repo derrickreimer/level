@@ -11,7 +11,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
       $last_activity: LastActivityFilter,
-      $author_id: ID
+      $author: String
     ) {
       space(id: $space_id) {
         posts(
@@ -21,7 +21,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
             inboxState: $inbox_state,
             state: $state,
             lastActivity: $last_activity,
-            authorId: $author_id
+            author: $author
           }
         ) {
           edges {
@@ -281,7 +281,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     variables = %{
       space_id: space_user.space_id,
-      author_id: space_user.id
+      author: "tiff"
     }
 
     conn =

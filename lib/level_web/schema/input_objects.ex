@@ -100,9 +100,9 @@ defmodule LevelWeb.Schema.InputObjects do
     field :last_activity, :last_activity_filter, default_value: :all
 
     @desc """
-    Filter by author.
+    Filter by author handle.
     """
-    field :author_id, :id
+    field :author, :string
   end
 
   @desc "Filtering criteria for notification connections."
