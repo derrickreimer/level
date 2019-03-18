@@ -53,6 +53,8 @@ defmodule Level.Schemas.Post do
     field :last_pinged_at, :naive_datetime, virtual: true
     field :last_activity_at, :naive_datetime, virtual: true
 
+    field :recipients, {:array, :string}, virtual: true
+
     timestamps()
   end
 

@@ -150,6 +150,66 @@ defmodule Level.Posts.QueryTest do
     end
   end
 
+  describe "where_specific_recipients/2" do
+    test "includes posts with specific recipients" do
+      {:ok, %{space: space, space_user: space_user}} = create_user_and_space(%{handle: "derrick"})
+      {:ok, _} = create_space_member(space, %{handle: "bob"})
+      {:ok, _} = create_space_member(space, %{handle: "tom"})
+      {:ok, %{post: post}} = create_global_post(space_user, %{body: "@bob @tom sup!"})
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.where_specific_recipients(["bob", "tom", "derrick"])
+
+      assert query_includes?(query, post)
+    end
+
+    test "does not include partial match recipients" do
+      {:ok, %{space: space, space_user: space_user}} = create_user_and_space(%{handle: "derrick"})
+      {:ok, _} = create_space_member(space, %{handle: "bob"})
+      {:ok, _} = create_space_member(space, %{handle: "tom"})
+      {:ok, %{post: post}} = create_global_post(space_user, %{body: "@bob sup!"})
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.where_specific_recipients(["bob", "tom", "derrick"])
+
+      refute query_includes?(query, post)
+    end
+
+    test "does not include posts with more recipients" do
+      {:ok, %{space: space, space_user: space_user}} = create_user_and_space(%{handle: "derrick"})
+      {:ok, _} = create_space_member(space, %{handle: "bob"})
+      {:ok, _} = create_space_member(space, %{handle: "tom"})
+      {:ok, _} = create_space_member(space, %{handle: "dan"})
+      {:ok, %{post: post}} = create_global_post(space_user, %{body: "@bob @tom @dan sup!"})
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.where_specific_recipients(["bob", "tom", "derrick"])
+
+      refute query_includes?(query, post)
+    end
+
+    test "does not include channel posts" do
+      {:ok, %{space: space, space_user: space_user}} = create_user_and_space(%{handle: "derrick"})
+      {:ok, %{group: group}} = create_group(space_user)
+      {:ok, _} = create_space_member(space, %{handle: "bob"})
+      {:ok, _} = create_space_member(space, %{handle: "tom"})
+      {:ok, %{post: post}} = create_post(space_user, group, %{body: "@bob @tom sup!"})
+
+      query =
+        space_user
+        |> Posts.Query.base_query()
+        |> Posts.Query.where_specific_recipients(["bob", "tom", "derrick"])
+
+      refute query_includes?(query, post)
+    end
+  end
+
   def query_includes?(query, record) do
     results = Repo.all(query)
     Enum.any?(results, fn result -> result.id == record.id end)
