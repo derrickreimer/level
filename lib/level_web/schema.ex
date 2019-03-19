@@ -261,6 +261,7 @@ defmodule LevelWeb.Schema do
     field :create_post, type: :create_post_payload do
       arg :space_id, non_null(:id)
       arg :group_id, :id
+      arg :recipient_ids, list_of(:id)
       arg :body, non_null(:string)
       arg :file_ids, list_of(:id)
       arg :is_urgent, :boolean, default_value: false
