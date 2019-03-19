@@ -102,16 +102,62 @@ resolveData repo model =
 
 title : Repo -> Model -> String
 title repo model =
+    oneOf "Home"
+        [ recipientsTitle repo model
+        , sentTitle repo model
+        ]
+
+
+recipientsTitle : Repo -> Model -> Maybe String
+recipientsTitle repo model =
+    let
+        maybeRecipients =
+            model.params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles repo)
+    in
+    case maybeRecipients of
+        Just recipients ->
+            if List.map SpaceUser.id recipients == [ model.viewerId ] then
+                Just "Private Notes"
+
+            else
+                -- recipients
+                --     |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
+                --     |> List.map SpaceUser.displayName
+                --     |> String.join ", "
+                --     |> Just
+                Just "Direct Messages"
+
+        Nothing ->
+            Nothing
+
+
+sentTitle : Repo -> Model -> Maybe String
+sentTitle repo model =
     case resolveData repo model of
         Just data ->
             if Route.Posts.getAuthor model.params == Just (SpaceUser.handle data.viewer) then
-                "Sent"
+                Just "Sent"
 
             else
-                "Home"
+                Nothing
 
         Nothing ->
-            "Home"
+            Nothing
+
+
+oneOf : a -> List (Maybe a) -> a
+oneOf default maybes =
+    case maybes of
+        (Just hd) :: tl ->
+            hd
+
+        Nothing :: tl ->
+            oneOf default tl
+
+        [] ->
+            default
 
 
 
