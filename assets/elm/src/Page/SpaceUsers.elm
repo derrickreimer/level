@@ -19,6 +19,7 @@ import Pagination
 import Query.SpaceUsersInit as SpaceUsersInit
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Posts
 import Route.SpaceUser
 import Route.SpaceUsers exposing (Params)
 import Scroll
@@ -236,7 +237,7 @@ resolvedDesktopView globals model data =
             --         , input [ id "search-input", type_ "text", class "flex-1 bg-transparent no-outline", placeholder "Type to search" ] []
             --         ]
             --     ]
-            , usersView globals.repo model.params spaceUsers
+            , usersView model data spaceUsers
             ]
         ]
 
@@ -276,7 +277,7 @@ resolvedMobileView globals model data =
     in
     Layout.SpaceMobile.layout config
         [ div [ class "p-3" ]
-            [ usersView globals.repo model.params spaceUsers
+            [ usersView model data spaceUsers
             ]
         ]
 
@@ -285,72 +286,47 @@ resolvedMobileView globals model data =
 -- SHARED
 
 
-usersView : Repo -> Params -> List SpaceUser -> Html Msg
-usersView repo params spaceUsers =
-    let
-        partitions =
-            spaceUsers
-                |> List.indexedMap Tuple.pair
-                |> partitionUsers []
-    in
+usersView : Model -> Data -> List SpaceUser -> Html Msg
+usersView model data spaceUsers =
     div [ class "leading-semi-loose" ]
-        [ div [] <| List.map (userPartitionView params) partitions
+        [ div [] <| List.map (userView model data) spaceUsers
         ]
 
 
-userPartitionView : Params -> ( String, List IndexedUser ) -> Html Msg
-userPartitionView params ( letter, indexedUsers ) =
-    div [] (List.map (userView params) indexedUsers)
-
-
-userView : Params -> IndexedUser -> Html Msg
-userView params ( index, spaceUser ) =
+userView : Model -> Data -> SpaceUser -> Html Msg
+userView model data spaceUser =
     let
+        params =
+            model.params
+
+        spaceSlug =
+            Route.SpaceUsers.getSpaceSlug params
+
         viewParams =
-            Route.SpaceUser.init (Route.SpaceUsers.getSpaceSlug params) (SpaceUser.handle spaceUser)
+            Route.SpaceUser.init spaceSlug (SpaceUser.handle spaceUser)
+
+        feedParams =
+            if SpaceUser.id data.viewer == SpaceUser.id spaceUser then
+                Route.Posts.init spaceSlug
+                    |> Route.Posts.setRecipients (Just [ SpaceUser.handle data.viewer ])
+                    |> Route.Posts.clearFilters
+
+            else
+                Route.Posts.init spaceSlug
+                    |> Route.Posts.setRecipients (Just [ SpaceUser.handle data.viewer, SpaceUser.handle spaceUser ])
+                    |> Route.Posts.clearFilters
     in
-    a [ Route.href <| Route.SpaceUser viewParams, class "block pb-1 no-underline text-dusty-blue-darker" ]
-        [ h2 [ class "flex items-center pr-4 font-normal font-sans text-lg" ]
-            [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
-            , text (SpaceUser.displayName spaceUser)
+    div [ class "pb-1 flex items-center font-normal font-sans text-lg" ]
+        [ div [ class "mr-3" ] [ SpaceUser.avatar Avatar.Small spaceUser ]
+        , a
+            [ Route.href (Route.Posts feedParams)
+            , class "block flex-grow no-underline text-dusty-blue-darker"
             ]
+            [ text (SpaceUser.displayName spaceUser) ]
+        , a
+            [ Route.href (Route.SpaceUser viewParams)
+            , class "tooltip tooltip-bottom ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
+            , attribute "data-tooltip" "Settings"
+            ]
+            [ Icons.settings ]
         ]
-
-
-
--- HELPERS
-
-
-partitionUsers : List ( String, List IndexedUser ) -> List IndexedUser -> List ( String, List IndexedUser )
-partitionUsers partitions groups =
-    case groups of
-        hd :: tl ->
-            let
-                letter =
-                    firstLetter (Tuple.second hd)
-
-                ( matches, remaining ) =
-                    List.partition (startsWith letter) groups
-            in
-            partitionUsers (( letter, matches ) :: partitions) remaining
-
-        _ ->
-            List.reverse partitions
-
-
-firstLetter : SpaceUser -> String
-firstLetter spaceUser =
-    spaceUser
-        |> SpaceUser.lastName
-        |> String.left 1
-        |> String.toUpper
-
-
-startsWith : String -> IndexedUser -> Bool
-startsWith letter ( _, spaceUser ) =
-    firstLetter spaceUser == letter
-
-
-isEven : Int -> Bool
-isEven number =
-    remainderBy 2 number == 0

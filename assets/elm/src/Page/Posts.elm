@@ -119,14 +119,14 @@ recipientsTitle repo model =
     case maybeRecipients of
         Just recipients ->
             if List.map SpaceUser.id recipients == [ model.viewerId ] then
-                Just "Private Notes"
+                Just "My Notes"
 
             else
                 recipients
                     |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
                     |> List.map SpaceUser.firstName
                     |> String.join ", "
-                    |> String.append "Direct to "
+                    |> String.append "Me & "
                     |> Just
 
         Nothing ->
