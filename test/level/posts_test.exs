@@ -163,7 +163,7 @@ defmodule Level.PostsTest do
     end
   end
 
-  describe "create_post/2 with space user + group" do
+  describe "create_post/2 with space user" do
     setup do
       {:ok, %{space_user: space_user} = result} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user, %{name: "room"})
@@ -331,6 +331,20 @@ defmodule Level.PostsTest do
         |> Map.put(:body, "Hello #room")
 
       assert {:ok, %{post: post}} = Posts.create_post(space_user, group, params)
+    end
+
+    test "subscribes the given recipients", %{space: space, space_user: space_user} do
+      {:ok, %{space_user: another_user}} = create_space_member(space)
+
+      params =
+        valid_post_params()
+        |> Map.put(:body, "Hello")
+        |> Map.put(:recipient_ids, [another_user.id])
+
+      {:ok, %{post: post}} = Posts.create_post(space_user, params)
+
+      assert %{inbox: "UNREAD", subscription: "SUBSCRIBED"} =
+               Posts.get_user_state(post, another_user)
     end
 
     test "returns errors given invalid params", %{space_user: space_user, group: group} do

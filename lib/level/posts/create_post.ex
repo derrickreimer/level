@@ -1,6 +1,8 @@
 defmodule Level.Posts.CreatePost do
   @moduledoc false
 
+  import Ecto.Query
+
   alias Ecto.Multi
   alias Level.Events
   alias Level.Files
@@ -36,7 +38,7 @@ defmodule Level.Posts.CreatePost do
     |> attach_files(author, params)
     |> log(author)
     |> Repo.transaction()
-    |> after_user_post(author)
+    |> after_user_post(author, params)
   end
 
   @spec perform(SpaceUser.t(), map()) :: result()
@@ -49,7 +51,7 @@ defmodule Level.Posts.CreatePost do
     |> attach_files(author, params)
     |> log(author)
     |> Repo.transaction()
-    |> after_user_post(author)
+    |> after_user_post(author, params)
   end
 
   @spec perform(SpaceBot.t(), map()) :: result()
@@ -62,7 +64,7 @@ defmodule Level.Posts.CreatePost do
     |> attach_files(author, params)
     |> log(author)
     |> Repo.transaction()
-    |> after_bot_post(author)
+    |> after_bot_post(author, params)
   end
 
   # Internal
@@ -155,8 +157,9 @@ defmodule Level.Posts.CreatePost do
     tagged_groups |> Enum.uniq_by(fn group -> group.id end)
   end
 
-  defp after_user_post({:ok, %{post: post} = result}, author) do
+  defp after_user_post({:ok, %{post: post} = result}, author, params) do
     Posts.subscribe(author, [post])
+    subscribe_recipients(post, author, params)
     subscribe_mentioned_users(post, result)
     subscribe_mentioned_groups(post, result)
     subscribe_watchers(result)
@@ -170,9 +173,10 @@ defmodule Level.Posts.CreatePost do
     {:ok, result}
   end
 
-  defp after_user_post(err, _), do: err
+  defp after_user_post(err, _, _), do: err
 
-  defp after_bot_post({:ok, %{post: post} = result}, author) do
+  defp after_bot_post({:ok, %{post: post} = result}, author, params) do
+    subscribe_recipients(post, author, params)
     subscribe_mentioned_users(post, result)
     subscribe_mentioned_groups(post, result)
     subscribe_watchers(result)
@@ -186,7 +190,25 @@ defmodule Level.Posts.CreatePost do
     {:ok, result}
   end
 
-  defp after_bot_post(err, _), do: err
+  defp after_bot_post(err, _, _), do: err
+
+  defp subscribe_recipients(_post, _author, %{recipient_ids: []}), do: nil
+
+  defp subscribe_recipients(post, _author, %{recipient_ids: ids}) do
+    query =
+      from su in SpaceUser,
+        where: su.space_id == ^post.space_id,
+        where: su.id in ^ids,
+        where: su.state == "ACTIVE"
+
+    recipients = Repo.all(query)
+
+    Enum.each(recipients, fn recipient ->
+      Posts.mark_as_unread(recipient, [post])
+    end)
+  end
+
+  defp subscribe_recipients(_post, _author, _params), do: nil
 
   defp subscribe_mentioned_users(post, %{mentions: %{space_users: mentioned_users}}) do
     Enum.each(mentioned_users, fn mentioned_user ->
