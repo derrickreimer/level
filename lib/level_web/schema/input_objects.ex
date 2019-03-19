@@ -103,6 +103,11 @@ defmodule LevelWeb.Schema.InputObjects do
     Filter by author handle.
     """
     field :author, :string
+
+    @desc """
+    Filter by recipients.
+    """
+    field :recipients, list_of(:string), default_value: []
   end
 
   @desc "Filtering criteria for notification connections."
