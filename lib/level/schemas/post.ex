@@ -44,6 +44,7 @@ defmodule Level.Schemas.Post do
     has_many :user_mentions, UserMention
     has_many :post_logs, PostLog
     has_many :post_users, PostUser
+    has_many :recipients, through: [:post_users, :space_user]
     has_many :post_files, PostFile
     has_many :files, through: [:post_files, :file]
     has_many :locators, PostLocator
@@ -53,7 +54,8 @@ defmodule Level.Schemas.Post do
     field :last_pinged_at, :naive_datetime, virtual: true
     field :last_activity_at, :naive_datetime, virtual: true
 
-    field :recipients, {:array, :string}, virtual: true
+    # Needed for the query that filters for specific recipients
+    field :recipient_handles, {:array, :string}, virtual: true
 
     timestamps()
   end

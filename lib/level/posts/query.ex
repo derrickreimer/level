@@ -221,11 +221,11 @@ defmodule Level.Posts.Query do
         on: su2.id == pu2.space_user_id,
         where: is_nil(g.id),
         group_by: p.id,
-        select_merge: %{recipients: fragment("array_agg(?)", su2.handle)}
+        select_merge: %{recipient_handles: fragment("array_agg(?)", su2.handle)}
 
     from p in subquery(base_query),
-      where: fragment("? @> ?::citext[]", p.recipients, ^handles),
-      where: fragment("? <@ ?::citext[]", p.recipients, ^handles)
+      where: fragment("? @> ?::citext[]", p.recipient_handles, ^handles),
+      where: fragment("? <@ ?::citext[]", p.recipient_handles, ^handles)
   end
 
   @doc """

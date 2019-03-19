@@ -212,16 +212,23 @@ filterPosts repo spaceId params posts =
                 |> List.filter Group.withSubscribed
                 |> List.map Group.id
 
-        filteredAuthor =
+        authorFilter =
             params
                 |> Route.Posts.getAuthor
                 |> Maybe.andThen (\handle -> Repo.getActorByHandle spaceId handle repo)
+
+        recipientFilter =
+            params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle spaceId handles repo)
+                |> Maybe.map (List.map SpaceUser.id)
     in
     posts
         |> List.filter (Post.withSpace spaceId)
         |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
         |> List.filter (Post.withFollowing subscribedGroupIds)
-        |> List.filter (Post.withAuthor filteredAuthor)
+        |> List.filter (Post.withAuthor authorFilter)
+        |> List.filter (Post.withRecipients recipientFilter)
 
 
 isMemberPost : Repo -> Model -> Post -> Bool

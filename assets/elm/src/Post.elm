@@ -1,11 +1,11 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
     , setInboxState
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
-    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor
+    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients
     )
 
 {-| A post represents a message posted to group.
@@ -18,7 +18,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
 
 
 # Mutations
@@ -43,7 +43,7 @@ module Post exposing
 
 # Filtering
 
-@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor
+@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients
 
 -}
 
@@ -99,6 +99,7 @@ type alias Data =
     , bodyHtml : String
     , author : Author
     , groupIds : List Id
+    , recipientIds : List Id
     , files : List File
     , postedAt : Posix
     , subscriptionState : SubscriptionState
@@ -154,6 +155,11 @@ groupsInclude group (Post data) =
     List.filter (\gid -> gid == Group.id group) data.groupIds
         |> List.isEmpty
         |> not
+
+
+recipientIds : Post -> List Id
+recipientIds (Post data) =
+    data.recipientIds
 
 
 state : Post -> State
@@ -261,6 +267,9 @@ fragment =
               groups {
                 ...GroupFields
               }
+              recipients {
+                ...SpaceUserFields
+              }
               files {
                 ...FileFields
               }
@@ -307,6 +316,7 @@ decoder =
             |> required "bodyHtml" string
             |> required "author" Author.decoder
             |> required "groups" (list (field "id" Id.decoder))
+            |> required "recipients" (list (field "id" Id.decoder))
             |> required "files" (list File.decoder)
             |> required "postedAt" dateDecoder
             |> required "subscriptionState" subscriptionStateDecoder
@@ -470,6 +480,16 @@ withAuthor maybeActor post =
     case maybeActor of
         Just actor ->
             Author.actorId (author post) == Actor.id actor
+
+        Nothing ->
+            True
+
+
+withRecipients : Maybe (List Id) -> Post -> Bool
+withRecipients maybeMatchingIds post =
+    case maybeMatchingIds of
+        Just matchingIds ->
+            List.sort matchingIds == List.sort (recipientIds post) && List.isEmpty (groupIds post)
 
         Nothing ->
             True
