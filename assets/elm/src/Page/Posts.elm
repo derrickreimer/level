@@ -122,12 +122,12 @@ recipientsTitle repo model =
                 Just "Private Notes"
 
             else
-                -- recipients
-                --     |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
-                --     |> List.map SpaceUser.displayName
-                --     |> String.join ", "
-                --     |> Just
-                Just "Direct Messages"
+                recipients
+                    |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
+                    |> List.map SpaceUser.firstName
+                    |> String.join ", "
+                    |> String.append "Direct to "
+                    |> Just
 
         Nothing ->
             Nothing
