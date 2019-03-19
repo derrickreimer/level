@@ -465,9 +465,10 @@ update msg globals model =
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithGroup
+                        CreatePost.variables
                             model.spaceId
-                            model.groupId
+                            (Just model.groupId)
+                            []
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
                             (PostEditor.getIsUrgent model.postComposer)

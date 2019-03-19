@@ -1,4 +1,4 @@
-module Mutation.CreatePost exposing (Response(..), request, variablesWithGroup, variablesWithoutGroup)
+module Mutation.CreatePost exposing (Response(..), request, variables)
 
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
@@ -26,6 +26,7 @@ document =
         mutation CreatePost(
           $spaceId: ID!,
           $groupId: ID,
+          $recipientIds: [ID],
           $body: String!,
           $fileIds: [ID],
           $isUrgent: Boolean!
@@ -33,6 +34,7 @@ document =
           createPost(
             spaceId: $spaceId,
             groupId: $groupId,
+            recipientIds: $recipientIds
             body: $body,
             fileIds: $fileIds,
             isUrgent: $isUrgent
@@ -53,27 +55,28 @@ document =
         ]
 
 
-variablesWithoutGroup : Id -> String -> List Id -> Bool -> Maybe Encode.Value
-variablesWithoutGroup spaceId body fileIds isUrgent =
-    Just <|
-        Encode.object
+variables : Id -> Maybe Id -> List Id -> String -> List Id -> Bool -> Maybe Encode.Value
+variables spaceId maybeGroupId recipientIds body fileIds isUrgent =
+    let
+        baseParams =
             [ ( "spaceId", Id.encoder spaceId )
+            , ( "recipientIds", Encode.list Id.encoder recipientIds )
             , ( "body", Encode.string body )
             , ( "fileIds", Encode.list Id.encoder fileIds )
             , ( "isUrgent", Encode.bool isUrgent )
             ]
 
+        groupParam =
+            case maybeGroupId of
+                Just groupId ->
+                    [ ( "groupId", Id.encoder groupId )
+                    ]
 
-variablesWithGroup : Id -> Id -> String -> List Id -> Bool -> Maybe Encode.Value
-variablesWithGroup spaceId groupId body fileIds isUrgent =
+                Nothing ->
+                    []
+    in
     Just <|
-        Encode.object
-            [ ( "spaceId", Id.encoder spaceId )
-            , ( "groupId", Id.encoder groupId )
-            , ( "body", Encode.string body )
-            , ( "fileIds", Encode.list Id.encoder fileIds )
-            , ( "isUrgent", Encode.bool isUrgent )
-            ]
+        Encode.object (baseParams ++ groupParam)
 
 
 conditionalDecoder : Bool -> Decoder Response

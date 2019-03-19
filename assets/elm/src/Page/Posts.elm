@@ -505,11 +505,22 @@ update msg globals model =
             ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
+            let
+                recipientIds =
+                    model.params
+                        |> Route.Posts.getRecipients
+                        |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles globals.repo)
+                        |> Maybe.map (List.filter (\su -> SpaceUser.id su /= model.viewerId))
+                        |> Maybe.map (List.map SpaceUser.id)
+                        |> Maybe.withDefault []
+            in
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithoutGroup
+                        CreatePost.variables
                             model.spaceId
+                            Nothing
+                            recipientIds
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
                             (PostEditor.getIsUrgent model.postComposer)
