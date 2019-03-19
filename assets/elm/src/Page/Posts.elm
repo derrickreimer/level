@@ -1040,20 +1040,27 @@ desktopPostComposerView globals model data =
             , classList = []
             }
 
-        buttonText =
-            if PostEditor.getBody editor == "" then
-                "Send"
+        maybeRecipients =
+            model.params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles globals.repo)
 
-            else
-                case determineRecipient (PostEditor.getBody editor) of
-                    Nobody ->
-                        "Save Private Note"
+        placeholderText =
+            case maybeRecipients of
+                Just recipients ->
+                    if List.map SpaceUser.id recipients == [ model.viewerId ] then
+                        "Write a private note"
 
-                    Direct ->
-                        "Send Direct Message "
+                    else
+                        recipients
+                            |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
+                            |> List.map SpaceUser.firstName
+                            |> String.join ", "
+                            |> String.append "Write to "
+                            |> (\text -> String.append text "...")
 
-                    Channel ->
-                        "Send to Channel"
+                Nothing ->
+                    "Tag a channel or @mention someone..."
     in
     PostEditor.wrapper config
         [ label [ class "composer" ]
@@ -1063,7 +1070,7 @@ desktopPostComposerView globals model data =
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Write something..."
+                        , placeholder placeholderText
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
                             [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
@@ -1095,7 +1102,7 @@ desktopPostComposerView globals model data =
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text buttonText ]
+                            [ text "Send" ]
                         ]
                     ]
                 ]
