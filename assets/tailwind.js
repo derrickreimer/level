@@ -155,7 +155,6 @@ module.exports = {
 
   fonts: {
     'headline': [
-      'UntitledSansWeb',
       'system-ui',
       'BlinkMacSystemFont',
       '-apple-system',
@@ -299,7 +298,7 @@ module.exports = {
 
   tracking: {
     'tight': '-0.04em',
-    'semi-tight': '-0.025em',
+    'semi-tight': '0',
     'normal': '0',
     'wide': '0.05em',
   },
