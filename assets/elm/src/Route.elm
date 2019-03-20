@@ -117,7 +117,10 @@ isCurrent : Route -> Maybe Route -> Bool
 isCurrent testRoute maybeCurrentRoute =
     case ( testRoute, maybeCurrentRoute ) of
         ( Posts testParams, Just (Posts currentParams) ) ->
-            Route.Posts.getAuthor testParams == Route.Posts.getAuthor currentParams
+            Route.Posts.getAuthor testParams
+                == Route.Posts.getAuthor currentParams
+                && Route.Posts.getRecipients testParams
+                == Route.Posts.getRecipients currentParams
 
         ( Settings _, Just (Settings _) ) ->
             True
