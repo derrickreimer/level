@@ -524,7 +524,7 @@ resolvedDesktopView globals model data =
             , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
-            , showGroups = True
+            , showRecipients = True
             , isSelected = False
             }
     in
@@ -578,7 +578,7 @@ resolvedMobileView globals model data =
             , now = globals.now
             , spaceUsers = Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
             , groups = Repo.getGroups (Space.groupIds data.space) globals.repo
-            , showGroups = True
+            , showRecipients = True
             , isSelected = False
             }
     in

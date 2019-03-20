@@ -1669,7 +1669,7 @@ desktopPostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = False
+            , showRecipients = False
             , isSelected = PostSet.selected model.postViews == Just postView
             }
     in
@@ -1796,7 +1796,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = False
+            , showRecipients = False
             , isSelected = False
             }
     in

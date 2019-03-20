@@ -304,7 +304,7 @@ type alias ViewConfig =
     , now : TimeWithZone
     , spaceUsers : List SpaceUser
     , groups : List Group
-    , showGroups : Bool
+    , showRecipients : Bool
     }
 
 

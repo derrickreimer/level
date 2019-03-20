@@ -1160,7 +1160,7 @@ desktopPostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = True
+            , showRecipients = showRecipients model.params
             , isSelected = PostSet.selected model.postViews == Just postView
             }
 
@@ -1284,7 +1284,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = True
+            , showRecipients = showRecipients model.params
             , isSelected = False
             }
     in
@@ -1332,6 +1332,11 @@ userItemView space user =
 
 
 -- INTERNAL
+
+
+showRecipients : Params -> Bool
+showRecipients params =
+    List.isEmpty (Route.Posts.getRecipients params |> Maybe.withDefault [])
 
 
 undismissedParams : Params -> Params
