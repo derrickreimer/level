@@ -1089,16 +1089,26 @@ recipientsLabel config postView data =
         directLink spaceUser =
             a
                 [ Route.href (Route.SpaceUser (Route.SpaceUser.init (Space.slug config.space) (SpaceUser.handle spaceUser)))
-                , class "mr-1 px-2 rounded-full border text-md no-underline text-dusty-blue-dark whitespace-no-wrap bg-transparent hover:bg-grey transition-bg"
+                , class "mr-1 px-2 rounded-full text-md no-underline text-dusty-blue-dark whitespace-no-wrap bg-grey-light hover:bg-grey transition-bg"
                 ]
                 [ text (SpaceUser.firstName spaceUser) ]
+
+        recipientsExceptMe =
+            data.recipients
+                |> List.filter (\spaceUser -> SpaceUser.id spaceUser /= SpaceUser.id config.currentUser)
     in
     if List.isEmpty data.groups then
-        div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
-            [ text "To: "
-            , span [] <|
-                List.map directLink data.recipients
-            ]
+        if List.isEmpty recipientsExceptMe then
+            div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
+                [ text "Note to self"
+                ]
+
+        else
+            div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
+                [ text "To: "
+                , span [] <|
+                    List.map directLink recipientsExceptMe
+                ]
 
     else
         div [ class "pb-1 mr-3 text-base text-dusty-blue" ]
