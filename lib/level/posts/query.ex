@@ -8,6 +8,7 @@ defmodule Level.Posts.Query do
   alias Level.Schemas.GroupUser
   alias Level.Schemas.Post
   alias Level.Schemas.PostLog
+  alias Level.Schemas.PostUser
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
 
@@ -187,6 +188,44 @@ defmodule Level.Posts.Query do
       left_join: u_author in assoc(p, :space_user),
       left_join: b_author in assoc(p, :space_bot),
       where: u_author.handle == ^handle or b_author.handle == ^handle
+  end
+
+  @doc """
+  Filters a posts query for posts with specific user recipients.
+  """
+  @spec where_specific_recipients(Ecto.Query.t(), [String.t()]) :: Ecto.Query.t()
+  def where_specific_recipients(query, handles) do
+    # base_query =
+    #   from [p, su, u, g, gu, pu] in query,
+    #     inner_join: pu2 in PostUser,
+    #     on: pu2.post_id == p.id,
+    #     left_join: su2 in SpaceUser,
+    #     on: su2.id == pu2.space_user_id and su2.handle not in ^handles,
+    #     where: is_nil(g.id),
+    #     where: is_nil(su2.id)
+    #
+    # Enum.reduce(handles, base_query, fn handle, acc ->
+    #   from [p] in acc,
+    #     inner_join: pu2 in PostUser,
+    #     on: pu2.post_id == p.id,
+    #     left_join: su2 in SpaceUser,
+    #     on: su2.id == pu2.space_user_id,
+    #     where: su2.handle == ^handle
+    # end)
+
+    base_query =
+      from [p, su, u, g, gu, pu] in query,
+        inner_join: pu2 in PostUser,
+        on: pu2.post_id == p.id,
+        left_join: su2 in SpaceUser,
+        on: su2.id == pu2.space_user_id,
+        where: is_nil(g.id),
+        group_by: p.id,
+        select_merge: %{recipient_handles: fragment("array_agg(?)", su2.handle)}
+
+    from p in subquery(base_query),
+      where: fragment("? @> ?::citext[]", p.recipient_handles, ^handles),
+      where: fragment("? <@ ?::citext[]", p.recipient_handles, ^handles)
   end
 
   @doc """

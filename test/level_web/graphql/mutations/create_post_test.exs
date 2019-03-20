@@ -5,18 +5,23 @@ defmodule LevelWeb.GraphQL.CreatePostTest do
   @query """
     mutation CreatePost(
       $space_id: ID!,
-      $group_id: ID!,
+      $group_id: ID,
+      $recipient_ids: [ID],
       $body: String!
     ) {
       createPost(
         spaceId: $space_id,
         groupId: $group_id,
+        recipientIds: $recipient_ids,
         body: $body
       ) {
         success
         post {
           body
           groups {
+            id
+          }
+          recipients {
             id
           }
           author {
@@ -69,6 +74,57 @@ defmodule LevelWeb.GraphQL.CreatePostTest do
                    "groups" => [
                      %{
                        "id" => group.id
+                     }
+                   ],
+                   "recipients" => [
+                     %{
+                       "id" => space_user.id
+                     }
+                   ],
+                   "author" => %{
+                     "actor" => %{
+                       "firstName" => user.first_name
+                     }
+                   }
+                 },
+                 "errors" => []
+               }
+             }
+           }
+  end
+
+  test "creates a post with given recipients", %{
+    conn: conn,
+    user: user,
+    space: space,
+    space_user: space_user
+  } do
+    {:ok, %{space_user: another_user}} = create_space_member(space)
+
+    variables =
+      valid_post_params()
+      |> Map.put(:body, "I am the body")
+      |> Map.put(:space_id, space.id)
+      |> Map.put(:recipient_ids, [another_user.id])
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "createPost" => %{
+                 "success" => true,
+                 "post" => %{
+                   "body" => "I am the body",
+                   "groups" => [],
+                   "recipients" => [
+                     %{
+                       "id" => space_user.id
+                     },
+                     %{
+                       "id" => another_user.id
                      }
                    ],
                    "author" => %{

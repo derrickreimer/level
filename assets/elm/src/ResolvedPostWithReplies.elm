@@ -16,6 +16,7 @@ type alias ResolvedPostWithReplies =
     { post : Post
     , author : ResolvedAuthor
     , groups : List Group
+    , recipients : List SpaceUser
     , reactors : List SpaceUser
     , resolvedReplies : Connection ResolvedReply
     }
@@ -23,10 +24,11 @@ type alias ResolvedPostWithReplies =
 
 decoder : Decoder ResolvedPostWithReplies
 decoder =
-    Decode.map5 ResolvedPostWithReplies
+    Decode.map6 ResolvedPostWithReplies
         Post.decoder
         (field "author" ResolvedAuthor.decoder)
         (field "groups" (list Group.decoder))
+        (field "recipients" (list SpaceUser.decoder))
         (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
         (field "replies" (Connection.decoder ResolvedReply.decoder))
 
@@ -35,8 +37,9 @@ addToRepo : ResolvedPostWithReplies -> Repo -> Repo
 addToRepo post repo =
     repo
         |> Repo.setPost post.post
-        |> Repo.setGroups post.groups
         |> ResolvedAuthor.addToRepo post.author
+        |> Repo.setGroups post.groups
+        |> Repo.setSpaceUsers post.recipients
         |> Repo.setSpaceUsers post.reactors
         |> ResolvedReply.addManyToRepo (Connection.toList post.resolvedReplies)
 

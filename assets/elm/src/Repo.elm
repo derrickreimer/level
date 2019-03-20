@@ -3,7 +3,7 @@ module Repo exposing
     , empty, union
     , getUser, setUser
     , getSpace, getSpaces, getAllSpaces, setSpace, setSpaces, getSpaceBySlug
-    , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, getSpaceUserByHandle, setSpaceUser, setSpaceUsers
+    , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, getSpaceUserByHandle, getSpaceUsersByHandle, setSpaceUser, setSpaceUsers
     , getSpaceBot, setSpaceBot, getSpaceBotByHandle
     , getActor, setActor, getActorByHandle
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
@@ -37,7 +37,7 @@ module Repo exposing
 
 # Space Users
 
-@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, filterSpaceUsers, getSpaceUsersBySpaceId, getSpaceUserByHandle, setSpaceUser, setSpaceUsers
+@docs getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, filterSpaceUsers, getSpaceUsersBySpaceId, getSpaceUserByHandle, getSpaceUsersByHandle, setSpaceUser, setSpaceUsers
 
 
 # Space Bots
@@ -217,6 +217,13 @@ getSpaceUserByHandle spaceId handle (Repo data) =
         |> Dict.values
         |> List.filter (\su -> SpaceUser.spaceId su == spaceId && SpaceUser.handle su == handle)
         |> List.head
+
+
+getSpaceUsersByHandle : Id -> List String -> Repo -> List SpaceUser
+getSpaceUsersByHandle spaceId handles (Repo data) =
+    data.spaceUsers
+        |> Dict.values
+        |> List.filter (\su -> SpaceUser.spaceId su == spaceId && List.member (SpaceUser.handle su) handles)
 
 
 setSpaceUser : SpaceUser -> Repo -> Repo

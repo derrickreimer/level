@@ -106,6 +106,8 @@ type alias PostView =
 type alias Data =
     { post : Post
     , author : ResolvedAuthor
+    , groups : List Group
+    , recipients : List SpaceUser
     , reactors : List SpaceUser
     }
 
@@ -118,9 +120,11 @@ resolveData repo postView =
     in
     case maybePost of
         Just post ->
-            Maybe.map3 Data
+            Maybe.map5 Data
                 (Just post)
                 (ResolvedAuthor.resolve repo (Post.author post))
+                (Just <| Repo.getGroups (Post.groupIds post) repo)
+                (Just <| Repo.getSpaceUsers (Post.recipientIds post) repo)
                 (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
 
         Nothing ->
@@ -928,7 +932,7 @@ type alias ViewConfig =
     , now : TimeWithZone
     , spaceUsers : List SpaceUser
     , groups : List Group
-    , showGroups : Bool
+    , showRecipients : Bool
     , isSelected : Bool
     }
 
@@ -985,8 +989,8 @@ resolvedView config postView data =
                         [ Icons.alertSmall ]
                 , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 ]
-            , viewIf (config.showGroups || List.length (Post.groupIds data.post) > 1) <|
-                groupsLabel config.space (Repo.getGroups (Post.groupIds data.post) config.globals.repo)
+            , viewIf config.showRecipients <|
+                recipientsLabel config postView data
             , viewUnless (PostEditor.isExpanded postView.editor) <|
                 bodyView config.space data.post
             , viewIf (PostEditor.isExpanded postView.editor) <|
@@ -1072,26 +1076,45 @@ authorLabel space postId author =
         ]
 
 
-groupsLabel : Space -> List Group -> Html Msg
-groupsLabel space groups =
+recipientsLabel : ViewConfig -> PostView -> Data -> Html Msg
+recipientsLabel config postView data =
     let
         groupLink group =
             a
-                [ Route.href (Route.Group (Route.Group.init (Space.slug space) (Group.name group)))
+                [ Route.href (Route.Group (Route.Group.init (Space.slug config.space) (Group.name group)))
                 , class "mr-1 no-underline text-dusty-blue-dark whitespace-no-wrap"
                 ]
                 [ text ("#" ++ Group.name group) ]
 
-        groupLinks =
-            List.map groupLink groups
+        directLink spaceUser =
+            a
+                [ Route.href (Route.SpaceUser (Route.SpaceUser.init (Space.slug config.space) (SpaceUser.handle spaceUser)))
+                , class "mr-1 px-2 rounded-full text-md no-underline text-dusty-blue-dark whitespace-no-wrap bg-grey-light hover:bg-grey transition-bg"
+                ]
+                [ text (SpaceUser.firstName spaceUser) ]
+
+        recipientsExceptMe =
+            data.recipients
+                |> List.filter (\spaceUser -> SpaceUser.id spaceUser /= SpaceUser.id config.currentUser)
     in
-    if List.isEmpty groups then
-        text ""
+    if List.isEmpty data.groups then
+        if List.isEmpty recipientsExceptMe then
+            div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
+                [ text "Note to self"
+                ]
+
+        else
+            div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
+                [ text "To: "
+                , span [] <|
+                    List.map directLink recipientsExceptMe
+                ]
 
     else
         div [ class "pb-1 mr-3 text-base text-dusty-blue" ]
             [ text ""
-            , span [] groupLinks
+            , span [] <|
+                List.map groupLink data.groups
             ]
 
 
@@ -1186,7 +1209,7 @@ repliesView config postView data =
             , now = config.now
             , spaceUsers = config.spaceUsers
             , groups = config.groups
-            , showGroups = config.showGroups
+            , showRecipients = config.showRecipients
             }
     in
     viewUnless (ReplySet.isEmpty postView.replyViews) <|

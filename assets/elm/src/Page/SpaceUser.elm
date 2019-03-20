@@ -21,6 +21,7 @@ import Mutation.UpdateRole as UpdateRole
 import PageError exposing (PageError)
 import Repo exposing (Repo)
 import Route exposing (Route)
+import Route.Posts
 import Route.SpaceUser exposing (Params)
 import Route.SpaceUsers
 import Scroll
@@ -379,24 +380,58 @@ resolvedMobileView globals model data =
 
 detailView : Model -> Data -> Html Msg
 detailView model data =
-    div [ class "flex mb-4 pb-6" ]
-        [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
-        , div [ class "flex-grow" ]
-            [ div [ class "flex items-center" ]
-                [ h1 [ class "mb-1 font-bold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
-                , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
-                    span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
-                ]
-            , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
-            ]
-        , div [ class "flex-no-shrink ml-4" ]
-            [ viewIf (canManageAccess model data) <|
-                button
-                    [ class "flex tooltip tooltip-bottom items-center text-dusty-blue no-underline font-bold no-outline"
-                    , onClick TogglePermissionsModal
-                    , attribute "data-tooltip" "Permissions"
+    let
+        spaceSlug =
+            Route.SpaceUser.getSpaceSlug model.params
+
+        ( feedTooltip, feedParams ) =
+            if SpaceUser.id data.viewer == SpaceUser.id data.spaceUser then
+                ( "Write a note to yourself"
+                , Route.Posts.init spaceSlug
+                    |> Route.Posts.setRecipients (Just [ SpaceUser.handle data.viewer ])
+                    |> Route.Posts.clearFilters
+                )
+
+            else
+                ( "Send a direct message"
+                , Route.Posts.init spaceSlug
+                    |> Route.Posts.setRecipients (Just [ SpaceUser.handle data.viewer, SpaceUser.handle data.spaceUser ])
+                    |> Route.Posts.clearFilters
+                )
+    in
+    div []
+        [ div [ class "flex pb-6" ]
+            [ div [ class "flex-no-shrink mr-4" ] [ SpaceUser.avatar Avatar.XLarge data.spaceUser ]
+            , div [ class "flex-grow" ]
+                [ div [ class "flex items-center" ]
+                    [ h1 [ class "mb-1 font-bold text-3xl tracking-semi-tight" ] [ text (SpaceUser.displayName data.spaceUser) ]
+                    , viewIf (SpaceUser.state data.spaceUser == SpaceUser.Disabled) <|
+                        span [ class "ml-4 px-3 py-1 text-sm border rounded-full text-dusty-blue-dark select-none" ] [ text "Account disabled" ]
                     ]
-                    [ div [] [ Icons.shield ]
+                , h2 [ class "font-normal text-dusty-blue-dark text-xl" ] [ text <| "@" ++ SpaceUser.handle data.spaceUser ]
+                ]
+            , div [ class "flex-no-shrink ml-2" ]
+                [ a
+                    [ Route.href (Route.Posts feedParams)
+                    , classList
+                        [ ( "tooltip tooltip-bottom ml-2 flex items-center justify-center w-9 h-9 rounded-full", True )
+                        , ( "bg-transparent hover:bg-grey transition-bg", True )
+                        ]
+                    , attribute "data-tooltip" feedTooltip
+                    ]
+                    [ Icons.mail ]
+                ]
+            , viewIf (canManageAccess model data) <|
+                div [ class "flex-no-shrink ml-2" ]
+                    [ button
+                        [ classList
+                            [ ( "tooltip tooltip-bottom ml-2 flex items-center justify-center w-9 h-9 rounded-full", True )
+                            , ( "bg-transparent hover:bg-grey transition-bg", True )
+                            ]
+                        , onClick TogglePermissionsModal
+                        , attribute "data-tooltip" "Permissions"
+                        ]
+                        [ Icons.shield ]
                     ]
             ]
         ]

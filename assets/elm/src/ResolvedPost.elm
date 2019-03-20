@@ -15,16 +15,18 @@ type alias ResolvedPost =
     { post : Post
     , author : ResolvedAuthor
     , groups : List Group
+    , recipients : List SpaceUser
     , reactors : List SpaceUser
     }
 
 
 decoder : Decoder ResolvedPost
 decoder =
-    Decode.map4 ResolvedPost
+    Decode.map5 ResolvedPost
         Post.decoder
         (field "author" ResolvedAuthor.decoder)
         (field "groups" (list Group.decoder))
+        (field "recipients" (list SpaceUser.decoder))
         (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
 
 
@@ -32,8 +34,9 @@ addToRepo : ResolvedPost -> Repo -> Repo
 addToRepo post repo =
     repo
         |> Repo.setPost post.post
-        |> Repo.setGroups post.groups
         |> ResolvedAuthor.addToRepo post.author
+        |> Repo.setGroups post.groups
+        |> Repo.setSpaceUsers post.recipients
         |> Repo.setSpaceUsers post.reactors
 
 
@@ -46,10 +49,11 @@ resolve : Repo -> Id -> Maybe ResolvedPost
 resolve repo postId =
     case Repo.getPost postId repo of
         Just post ->
-            Maybe.map4 ResolvedPost
+            Maybe.map5 ResolvedPost
                 (Just post)
                 (ResolvedAuthor.resolve repo (Post.author post))
                 (Just <| List.filterMap (\groupId -> Repo.getGroup groupId repo) (Post.groupIds post))
+                (Just <| Repo.getSpaceUsers (Post.recipientIds post) repo)
                 (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
 
         Nothing ->

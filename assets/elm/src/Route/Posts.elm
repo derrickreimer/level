@@ -1,6 +1,6 @@
 module Route.Posts exposing
     ( Params
-    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, clearFilters
+    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, clearFilters
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Posts exposing
 
 # API
 
-@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, clearFilters
+@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, clearFilters
 
 
 # Parsing
@@ -47,6 +47,7 @@ type alias Internal =
     , inboxState : InboxStateFilter
     , lastActivity : LastActivityFilter
     , author : Maybe String
+    , recipients : Maybe (List String)
     }
 
 
@@ -62,6 +63,7 @@ init spaceSlug =
             PostStateFilter.All
             InboxStateFilter.Undismissed
             LastActivityFilter.All
+            Nothing
             Nothing
         )
 
@@ -111,6 +113,16 @@ setAuthor newAuthor (Params internal) =
     Params { internal | author = newAuthor }
 
 
+getRecipients : Params -> Maybe (List String)
+getRecipients (Params internal) =
+    internal.recipients
+
+
+setRecipients : Maybe (List String) -> Params -> Params
+setRecipients newRecipients (Params internal) =
+    Params { internal | recipients = newRecipients }
+
+
 clearFilters : Params -> Params
 clearFilters params =
     params
@@ -135,9 +147,9 @@ parser =
 feedParser : Parser (Internal -> a) a
 feedParser =
     let
-        toInternal : String -> PostStateFilter -> LastActivityFilter -> Maybe String -> Internal
-        toInternal spaceSlug state lastActivity author =
-            Internal spaceSlug state InboxStateFilter.All lastActivity author
+        toInternal : String -> PostStateFilter -> LastActivityFilter -> Maybe String -> Maybe (List String) -> Internal
+        toInternal spaceSlug state lastActivity author recipients =
+            Internal spaceSlug state InboxStateFilter.All lastActivity author recipients
     in
     map toInternal
         (string
@@ -145,6 +157,7 @@ feedParser =
             <?> Query.map parseFeedPostState (Query.string "state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
             <?> Query.string "author"
+            <?> Query.map parseRecipients (Query.string "recipients")
         )
 
 
@@ -157,6 +170,7 @@ inboxParser =
             <?> Query.map parseInboxState (Query.string "inbox_state")
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
             <?> Query.string "author"
+            <?> Query.map parseRecipients (Query.string "recipients")
         )
 
 
@@ -265,12 +279,23 @@ castInboxState state =
             Just "all"
 
 
+parseRecipients : Maybe String -> Maybe (List String)
+parseRecipients maybeHandles =
+    Maybe.map (String.split ",") maybeHandles
+
+
+castRecipients : Maybe (List String) -> Maybe String
+castRecipients maybeHandles =
+    Maybe.map (String.join ",") maybeHandles
+
+
 buildFeedQuery : Internal -> List QueryParameter
 buildFeedQuery internal =
     buildStringParams
         [ ( "state", castFeedPostState internal.state )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         , ( "author", internal.author )
+        , ( "recipients", castRecipients internal.recipients )
         ]
 
 
@@ -281,6 +306,7 @@ buildInboxQuery internal =
         , ( "inbox_state", castInboxState internal.inboxState )
         , ( "last_activity", LastActivityFilter.toQuery internal.lastActivity )
         , ( "author", internal.author )
+        , ( "recipients", castRecipients internal.recipients )
         ]
 
 

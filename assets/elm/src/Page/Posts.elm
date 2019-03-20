@@ -102,16 +102,62 @@ resolveData repo model =
 
 title : Repo -> Model -> String
 title repo model =
+    oneOf "Home"
+        [ recipientsTitle repo model
+        , sentTitle repo model
+        ]
+
+
+recipientsTitle : Repo -> Model -> Maybe String
+recipientsTitle repo model =
+    let
+        maybeRecipients =
+            model.params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles repo)
+    in
+    case maybeRecipients of
+        Just recipients ->
+            if List.map SpaceUser.id recipients == [ model.viewerId ] then
+                Just "My Notes"
+
+            else
+                recipients
+                    |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
+                    |> List.map SpaceUser.firstName
+                    |> String.join ", "
+                    |> String.append "Me & "
+                    |> Just
+
+        Nothing ->
+            Nothing
+
+
+sentTitle : Repo -> Model -> Maybe String
+sentTitle repo model =
     case resolveData repo model of
         Just data ->
             if Route.Posts.getAuthor model.params == Just (SpaceUser.handle data.viewer) then
-                "Sent"
+                Just "Sent"
 
             else
-                "Home"
+                Nothing
 
         Nothing ->
-            "Home"
+            Nothing
+
+
+oneOf : a -> List (Maybe a) -> a
+oneOf default maybes =
+    case maybes of
+        (Just hd) :: tl ->
+            hd
+
+        Nothing :: tl ->
+            oneOf default tl
+
+        [] ->
+            default
 
 
 
@@ -212,16 +258,23 @@ filterPosts repo spaceId params posts =
                 |> List.filter Group.withSubscribed
                 |> List.map Group.id
 
-        filteredAuthor =
+        authorFilter =
             params
                 |> Route.Posts.getAuthor
                 |> Maybe.andThen (\handle -> Repo.getActorByHandle spaceId handle repo)
+
+        recipientFilter =
+            params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle spaceId handles repo)
+                |> Maybe.map (List.map SpaceUser.id)
     in
     posts
         |> List.filter (Post.withSpace spaceId)
         |> List.filter (Post.withInboxState (Route.Posts.getInboxState params))
         |> List.filter (Post.withFollowing subscribedGroupIds)
-        |> List.filter (Post.withAuthor filteredAuthor)
+        |> List.filter (Post.withAuthor authorFilter)
+        |> List.filter (Post.withRecipients recipientFilter)
 
 
 isMemberPost : Repo -> Model -> Post -> Bool
@@ -452,11 +505,22 @@ update msg globals model =
             ( ( { model | postComposer = PostEditor.toggleIsUrgent model.postComposer }, Cmd.none ), globals )
 
         NewPostSubmit ->
+            let
+                recipientIds =
+                    model.params
+                        |> Route.Posts.getRecipients
+                        |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles globals.repo)
+                        |> Maybe.map (List.filter (\su -> SpaceUser.id su /= model.viewerId))
+                        |> Maybe.map (List.map SpaceUser.id)
+                        |> Maybe.withDefault []
+            in
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithoutGroup
+                        CreatePost.variables
                             model.spaceId
+                            Nothing
+                            recipientIds
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
                             (PostEditor.getIsUrgent model.postComposer)
@@ -976,20 +1040,27 @@ desktopPostComposerView globals model data =
             , classList = []
             }
 
-        buttonText =
-            if PostEditor.getBody editor == "" then
-                "Send"
+        maybeRecipients =
+            model.params
+                |> Route.Posts.getRecipients
+                |> Maybe.map (\handles -> Repo.getSpaceUsersByHandle model.spaceId handles globals.repo)
 
-            else
-                case determineRecipient (PostEditor.getBody editor) of
-                    Nobody ->
-                        "Save Private Note"
+        placeholderText =
+            case maybeRecipients of
+                Just recipients ->
+                    if List.map SpaceUser.id recipients == [ model.viewerId ] then
+                        "Write a note to yourself..."
 
-                    Direct ->
-                        "Send Direct Message "
+                    else
+                        recipients
+                            |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
+                            |> List.map SpaceUser.firstName
+                            |> String.join ", "
+                            |> String.append "Write to "
+                            |> (\text -> String.append text "...")
 
-                    Channel ->
-                        "Send to Channel"
+                Nothing ->
+                    "Tag a channel or @mention someone..."
     in
     PostEditor.wrapper config
         [ label [ class "composer" ]
@@ -999,7 +1070,7 @@ desktopPostComposerView globals model data =
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
-                        , placeholder "Write something..."
+                        , placeholder placeholderText
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
                             [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
@@ -1031,7 +1102,7 @@ desktopPostComposerView globals model data =
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text buttonText ]
+                            [ text "Send" ]
                         ]
                     ]
                 ]
@@ -1089,7 +1160,7 @@ desktopPostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = True
+            , showRecipients = showRecipients model.params
             , isSelected = PostSet.selected model.postViews == Just postView
             }
 
@@ -1213,7 +1284,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = True
+            , showRecipients = showRecipients model.params
             , isSelected = False
             }
     in
@@ -1261,6 +1332,11 @@ userItemView space user =
 
 
 -- INTERNAL
+
+
+showRecipients : Params -> Bool
+showRecipients params =
+    List.isEmpty (Route.Posts.getRecipients params |> Maybe.withDefault [])
 
 
 undismissedParams : Params -> Params

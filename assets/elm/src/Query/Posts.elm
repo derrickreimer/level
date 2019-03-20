@@ -47,7 +47,8 @@ document =
           $stateFilter: PostStateFilter!,
           $inboxStateFilter: InboxStateFilter!,
           $lastActivityFilter: LastActivityFilter!,
-          $author: String
+          $author: String,
+          $recipients: [String]
         ) {
           spaceUser(spaceSlug: $spaceSlug) {
             space {
@@ -61,7 +62,8 @@ document =
                   state: $stateFilter,
                   inboxState: $inboxStateFilter,
                   lastActivity: $lastActivityFilter,
-                  author: $author
+                  author: $author,
+                  recipients: $recipients
                 }
               ) {
                 ...PostConnectionFields
@@ -119,8 +121,16 @@ variables params limit maybeAfter =
 
                 Nothing ->
                     []
+
+        recipientsFilter =
+            case Route.Posts.getRecipients params of
+                Just recipients ->
+                    [ ( "recipients", Encode.list Encode.string recipients ) ]
+
+                Nothing ->
+                    []
     in
-    Just (Encode.object (filters ++ cursors ++ authorFilter))
+    Just (Encode.object (filters ++ cursors ++ authorFilter ++ recipientsFilter))
 
 
 decoder : Decoder Data

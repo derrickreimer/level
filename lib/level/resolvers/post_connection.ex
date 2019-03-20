@@ -19,7 +19,8 @@ defmodule Level.Resolvers.PostConnection do
               following_state: :all,
               inbox_state: :all,
               state: :all,
-              last_activity: :all
+              last_activity: :all,
+              recipients: []
             },
             order_by: %{
               field: :posted_at,
@@ -36,7 +37,8 @@ defmodule Level.Resolvers.PostConnection do
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
             state: :open | :closed | :all,
             last_activity: :today | :all,
-            author: String.t()
+            author: String.t(),
+            recipients: [String.t()]
           },
           order_by: %{
             field: :posted_at | :last_pinged_at | :last_activity_at,
@@ -59,6 +61,7 @@ defmodule Level.Resolvers.PostConnection do
       |> apply_state(args)
       |> apply_last_activity(args)
       |> apply_author(args)
+      |> apply_recipients(args)
 
     pagination_args =
       args
@@ -143,4 +146,12 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp apply_author(base_query, _), do: base_query
+
+  defp apply_recipients(base_query, %{filter: %{recipients: []}}), do: base_query
+
+  defp apply_recipients(base_query, %{filter: %{recipients: handles}}) do
+    Posts.Query.where_specific_recipients(base_query, handles)
+  end
+
+  defp apply_recipients(base_query, _), do: base_query
 end

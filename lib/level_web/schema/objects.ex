@@ -434,6 +434,7 @@ defmodule LevelWeb.Schema.Objects do
     field :body, non_null(:string)
     field :space, non_null(:space), resolve: dataloader(:db)
     field :groups, list_of(:group), resolve: dataloader(:db)
+    field :recipients, list_of(:space_user), resolve: dataloader(:db)
 
     field :author, non_null(:author) do
       resolve &Resolvers.post_author/3

@@ -1,7 +1,6 @@
 module Page.NewGroupPost exposing (Model, Msg(..), consumeEvent, init, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
-import PostView
 import Connection exposing (Connection)
 import Device exposing (Device)
 import Event exposing (Event)
@@ -32,6 +31,7 @@ import PageError exposing (PageError)
 import Pagination
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostView
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.NewGroupPostInit as NewGroupPostInit
 import Reply exposing (Reply)
@@ -276,9 +276,10 @@ update msg globals model =
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithGroup
+                        CreatePost.variables
                             model.spaceId
-                            model.groupId
+                            (Just model.groupId)
+                            []
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
                             (PostEditor.getIsUrgent model.postComposer)

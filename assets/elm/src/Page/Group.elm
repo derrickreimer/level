@@ -465,9 +465,10 @@ update msg globals model =
             if PostEditor.isSubmittable model.postComposer then
                 let
                     variables =
-                        CreatePost.variablesWithGroup
+                        CreatePost.variables
                             model.spaceId
-                            model.groupId
+                            (Just model.groupId)
+                            []
                             (PostEditor.getBody model.postComposer)
                             (PostEditor.getUploadIds model.postComposer)
                             (PostEditor.getIsUrgent model.postComposer)
@@ -1668,7 +1669,7 @@ desktopPostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = False
+            , showRecipients = False
             , isSelected = PostSet.selected model.postViews == Just postView
             }
     in
@@ -1795,7 +1796,7 @@ mobilePostView globals spaceUsers groups model data postView =
             , now = globals.now
             , spaceUsers = spaceUsers
             , groups = groups
-            , showGroups = False
+            , showRecipients = False
             , isSelected = False
             }
     in
