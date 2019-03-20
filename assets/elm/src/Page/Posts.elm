@@ -1049,7 +1049,7 @@ desktopPostComposerView globals model data =
             case maybeRecipients of
                 Just recipients ->
                     if List.map SpaceUser.id recipients == [ model.viewerId ] then
-                        "Write a private note"
+                        "Write a note to yourself..."
 
                     else
                         recipients

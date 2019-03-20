@@ -6,7 +6,7 @@ module Icons exposing
     , bookmark, lock, lockLarge
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
-    , ex, exSmall, home, logOut, menu, notification, people, plus, search, settings, zapWhite
+    , ex, exSmall, home, logOut, mail, menu, notification, people, plus, search, settings, zapWhite
     , logo, logomark, postbot
     )
 
@@ -50,7 +50,7 @@ module Icons exposing
 
 # Navigation
 
-@docs ex, exSmall, home, logOut, menu, notification, people, plus, search, settings, zapWhite
+@docs ex, exSmall, home, logOut, mail, menu, notification, people, plus, search, settings, zapWhite
 
 
 # Identity
@@ -259,7 +259,7 @@ revokeMember =
 shield : Html msg
 shield =
     iconView <|
-        svg [ width "17px", height "21px", viewBox "0 0 17 21", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "shield", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ Svg.path [ d "M8,20 C8,20 16,16 16,10 L16,3 L8,0 L0,3 L0,10 C0,16 8,20 8,20 Z", id "Path" ] [] ] ] ]
+        svg [ width "18px", height "22px", viewBox "0 0 18 22", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "shield-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M8,20 C8,20 16,16 16,10 L16,3 L8,0 L0,3 L0,10 C0,16 8,20 8,20 Z", id "Path" ] [] ] ] ]
 
 
 
@@ -322,6 +322,12 @@ logOut : Html msg
 logOut =
     iconView <|
         svg [ width "20px", height "20px", viewBox "0 0 20 20", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "log-out", transform "translate(10.000000, 10.000000) scale(-1, 1) translate(-10.000000, -10.000000) translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M6,18 L2,18 C0.8954305,18 0,17.1045695 0,16 L0,2 C0,0.8954305 0.8954305,0 2,0 L6,0", id "Shape" ] [], polyline [ id "Shape", points "13 14 18 9 13 4" ] [], Svg.path [ d "M18,9 L6,9", id "Shape" ] [] ] ] ]
+
+
+mail : Html msg
+mail =
+    iconView <|
+        svg [ width "20px", height "16px", viewBox "0 0 20 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "mail", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M1.8,0 L16.2,0 C17.19,0 18,0.7875 18,1.75 L18,12.25 C18,13.2125 17.19,14 16.2,14 L1.8,14 C0.81,14 0,13.2125 0,12.25 L0,1.75 C0,0.7875 0.81,0 1.8,0 Z", id "Path" ] [], polyline [ id "Path", points "18 1.75 9 7.875 0 1.75" ] [] ] ] ]
 
 
 menu : Html msg

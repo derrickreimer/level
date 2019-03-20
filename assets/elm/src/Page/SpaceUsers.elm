@@ -325,8 +325,7 @@ userView model data spaceUser =
             [ text (SpaceUser.displayName spaceUser) ]
         , a
             [ Route.href (Route.SpaceUser viewParams)
-            , class "tooltip tooltip-bottom ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
-            , attribute "data-tooltip" "Settings"
+            , class "ml-2 flex items-center justify-center w-9 h-9 rounded-full bg-transparent hover:bg-grey transition-bg"
             ]
             [ Icons.settings ]
         ]
