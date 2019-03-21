@@ -973,21 +973,22 @@ resolvedView config postView data =
                         , rel "tooltip"
                         , title "Expand post"
                         ]
-                        [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                        [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-4 text-sm text-dusty-blue" ] ]
                     , viewIf (not (PostEditor.isExpanded postView.editor) && Post.canEdit data.post) <|
                         button
-                            [ class "mr-3 text-sm text-dusty-blue"
+                            [ class "mr-4 text-sm text-dusty-blue"
                             , onClick ExpandPostEditor
                             ]
                             [ text "Edit" ]
                     ]
                 , inboxButton data.post
-                , viewIf (Post.isUrgent data.post) <|
+                , viewIf (Post.isUrgent data.post && Post.state data.post == Post.Open) <|
                     div
-                        [ class "tooltip tooltip-bottom mr-3"
+                        [ class "tooltip tooltip-bottom mr-4"
                         , attribute "data-tooltip" "Marked as urgent"
                         ]
                         [ Icons.alertSmall ]
+                , viewIf (Post.state data.post == Post.Open) (closeButton data.post)
                 , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 ]
             , viewIf config.showRecipients <|
@@ -1017,7 +1018,7 @@ inboxButton post =
     let
         addButton =
             button
-                [ class "mr-3 flex tooltip tooltip-bottom no-outline"
+                [ class "mr-4 flex tooltip tooltip-bottom no-outline"
                 , onClick MoveToInboxClicked
                 , attribute "data-tooltip" "Move to inbox"
                 ]
@@ -1026,7 +1027,7 @@ inboxButton post =
 
         removeButton =
             button
-                [ class "mr-3 flex tooltip tooltip-bottom no-outline text-sm text-green font-bold"
+                [ class "mr-4 flex tooltip tooltip-bottom no-outline text-sm text-green font-bold"
                 , onClick DismissClicked
                 , attribute "data-tooltip" "Dismiss from inbox"
                 ]
@@ -1047,14 +1048,24 @@ inboxButton post =
             removeButton
 
 
+closeButton : Post -> Html Msg
+closeButton post =
+    button
+        [ class "tooltip tooltip-bottom mr-4"
+        , attribute "data-tooltip" "Mark as resolved"
+        , onClick ClosePostClicked
+        ]
+        [ Icons.closed Icons.Off ]
+
+
 reopenButton : Post -> Html Msg
 reopenButton post =
     button
-        [ class "tooltip tooltip-bottom mr-3"
+        [ class "tooltip tooltip-bottom mr-4"
         , attribute "data-tooltip" "Reopen conversation"
         , onClick ReopenPostClicked
         ]
-        [ Icons.closed ]
+        [ Icons.closed Icons.On ]
 
 
 authorLabel : Space -> Id -> ResolvedAuthor -> Html Msg

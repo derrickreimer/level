@@ -140,10 +140,16 @@ alertSmall =
         svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "alert-circle-copy-2" ] [ circle [ id "Oval", fill "#FF1E12", cx "8", cy "8", r "8" ] [], Svg.path [ d "M8,4.8 L8,8", id "Path", stroke "#FFFFFF", strokeWidth "2", strokeLinecap "round", strokeLinejoin "round" ] [], circle [ id "Oval", fill "#FFFFFF", fillRule "nonzero", cx "8", cy "11.2", r "1" ] [] ] ] ]
 
 
-closed : Html msg
-closed =
-    iconView <|
-        svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2-copy-4" ] [ circle [ id "Oval-2", fill "#38C172", cx "8", cy "8", r "8" ] [], g [ id "check", transform "translate(4.444444, 5.777778)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "7.11111111 0 2.22222222 4.88888889 0 2.66666667" ] [] ] ] ] ]
+closed : Toggle -> Html msg
+closed toggle =
+    case toggle of
+        Off ->
+            iconView <|
+                svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2-copy-6", transform "translate(0.500000, 0.500000)" ] [ circle [ id "Oval-2", stroke "#979797", cx "8", cy "8", r "8" ] [], g [ id "check", transform "translate(4.444444, 5.777778)", stroke "#8A98A5", strokeLinecap "round", strokeLinejoin "round" ] [ polyline [ id "Shape", points "7.11111111 0 2.22222222 4.88888889 0 2.66666667" ] [] ] ] ] ]
+
+        On ->
+            iconView <|
+                svg [ width "16px", height "16px", viewBox "0 0 16 16", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "closed-avatar-2-copy-4" ] [ circle [ id "Oval-2", fill "#38C172", cx "8", cy "8", r "8" ] [], g [ id "check", transform "translate(4.444444, 5.777778)", stroke "#FFFFFF", strokeLinecap "round", strokeLinejoin "round", strokeWidth "2" ] [ polyline [ id "Shape", points "7.11111111 0 2.22222222 4.88888889 0 2.66666667" ] [] ] ] ] ]
 
 
 commentWhite : Html msg
