@@ -75,6 +75,7 @@ import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route
 import Route.Group
+import Route.Posts
 import Route.SpaceUser
 import Scroll
 import Session exposing (Session)
@@ -1086,28 +1087,42 @@ recipientsLabel config postView data =
                 ]
                 [ text ("#" ++ Group.name group) ]
 
-        directLink spaceUser =
-            a
-                [ Route.href (Route.SpaceUser (Route.SpaceUser.init (Space.slug config.space) (SpaceUser.handle spaceUser)))
-                , class "mr-1 px-2 rounded-full text-md no-underline text-dusty-blue-dark whitespace-no-wrap bg-grey-light hover:bg-grey transition-bg"
-                ]
-                [ text (SpaceUser.firstName spaceUser) ]
-
         recipientsExceptMe =
             data.recipients
                 |> List.filter (\spaceUser -> SpaceUser.id spaceUser /= SpaceUser.id config.currentUser)
     in
     if List.isEmpty data.groups then
+        let
+            feedParams =
+                Route.Posts.init (Space.slug config.space)
+                    |> Route.Posts.clearFilters
+                    |> Route.Posts.setRecipients (Just <| List.map SpaceUser.handle data.recipients)
+        in
         if List.isEmpty recipientsExceptMe then
             div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
-                [ text "Note to self"
+                [ a
+                    [ Route.href (Route.Posts feedParams)
+                    , class "no-underline text-dusty-blue-dark whitespace-no-wrap"
+                    ]
+                    [ text "Note to self" ]
                 ]
 
         else
+            let
+                recipientNames =
+                    recipientsExceptMe
+                        |> List.map SpaceUser.firstName
+                        |> List.sort
+                        |> String.join ", "
+            in
             div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
                 [ text "To: "
-                , span [] <|
-                    List.map directLink recipientsExceptMe
+                , a
+                    [ Route.href (Route.Posts feedParams)
+                    , class "mr-1 px-2 rounded-full text-md no-underline text-dusty-blue-dark whitespace-no-wrap bg-grey-light hover:bg-grey transition-bg"
+                    ]
+                    [ text recipientNames
+                    ]
                 ]
 
     else
