@@ -119,7 +119,7 @@ recipientsTitle repo model =
     case maybeRecipients of
         Just recipients ->
             if List.map SpaceUser.id recipients == [ model.viewerId ] then
-                Just "My Notes"
+                Just "Private Notes"
 
             else
                 recipients

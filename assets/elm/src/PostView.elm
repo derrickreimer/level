@@ -1098,9 +1098,21 @@ recipientsLabel config postView data =
                 ]
                 [ text ("#" ++ Group.name group) ]
 
-        recipientsExceptMe =
-            data.recipients
-                |> List.filter (\spaceUser -> SpaceUser.id spaceUser /= SpaceUser.id config.currentUser)
+        recipientsExceptAuthor =
+            case ResolvedAuthor.actor data.author of
+                Actor.User author ->
+                    data.recipients
+                        |> List.filter (\spaceUser -> SpaceUser.id spaceUser /= SpaceUser.id author)
+
+                _ ->
+                    data.recipients
+
+        recipientName spaceUser =
+            if SpaceUser.id spaceUser == SpaceUser.id config.currentUser then
+                "Me"
+
+            else
+                SpaceUser.firstName spaceUser
     in
     if List.isEmpty data.groups then
         let
@@ -1109,20 +1121,20 @@ recipientsLabel config postView data =
                     |> Route.Posts.clearFilters
                     |> Route.Posts.setRecipients (Just <| List.map SpaceUser.handle data.recipients)
         in
-        if List.isEmpty recipientsExceptMe then
+        if List.isEmpty recipientsExceptAuthor then
             div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
                 [ a
                     [ Route.href (Route.Posts feedParams)
                     , class "no-underline text-dusty-blue-dark whitespace-no-wrap"
                     ]
-                    [ text "Note to self" ]
+                    [ text "Private Note" ]
                 ]
 
         else
             let
                 recipientNames =
-                    recipientsExceptMe
-                        |> List.map SpaceUser.firstName
+                    recipientsExceptAuthor
+                        |> List.map recipientName
                         |> List.sort
                         |> String.join ", "
             in
