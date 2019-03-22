@@ -1061,6 +1061,30 @@ desktopPostComposerView globals model data =
 
                 Nothing ->
                     "Tag a channel or @mention someone..."
+
+        buttonText =
+            case maybeRecipients of
+                Just recipients ->
+                    if List.map SpaceUser.id recipients == [ model.viewerId ] then
+                        "Save Private Note"
+
+                    else
+                        "Send Direct Message"
+
+                Nothing ->
+                    if PostEditor.getBody editor == "" then
+                        "Send"
+
+                    else
+                        case determineRecipient (PostEditor.getBody editor) of
+                            Nobody ->
+                                "Save Private Note"
+
+                            Direct ->
+                                "Send Direct Message"
+
+                            Channel ->
+                                "Send to Channel"
     in
     PostEditor.wrapper config
         [ label [ class "composer" ]
@@ -1102,7 +1126,7 @@ desktopPostComposerView globals model data =
                             , disabled (isUnsubmittable editor)
                             , tabindex 3
                             ]
-                            [ text "Send" ]
+                            [ text buttonText ]
                         ]
                     ]
                 ]
