@@ -973,10 +973,10 @@ resolvedView config postView data =
                         , rel "tooltip"
                         , title "Expand post"
                         ]
-                        [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-3 text-sm text-dusty-blue" ] ]
+                        [ View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) [ class "mr-5 text-sm text-dusty-blue" ] ]
                     , viewIf (not (PostEditor.isExpanded postView.editor) && Post.canEdit data.post) <|
                         button
-                            [ class "mr-4 text-sm text-dusty-blue"
+                            [ class "mr-5 text-sm text-dusty-blue"
                             , onClick ExpandPostEditor
                             ]
                             [ text "Edit" ]
