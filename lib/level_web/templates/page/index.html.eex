@@ -9,8 +9,8 @@
 
     <p>Hi, I&rsquo;m
       <img src="<%= static_url(@conn, "/images/derrick-500.jpg") %>" alt="Pic" class="ml-1 -mt-1 w-7 h-7 rounded-full align-middle" />
-      Derrick and I&rsquo;m dependent on distraction.</p>
-    <p>There&rsquo;s a good chance you are too. If you&rsquo;re skeptical, ask yourself:</p>
+      Derrick and I have a problem with distraction.</p>
+    <p>There&rsquo;s a good chance you&rsquo;re afflicted too. If you&rsquo;re skeptical, ask yourself:</p>
 
     <ul>
       <li>How many times per day do you look at social media?</li>
@@ -27,15 +27,18 @@
 
     <p>Yikes.</p>
 
-    <p>The good news is you can overcome it with consistent effort. That's a tall order, though, when your tools are working against you.</p>
+    <p>As a recovering &ldquo;mental wreck&rdquo; myself, I can attest to the value of restoring deep work habits.</p>
 
-    <h2 class="marketing-sub-head">Real-time chat is the enemy of focus</h2>
+    <p>Unfortunately, your chances of recovering are slim when your tools are working against you.</p>
+
+    <h2 class="marketing-sub-head">Real-time chat is the enemy of focus.</h2>
 
     <p>When Slack replaced email at my company, I didn&rsquo;t foresee all the unintended consequences. I bet you didn&rsquo;t either.</p>
     <p>For us, Slack began to foster a <strong>culture of ASAP</strong> and immediate response became a norm. The fear of appearing negligent was enough to prevent most people from silencing their notifications.</p>
     <p>The sheer amount of chatter taking place began to engender a <strong>fear of missing out</strong> in those who needed long stretches of deep work time.</p>
     <p>Work planning became less intentional and more just-in-time, which necessitated more synchronous communication and a <strong>feeling of chaos</strong>.</p>
     <p>It&rsquo;s unfair to put all the blame on tools like Slack&mdash;we too are at fault for misusing our tools. But the reality is, most of us can&rsquo;t be trusted with tools that are laden with so many traps for our distraction-hungry brains.</p>
+
     <h2 class="marketing-sub-head">Introducing Level: team chat designed to steer you away from distracting behaviors toward deep work.</h2>
 
     <p>Think of Level as the best parts of email and real-time chat, combined.</p>
@@ -43,15 +46,15 @@
     <p>Email got a few things right:</p>
 
     <ul>
-      <li class="mb-6"><strong>The Inbox.</strong> Chat notifications are fleeting: once you&rsquo;ve seen a message, it&rsquo;s dismissed from your radar and liable to be forgotten or misplaced. Instead, Level queues up important messages in your Inbox until you take action.</li>
+      <li class="mb-6"><strong>The Inbox.</strong> Level queues up your important messages in your Inbox until you take action.</li>
       <li class="mb-6"><strong>Threaded messaging.</strong> Every conversation in Level is threaded so that replies always stay logically grouped together.</li>
     </ul>
 
     <p>Real-time chat is not all bad either&mdash;in fact, it shines in many of the areas where email falls short:</p>
 
     <ul>
-      <li class="mb-6"><strong>A shared repository of knowledge.</strong> Everyone benefits from non-private conversations happening out in the open. Email naturally builds information silos.</li>
-      <li class="mb-6"><strong>A place to hash things out in real-time</strong>. While Level is asynchronous-by-default, a Level conversation can easily become a real-time back-and-forth if two or more people happen to be present at the same time.</li>
+      <li class="mb-6"><strong>A shared repository of knowledge.</strong> Everyone benefits when conversations happen out in the open.</li>
+      <li class="mb-6"><strong>A place to hash things out in real-time</strong>. A Level conversation can easily become a real-time back-and-forth if two or more people happen to be present at the same time.</li>
     </ul>
 
     <p>Of course, Level ditches the more problematic parts of chat:</p>
