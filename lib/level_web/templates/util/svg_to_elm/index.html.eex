@@ -1,4 +1,4 @@
-<article class="mx-auto max-w-md">
+<article class="mx-auto max-w-md text-xl sm:text-2xl">
   <h1 class="marketing-headline">Convert SVG to Elm</h1>
   <p class="pb-6">A free little utility for converting raw SVGs into <a href="https://package.elm-lang.org/packages/elm/svg/1.0.0/" class="text-blue no-underline">elm/svg</a> code.</p>
 

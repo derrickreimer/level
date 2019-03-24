@@ -58,7 +58,7 @@
     <% end %>
   </head>
 
-  <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal text-xl bg-turquoise selection-turquoise" data-stretchy-filter=".js-stretchy">
+  <body class="font-sans font-antialised text-dusty-blue-darkest leading-normal bg-turquoise selection-turquoise" data-stretchy-filter=".js-stretchy">
     <%= if get_flash(@conn, :error) do %>
       <div class="px-4 py-4 bg-red text-white text-base text-center font-bold" role="alert"><%= get_flash(@conn, :error) %></div>
     <% end %>

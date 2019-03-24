@@ -1,94 +1,62 @@
-<article class="marketing-long-form px-8 overflow-x-hidden">
-  <div class="mx-auto max-w-md">
-    <h1 class="marketing-headline">Team communication optimized for deep work.</h1>
+<article class="marketing-long-form px-8 overflow-x-hidden text-xl sm:text-2xl">
 
-    <img src="<%= static_url(@conn, "/images/marketing/sarah.jpg") %>"
-         alt="Sarah"
-         class="sm:float-right -mr-16 sm:pl-12 pb-8 pt-8 tilt-2deg"
-         style="width: 280px;" />
-
-    <p>Meet Sarah, the founder of CoffeeKit and waffle lover. CoffeeKit helps boutique coffee shops manage their business operations.</p>
-    <p>The year is 2019 and coffee hipsterdom is spreading like a stream of espresso exiting a portafilter at 9 bars of pressure.</p>
-    <p>Mustache wax and fedora hats are in short supply.</p>
-    <p>If you were to be dropped into any American urban city from outer space, you&rsquo;d think you were in Portland, Oregon.</p>
-    <p>Suffice to say, business is booming for CoffeeKit and its team of designers, developers, marketers, and support folks.</p>
-    <p>CoffeeKit uses Level to communicate.</p>
-
-    <h2 class="marketing-sub-head">Monday morning has arrived.</h2>
-
-    <p>After eating a waffle, Sarah starts her workday by checking her Level Inbox.</p>
-    <p>First up, Joe Gibraltar posted a direct question for Sarah in the Engineering group. He made sure to <strong>@-mention her</strong> so that the post would land in her Inbox.</p>
-  </div>
-
-  <div class="mx-auto" style="max-width: 1132px;">
-    <img src="<%= static_url(@conn, "/images/marketing/sarah-inbox.png") %>"
-         alt="Sarah's inbox"
-         class="marketing-screenshot" />
-  </div>
+  <h1 class="marketing-headline sm:text-center">Team chat built for deep work.</h1>
 
   <div class="mx-auto max-w-md">
-    <p>Joe&rsquo;s question is important, but not immediately urgent &mdash; it can wait until Sarah has accurate info to pass along. Sarah decides to come back to it later, and she&rsquo;s <strong>not afraid of forgetting</strong> because the message will remain in her Inbox until she takes action.</p>
+    <blockquote class="mb-6 -ml-8 px-8 py-4 border-l-4 border-turquoise text-dusty-blue-darker text-2xl sm:text-3xl">
+      &ldquo;Efforts to deepen your focus will struggle if you don&rsquo;t simultaneously wean your mind from a dependence on distraction.&rdquo;
+      <div class="mt-4 text-dusty-blue-dark text-xl sm:text-2xl text-right">&mdash; Cal Newport, Deep Work</div>
+    </blockquote>
 
-    <p>There&rsquo;s a chance someone else on the Engineering team will see it and chime in to help in the meantime. But it won&rsquo;t show up in anyone else&rsquo;s Inbox unless they deliberately join the conversation.</p>
+    <p>Hi, I&rsquo;m
+      <img src="<%= static_url(@conn, "/images/derrick-500.jpg") %>" alt="Pic" class="ml-1 -mt-1 w-7 h-7 rounded-full align-middle" />
+      Derrick and I&rsquo;m dependent on distraction.</p>
+    <p>There&rsquo;s a good chance you are too. If you&rsquo;re skeptical, ask yourself:</p>
 
-    <h2 class="marketing-sub-head">The Inbox is like an extension of your brain. It remembers what&rsquo;s on your plate, so you don&rsquo;t have to.</h2>
+    <ul>
+      <li>How many times per day do you look at social media?</li>
+      <li>How frequently is your work interrupted by non-urgent chat?</li>
+      <li>How often do you pull out your phone to prevent boredom?</li>
+      <li>How long can you sit and read without checking your phone?</li>
+    </ul>
 
-    <p>One of Sarah&rsquo;s older posts has also landed in her Inbox because her teammate Lisa replied to it.</p>
-  </div>
+    <p>When the brain is hooked on distraction, it&rsquo;s constantly seeking the next hit of cheap stimulation, be it from social media, email, or chat. A distracted brain is impatient, rarely able to endure a moment of boredom without seeking something shallow to occupy it.</p>
+    <p>The ramifications of distraction in the workplace are troubling. Stanford researcher Clifford Nass describes the problem this way:</p>
+    <blockquote class="mb-6 -ml-8 px-8 py-4 border-l-4 border-turquoise text-dusty-blue-darker text-2xl sm:text-3xl">&ldquo;People who multitask all the time can&rsquo;t filter out irrelevancy...They&rsquo;re chronically distracted. They initiate much larger parts of their brain that are irrelevant to the task at hand...<strong>they&rsquo;re pretty much mental wrecks</strong>.&rdquo;</blockquote>
+    <p>The good news is you can overcome it. But just like getting your physical body in shape, you have to train your mind to concentrate and go deep. It doesn&rsquo;t happen overnight.</p>
 
-  <div class="mx-auto" style="max-width: 671px;">
-    <img src="<%= static_url(@conn, "/images/marketing/lisa-to-sarah.png") %>"
-         alt="Lisa's reply to Sarah"
-         class="marketing-screenshot" />
-  </div>
+    <h2 class="marketing-sub-head">The problem with chat</h2>
 
-  <div class="mx-auto max-w-md">
-    <p>Sarah fires off a response and dismisses the post from her Inbox. Dismissing the post keeps Sarah's "to-do list" clean. If someone replies again later, the post will scoot back into her Inbox.</p>
-  </div>
+    <p>When chat replaced email at my company, I didn&rsquo;t realize it would become a major source of mental junk food: satiating in the moment but detrimental to the long-term health of the team.</p>
+    <p>I didn&rsquo;t intend to foster a culture where immediate response became an expectation, lest you risk appearing negligent to your boss.</p>
+    <p>I didn&rsquo;t foresee the fear of missing out it would engender, deepening the cycle of distraction.</p>
+    <p>I bet you didn&rsquo;t either.</p>
+    <p>It&rsquo;s unfair to put all the blame on tools like Slack. Our brains are also at fault for misusing them. But truthfully, most of us can&rsquo;t be trusted with tools that are laden with so many traps for our distraction-hungry brains.</p>
+    <p>That&rsquo;s why I created Level: a team communication tool designed to steer you away from distraction toward deep work.</p>
 
-  <div class="mx-auto" style="max-width: 671px;">
-    <img src="<%= static_url(@conn, "/images/marketing/reply-to-lisa.png") %>"
-         alt="Sarah's reply to Lisa"
-         class="marketing-screenshot" />
-  </div>
+    <h2 class="marketing-sub-head">Level combines the best parts of email and chat.</h2>
 
-  <div class="mx-auto max-w-md">
-    <p>Finished with her Inbox (for now), she jumps to her <strong>Activity feed</strong> to skim through other conversations that have happened around the space.</p>
-    <p>She sees one that interests her. It so happens that Kevin and Lisa are also there, and a spontaneous real-time conversation ensues!</p>
-  </div>
+    <p>Email is far from perfect. It&rsquo;s too easy for information to get locked up in individual inboxes. It&rsquo;s too slow to hash things out in real-time when the need arises. It&rsquo;s a bit too formal.</p>
+    <p>But email definitely got some things right that are worth keeping around:</p>
 
-  <div class="mx-auto" style="max-width: 1132px;">
-    <img src="<%= static_url(@conn, "/images/marketing/sarah-activity.png") %>"
-         alt="Sarah's activity feed"
-         class="marketing-screenshot" />
-  </div>
+    <ul>
+      <li class="mb-6"><strong>The Inbox.</strong> Chat replaced the concept of an inbox with notifications. The problem is that notifications are fleeting: once you&rsquo;ve seen a message, it&rsquo;s dismissed from your radar and liable to be forgotten or misplaced. Level solves this problem by queueing up important messages in an Inbox until you take action.</li>
+      <li class="mb-6"><strong>Threads.</strong> Chat channels are disorganized by default. In Level, every conversation is threaded so that replies always stay logically grouped together.</li>
+    </ul>
 
-  <div class="mx-auto max-w-md">
-    <p>Serendipity brought them together to hash out the details this time. But if Lisa and Kevin had been focusing on other tasks when Sarah stopped by, she could have just left a note for them to see later.</p>
-    <h2 class="marketing-sub-head">Level assumes that most conversations are not urgent enough to pull makers out of their deep work.</h2>
-    <p>Once everyone is done chatting, Sarah marks the post as resolved to signal to the rest of the team that the conversation is done.</p>
-  </div>
+    <p>Chat is not all bad either&mdash;it shines in many of the areas where email falls short. Chat creates a shared repository of knowledge, it lowers the formality barrier, and it provides a forum for real-time discussion.</p>
+    <p>Level keeps these features, but ditches the problematic parts:</p>
 
-  <div class="mx-auto" style="max-width: 671px;">
-    <img src="<%= static_url(@conn, "/images/marketing/mark-resolved.png") %>"
-         alt="Sarah marks the post as resolved"
-         class="marketing-screenshot" />
-  </div>
-
-  <div class="mx-auto max-w-md">
-    <p>There&rsquo;s a chance that Sarah won&rsquo;t see every post like this one. That&rsquo;s actually preferred! It&rsquo;s neither possible nor necessary for any single person to follow every conversation.</p>
-    <h2 class="marketing-sub-head">Level encourages teams to be explicit about communicating who needs to see and respond to messages.</h2>
-    <p>Now that she&rsquo;s sufficiently caught up, Sarah closes the tab and gets to work.</p>
-    <p>No red dots will beckon Sarah to come back to Level. She will not receive any push notifications &mdash; unless a real emergency happens. No presence indicators will imply that she is &ldquo;available&rdquo; to interrupt.</p>
-    <p>When it&rsquo;s time to get to work, Level leaves you alone.</h2>
-    <p>Sarah can confidently get in The Zone, knowing that she will not have to deal with a hellscape of red dots and stress about missing important messages that are jumbled up with idle chit-chat.</p>
-    <p>Do you want your day to look more like Sarah&rsquo;s?</p>
+    <ul>
+      <li class="mb-6"><strong>No real-time notifications (unless it&rsquo;s an emergency).</strong> Messages are rarely so urgent they warrant breaking someone&rsquo;s focus. Level allows you to specify the times of day to receive batched notifications.</li>
+      <li class="mb-6"><strong>No presence indicators.</strong> The green dot is often abused. Being signed in shouldn&rsquo;t imply that you are available to be interrupted, and it most definitely shouldn&rsquo;t be a proxy for whether someone is doing their job.</li>
+    </ul>
   </div>
 </article>
 
 <div id="buy" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
   <div class="mx-auto max-w-md">
-    <h1 class="marketing-headline">Claim your username</h1>
+    <h1 class="marketing-headline text-6xl">Claim your username</h1>
 
     <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
   </div>

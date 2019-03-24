@@ -178,7 +178,7 @@ view model =
 
 formView : Model -> Html Msg
 formView model =
-    div []
+    div [ class "text-xl" ]
         [ p [ class "mb-6" ]
             [ text "Level is currently available by invitation only. However, you can claim your little slice of real estate and get in line to receive your invite." ]
         , p [ class "mb-6" ]
