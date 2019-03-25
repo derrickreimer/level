@@ -475,7 +475,7 @@ stepView device step model data =
 
         3 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox keeps track of your important conversations." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Inbox tracks conversations you need to see." ]
                 , p [ class "mb-6" ] [ text "When someone @-mentions you or new activity occurs on a post you've interacted with, that post will move into your Inbox." ]
                 , p [ class "mb-6" ] [ text "It's best to dismiss posts from your Inbox once you are finished by clicking the green ", span [ class "mx-1 inline-block" ] [ Icons.inbox Icons.On ], text " icon (or using a keyboard shortcut)." ]
                 , div []
@@ -486,8 +486,8 @@ stepView device step model data =
 
         4 ->
             div []
-                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Everything timeline helps you stay in the loop." ]
-                , p [ class "mb-6" ] [ text "Your timeline contains all posts from the Channels you subscribe to. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
+                [ h2 [ class "mb-6 text-4xl font-bold text-dusty-blue-darkest tracking-semi-tight leading-tighter" ] [ text "The Home feed helps you stay in the loop." ]
+                , p [ class "mb-6" ] [ text "Your feed contains all posts from the channels you subscribe to. It's a good idea to periodically skim through it, but you shouldn't feel obligated to see everything there." ]
                 , div []
                     [ button [ class "mr-2 btn btn-grey-outline", onClick BackUp ] [ text "Back" ]
                     , button [ class "btn btn-blue", onClick Advance ] [ text "Next" ]
