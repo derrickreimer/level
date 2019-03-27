@@ -1,6 +1,7 @@
 module Repo exposing
     ( Repo
     , empty, union
+    , addQuery, hasQuery
     , getUser, setUser
     , getSpace, getSpaces, getAllSpaces, setSpace, setSpaces, getSpaceBySlug
     , getSpaceUser, getSpaceUsers, getSpaceUserByUserId, getSpaceUsersByUserIds, getSpaceUsersBySpaceId, getSpaceUserByHandle, getSpaceUsersByHandle, setSpaceUser, setSpaceUsers
@@ -23,6 +24,11 @@ module Repo exposing
 # Operations
 
 @docs empty, union
+
+
+# Queries
+
+@docs addQuery, hasQuery
 
 
 # Users
@@ -78,6 +84,7 @@ import Id exposing (Id)
 import Notification exposing (Notification)
 import Post exposing (Post)
 import Reply exposing (Reply)
+import Set exposing (Set)
 import Space exposing (Space)
 import SpaceBot exposing (SpaceBot)
 import SpaceUser exposing (SpaceUser)
@@ -98,6 +105,7 @@ type alias InternalData =
     , posts : Dict Id Post
     , replies : Dict Id Reply
     , notifications : Dict Id Notification
+    , queries : Set String
     }
 
 
@@ -107,7 +115,7 @@ type alias InternalData =
 
 empty : Repo
 empty =
-    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty)
+    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Set.empty)
 
 
 union : Repo -> Repo -> Repo
@@ -122,6 +130,21 @@ union (Repo newer) (Repo older) =
             (Dict.union newer.posts older.posts)
             (Dict.union newer.replies older.replies)
             (Dict.union newer.notifications older.notifications)
+            (Set.union newer.queries older.queries)
+
+
+
+-- QUERIES
+
+
+addQuery : String -> Repo -> Repo
+addQuery key (Repo data) =
+    Repo { data | queries = Set.insert key data.queries }
+
+
+hasQuery : String -> Repo -> Bool
+hasQuery key (Repo data) =
+    Set.member key data.queries
 
 
 

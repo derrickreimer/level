@@ -103,7 +103,7 @@ loadCached globals posts (PostSet internal) =
         cmds =
             List.map (\view -> ( view.id, PostView.setup globals view )) newViewList
     in
-    ( PostSet { internal | views = newViews, state = LoadingMore }, cmds )
+    ( PostSet { internal | views = newViews, state = Loaded }, cmds )
 
 
 isScaffolded : PostSet -> Bool
