@@ -1,4 +1,4 @@
-module Route exposing (Route(..), fromUrl, href, isCurrent, parser, pushUrl, replaceUrl, toLogin, toSpace)
+module Route exposing (Route(..), fromUrl, href, isCurrent, parser, pushUrl, replaceUrl, toLogin, toSpace, toString)
 
 {-| Routing logic for the application.
 -}
@@ -144,10 +144,6 @@ isCurrent testRoute maybeCurrentRoute =
 
         ( _, _ ) ->
             False
-
-
-
--- INTERNAL
 
 
 toString : Route -> String

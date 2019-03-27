@@ -163,16 +163,16 @@ init params globals =
             Task.fail PageError.NotFound
 
 
-queryKey : Id -> String
-queryKey id =
-    "group:" ++ id
+queryKey : Params -> String
+queryKey params =
+    Route.toString (Route.Group params)
 
 
 scaffold : Globals -> Params -> SpaceUser -> Space -> Group -> ( ( Model, Cmd Msg ), Globals )
 scaffold globals params viewer space group =
     let
         cachedPosts =
-            if Repo.hasQuery (queryKey (Group.id group)) globals.repo then
+            if Repo.hasQuery (queryKey params) globals.repo then
                 globals.repo
                     |> Repo.getPostsByGroup (Group.id group) Nothing
                     |> filterPosts (Space.id space) (Group.id group) params
@@ -390,7 +390,7 @@ update msg globals model =
                     newRepo =
                         globals.repo
                             |> Repo.union resp.repo
-                            |> Repo.addQuery (queryKey model.groupId)
+                            |> Repo.addQuery (queryKey model.params)
 
                     newGlobals =
                         { globals | session = newSession, repo = newRepo }
