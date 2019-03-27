@@ -456,6 +456,9 @@ withInboxState filter (Post data) =
         InboxStateFilter.Dismissed ->
             data.inboxState == Dismissed
 
+        InboxStateFilter.Unread ->
+            data.inboxState == Unread
+
         _ ->
             True
 

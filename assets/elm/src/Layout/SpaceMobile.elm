@@ -14,6 +14,7 @@ import Icons
 import InboxStateFilter
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
+import Post exposing (Post)
 import Repo
 import Route exposing (Route)
 import Route.Apps
@@ -105,8 +106,8 @@ layout config children =
                         ]
                     , div [ class "absolute px-3 w-full overflow-y-auto", style "top" "105px", style "bottom" "70px" ]
                         [ ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                            [ sidebarTab "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
-                            , sidebarTab "Sent" Nothing (Route.Posts sentByMeParams) config.globals.currentRoute
+                            [ sidebarLink "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
+                            , sidebarLink "Sent" Nothing (Route.Posts sentByMeParams) config.globals.currentRoute
                             ]
                         , viewUnless (List.isEmpty bookmarks) <|
                             div []
@@ -116,11 +117,11 @@ layout config children =
                                 ]
                         , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                             [ viewIf (List.isEmpty bookmarks) <|
-                                sidebarTab "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
-                            , sidebarTab "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
-                            , sidebarTab "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
-                            , sidebarTab "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
-                            , sidebarTab "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
+                                sidebarLink "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
+                            , sidebarLink "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
+                            , sidebarLink "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
+                            , sidebarLink "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
+                            , sidebarLink "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                             ]
                         ]
                     , div [ class "absolute pin-b w-full" ]
@@ -182,32 +183,66 @@ controlView config control =
 
 bookmarkList : Config msg -> List Group -> Html msg
 bookmarkList config bookmarks =
+    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] (List.map (groupLink config) bookmarks)
+
+
+groupLink : Config msg -> Group -> Html msg
+groupLink config group =
     let
         slug =
             Space.slug config.space
 
-        linkify group =
-            let
-                route =
-                    Route.Group (Route.Group.init slug (Group.name group))
+        hasUnreads =
+            config.globals.repo
+                |> Repo.getPostsByGroup (Group.id group) Nothing
+                |> List.filter (Post.withInboxState InboxStateFilter.Unread)
+                |> List.isEmpty
+                |> not
 
-                icon =
-                    if Group.isPrivate group then
-                        Just Icons.lock
+        params =
+            if hasUnreads then
+                Route.Group.init slug (Group.name group)
+                    |> Route.Group.setInboxState InboxStateFilter.Undismissed
 
-                    else
-                        Nothing
-            in
-            sidebarTab ("#" ++ Group.name group) icon route config.globals.currentRoute
+            else
+                Route.Group.init slug (Group.name group)
 
-        links =
-            List.map linkify bookmarks
+        route =
+            Route.Group params
+
+        currentRoute =
+            config.globals.currentRoute
+
+        isCurrent =
+            Route.isCurrent route currentRoute
+
+        privacyIcon =
+            if Group.isPrivate group then
+                div [ class "flex-no-grow mr-2" ] [ Icons.lock ]
+
+            else
+                text ""
     in
-    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] links
+    li []
+        [ a
+            [ Route.href route
+            , classList
+                [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
+                , ( "font-bold", hasUnreads )
+                , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
+                ]
+            ]
+            [ div [ class "mr-2 flex-shrink truncate" ] [ text <| "#" ++ Group.name group ]
+            , privacyIcon
+            , viewIf hasUnreads <|
+                div [ class "w-2 h-2 bg-blue rounded-full" ] []
+            ]
+        ]
 
 
-sidebarTab : String -> Maybe (Html msg) -> Route -> Maybe Route -> Html msg
-sidebarTab title maybeIcon route currentRoute =
+sidebarLink : String -> Maybe (Html msg) -> Route -> Maybe Route -> Html msg
+sidebarLink title maybeIcon route currentRoute =
     let
         isCurrent =
             Route.isCurrent route currentRoute

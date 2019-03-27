@@ -390,7 +390,7 @@ getPostsByGroup groupId maybeBefore (Repo data) =
         basePosts =
             data.posts
                 |> Dict.values
-                |> List.filter (\post -> List.member groupId (Post.groupIds post))
+                |> List.filter (Post.withGroup groupId)
                 |> List.sortWith Post.desc
     in
     case maybeBefore of
