@@ -27,7 +27,8 @@ fragment =
     let
         queryBody =
             """
-            fragment ReplyReactionFields on ReplyReaction {
+            fragment ResolvedReplyReactionFields on ReplyReaction {
+              id
               spaceUser {
                 ...SpaceUserFields
               }

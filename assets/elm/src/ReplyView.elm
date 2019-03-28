@@ -19,6 +19,7 @@ import Mutation.UpdateReply as UpdateReply
 import PostEditor exposing (PostEditor)
 import RenderedHtml
 import Reply exposing (Reply)
+import ReplyReaction exposing (ReplyReaction)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedReply exposing (ResolvedReply)
@@ -327,8 +328,12 @@ resolvedView config replyView data =
         author =
             data.resolvedReply.author
 
+        reactorIds =
+            data.resolvedReply.reactions
+                |> List.map ReplyReaction.spaceUserId
+
         reactors =
-            data.resolvedReply.reactors
+            Repo.getSpaceUsers reactorIds config.globals.repo
 
         bodyLength =
             String.length (Reply.body reply)

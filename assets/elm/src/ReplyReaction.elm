@@ -91,8 +91,9 @@ fragment =
         queryBody =
             """
             fragment ReplyReactionFields on ReplyReaction {
+              id
               spaceUser {
-                ...SpaceUserFields
+                id
               }
               post {
                 id

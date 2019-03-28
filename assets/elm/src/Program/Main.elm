@@ -45,10 +45,12 @@ import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
 import PageError exposing (PageError)
+import PostReaction
 import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
+import ReplyReaction
 import Repo exposing (Repo)
 import ResolvedNotification
 import ResolvedPostReaction
@@ -1585,23 +1587,23 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.PostReactionCreated reaction ->
-            ( { model | repo = ResolvedPostReaction.addToRepo reaction model.repo }
+        Event.PostReactionCreated resolvedReaction ->
+            ( { model | repo = ResolvedPostReaction.addToRepo resolvedReaction model.repo }
             , Cmd.none
             )
 
-        Event.PostReactionDeleted reaction ->
-            ( { model | repo = ResolvedPostReaction.addToRepo reaction model.repo }
+        Event.PostReactionDeleted resolvedReaction ->
+            ( { model | repo = Repo.removePostReaction (PostReaction.id resolvedReaction.reaction) model.repo }
             , Cmd.none
             )
 
-        Event.ReplyReactionCreated reaction ->
-            ( { model | repo = ResolvedReplyReaction.addToRepo reaction model.repo }
+        Event.ReplyReactionCreated resolvedReaction ->
+            ( { model | repo = ResolvedReplyReaction.addToRepo resolvedReaction model.repo }
             , Cmd.none
             )
 
-        Event.ReplyReactionDeleted reaction ->
-            ( { model | repo = ResolvedReplyReaction.addToRepo reaction model.repo }
+        Event.ReplyReactionDeleted resolvedReaction ->
+            ( { model | repo = Repo.removeReplyReaction (ReplyReaction.id resolvedReaction.reaction) model.repo }
             , Cmd.none
             )
 

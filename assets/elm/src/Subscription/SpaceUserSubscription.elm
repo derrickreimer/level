@@ -276,22 +276,22 @@ document =
             }
             ... on PostReactionCreatedPayload {
               reaction {
-                ...PostReactionFields
+                ...ResolvedPostReactionFields
               }
             }
             ... on PostReactionDeletedPayload {
               reaction {
-                ...PostReactionFields
+                ...ResolvedPostReactionFields
               }
             }
             ... on ReplyReactionCreatedPayload {
               reaction {
-                ...ReplyReactionFields
+                ...ResolvedReplyReactionFields
               }
             }
             ... on ReplyReactionDeletedPayload {
               reaction {
-                ...ReplyReactionFields
+                ...ResolvedReplyReactionFields
               }
             }
             ... on GroupBookmarkedPayload {

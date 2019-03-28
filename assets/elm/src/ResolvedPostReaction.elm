@@ -25,7 +25,8 @@ fragment =
     let
         queryBody =
             """
-            fragment PostReactionFields on PostReaction {
+            fragment ResolvedPostReactionFields on PostReaction {
+              id
               spaceUser {
                 ...SpaceUserFields
               }

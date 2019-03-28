@@ -85,8 +85,9 @@ fragment =
         queryBody =
             """
             fragment PostReactionFields on PostReaction {
+              id
               spaceUser {
-                ...SpaceUserFields
+                id
               }
               post {
                 id
