@@ -6,7 +6,9 @@ import Json.Decode as Decode
 import Post exposing (Post)
 import Reply exposing (Reply)
 import ResolvedNotification exposing (ResolvedNotification)
+import ResolvedPostReaction exposing (ResolvedPostReaction)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedReplyReaction exposing (ResolvedReplyReaction)
 import ResolvedSpace exposing (ResolvedSpace)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
@@ -30,10 +32,10 @@ type Event
     | PostClosed Post
     | PostReopened Post
     | PostDeleted Post
-    | PostReactionCreated Post
-    | PostReactionDeleted Post
-    | ReplyReactionCreated Reply
-    | ReplyReactionDeleted Reply
+    | PostReactionCreated ResolvedPostReaction
+    | PostReactionDeleted ResolvedPostReaction
+    | ReplyReactionCreated ResolvedReplyReaction
+    | ReplyReactionDeleted ResolvedReplyReaction
     | PostsSubscribed (List Post)
     | PostsUnsubscribed (List Post)
     | PostsMarkedAsUnread (List ResolvedPostWithReplies)

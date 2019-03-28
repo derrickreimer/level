@@ -58,6 +58,7 @@ import InboxStateFilter exposing (InboxStateFilter)
 import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, list, string, succeed)
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
 import List
+import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
 import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
@@ -276,9 +277,7 @@ fragment =
               reactions(first: 100) {
                 edges {
                   node {
-                    spaceUser {
-                      ...SpaceUserFields
-                    }
+                    ...PostReactionFields
                   }
                 }
                 totalCount
@@ -298,6 +297,7 @@ fragment =
         , Group.fragment
         , File.fragment
         , SpaceUser.fragment
+        , PostReaction.fragment
         ]
 
 

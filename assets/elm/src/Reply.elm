@@ -6,6 +6,7 @@ import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, bool, field, int, string)
 import Json.Decode.Pipeline as Pipeline exposing (custom, required)
+import ReplyReaction exposing (ReplyReaction)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -57,9 +58,7 @@ fragment =
           reactions(first: 100) {
             edges {
               node {
-                spaceUser {
-                  ...SpaceUserFields
-                }
+                ...ReplyReactionFields
               }
             }
             totalCount
@@ -73,6 +72,7 @@ fragment =
         """
         [ Author.fragment
         , File.fragment
+        , ReplyReaction.fragment
         ]
 
 

@@ -51,7 +51,9 @@ import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
 import Repo exposing (Repo)
 import ResolvedNotification
+import ResolvedPostReaction
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedReplyReaction
 import ResolvedSpace exposing (ResolvedSpace)
 import Response exposing (Response)
 import Route exposing (Route)
@@ -1583,23 +1585,23 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.PostReactionCreated post ->
-            ( { model | repo = Repo.setPost post model.repo }
+        Event.PostReactionCreated reaction ->
+            ( { model | repo = ResolvedPostReaction.addToRepo reaction model.repo }
             , Cmd.none
             )
 
-        Event.PostReactionDeleted post ->
-            ( { model | repo = Repo.setPost post model.repo }
+        Event.PostReactionDeleted reaction ->
+            ( { model | repo = ResolvedPostReaction.addToRepo reaction model.repo }
             , Cmd.none
             )
 
-        Event.ReplyReactionCreated reply ->
-            ( { model | repo = Repo.setReply reply model.repo }
+        Event.ReplyReactionCreated reaction ->
+            ( { model | repo = ResolvedReplyReaction.addToRepo reaction model.repo }
             , Cmd.none
             )
 
-        Event.ReplyReactionDeleted reply ->
-            ( { model | repo = Repo.setReply reply model.repo }
+        Event.ReplyReactionDeleted reaction ->
+            ( { model | repo = ResolvedReplyReaction.addToRepo reaction model.repo }
             , Cmd.none
             )
 

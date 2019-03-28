@@ -600,15 +600,19 @@ defmodule LevelWeb.Schema.Objects do
 
   @desc "Represents a user's reaction to a post."
   object :post_reaction do
+    field :id, non_null(:id)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :post, :post, resolve: dataloader(:db)
+    field :value, :string
   end
 
   @desc "Represents a user's reaction to a reply."
   object :reply_reaction do
+    field :id, non_null(:id)
     field :space_user, non_null(:space_user), resolve: dataloader(:db)
     field :post, :post, resolve: dataloader(:db)
     field :reply, :reply, resolve: dataloader(:db)
+    field :value, :string
   end
 
   @desc "A mention represents a when user has @-mentioned another user."
