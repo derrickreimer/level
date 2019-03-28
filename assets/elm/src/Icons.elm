@@ -2,7 +2,7 @@ module Icons exposing
     ( Toggle(..)
     , arrowLeft, arrowRight
     , check, chevronDown, chevronUp
-    , alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
+    , alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reaction, reply, sendWhite, thumbs, thumbsMedium
     , bookmark, lock, lockLarge
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
@@ -30,7 +30,7 @@ module Icons exposing
 
 # Posts
 
-@docs alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reply, sendWhite, thumbs, thumbsMedium
+@docs alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reaction, reply, sendWhite, thumbs, thumbsMedium
 
 
 # Channels
@@ -186,6 +186,12 @@ inbox toggle =
         Off ->
             iconView <|
                 svg [ width "16px", height "13px", viewBox "0 0 16 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "inbox", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ Svg.path [ d "M15,6 L12.4125,0.8325 C12.1592025,0.322756741 11.639208,0.000302043969 11.07,0 L3.93,0 C3.36079202,0.000302043969 2.84079751,0.322756741 2.5875,0.8325 L0,6", id "Shape" ] [], Svg.path [ d "M10.5,6 L15,6 L15,10.5 C15,11.3284271 14.3284271,12 13.5,12 L1.5,12 C0.671572875,12 0,11.3284271 0,10.5 L0,6 L4.5,6 L6,8.25 L9,8.25 L10.5,6 Z", id "Combined-Shape" ] [] ] ] ]
+
+
+reaction : Html msg
+reaction =
+    iconView <|
+        svg [ width "19px", height "19px", viewBox "0 0 19 19", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "smile", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ circle [ id "Oval", cx "9", cy "9", r "9" ] [], Svg.path [ d "M5.4,11.4 C5.4,11.4 6.75,13.2 9,13.2 C11.25,13.2 12.6,11.4 12.6,11.4 L5.4,11.4 Z", id "Path", strokeWidth "2", fill "#8A98A5" ] [], Svg.path [ d "M6.3,6.7 L6.309,6.7", id "Path", strokeWidth "3" ] [], Svg.path [ d "M11.7,6.7 L11.709,6.7", id "Path", strokeWidth "3" ] [] ] ] ]
 
 
 reply : Html msg
