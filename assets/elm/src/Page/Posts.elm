@@ -244,7 +244,7 @@ setup globals model =
         postsCmd =
             globals.session
                 |> Posts.request model.params 20 Nothing
-                |> Task.attempt (PostsFetched 20)
+                |> Task.attempt (PostsFetched (queryKey model.params) 20)
     in
     Cmd.batch
         [ pageCmd
@@ -301,7 +301,7 @@ type Msg
     | ToggleNotifications
     | InternalLinkClicked String
     | LoadMoreClicked
-    | PostsFetched Int (Result Session.Error ( Session, Posts.Response ))
+    | PostsFetched String Int (Result Session.Error ( Session, Posts.Response ))
     | PostViewMsg String PostView.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
@@ -354,14 +354,14 @@ update msg globals model =
                         Just lastPostedAt ->
                             globals.session
                                 |> Posts.request model.params 20 (Just lastPostedAt)
-                                |> Task.attempt (PostsFetched 20)
+                                |> Task.attempt (PostsFetched (queryKey model.params) 20)
 
                         Nothing ->
                             Cmd.none
             in
             ( ( { model | postViews = newPostViews }, cmd ), globals )
 
-        PostsFetched limit (Ok ( newSession, resp )) ->
+        PostsFetched key limit (Ok ( newSession, resp )) ->
             let
                 newRepo =
                     globals.repo
@@ -370,27 +370,32 @@ update msg globals model =
 
                 newGlobals =
                     { globals | session = newSession, repo = newRepo }
-
-                posts =
-                    resp.resolvedPosts
-                        |> Connection.toList
-                        |> List.map .post
-
-                ( newModel, setupCmds ) =
-                    List.foldr (addPost newGlobals) ( model, Cmd.none ) posts
-
-                newPostComps =
-                    newModel.postViews
-                        |> PostSet.setLoaded
-                        |> PostSet.sortByPostedAt
-                        |> PostSet.setHasMore (Connection.length resp.resolvedPosts >= limit)
             in
-            ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
+            if queryKey model.params == key then
+                let
+                    posts =
+                        resp.resolvedPosts
+                            |> Connection.toList
+                            |> List.map .post
 
-        PostsFetched _ (Err Session.Expired) ->
+                    ( newModel, setupCmds ) =
+                        List.foldr (addPost newGlobals) ( model, Cmd.none ) posts
+
+                    newPostComps =
+                        newModel.postViews
+                            |> PostSet.setLoaded
+                            |> PostSet.sortByPostedAt
+                            |> PostSet.setHasMore (Connection.length resp.resolvedPosts >= limit)
+                in
+                ( ( { newModel | postViews = newPostComps }, setupCmds ), newGlobals )
+
+            else
+                ( ( model, Cmd.none ), newGlobals )
+
+        PostsFetched _ _ (Err Session.Expired) ->
             redirectToLogin globals model
 
-        PostsFetched _ _ ->
+        PostsFetched _ _ _ ->
             ( ( model, Cmd.none ), globals )
 
         PostViewMsg postId postViewMsg ->
