@@ -72,6 +72,7 @@ import ReplySet exposing (ReplySet)
 import ReplyView exposing (ReplyView)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
+import ResolvedPostReaction exposing (ResolvedPostReaction)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route
 import Route.Group
@@ -998,7 +999,7 @@ resolvedView config postView data =
             , viewIf (PostEditor.isExpanded postView.editor) <|
                 editorView config postView.editor
             , div [ class "pb-2 flex items-start" ]
-                [ postReactionButton data.post data.reactors
+                [ reactionButton config postView data
                 , replyButtonView config postView data
                 ]
             , div [ class "relative" ]
@@ -1425,31 +1426,39 @@ staticFileView file =
 -- REACTIONS
 
 
-postReactionButton : Post -> List SpaceUser -> Html Msg
-postReactionButton post reactors =
+reactionButton : ViewConfig -> PostView -> Data -> Html Msg
+reactionButton config postView data =
     let
+        reactions =
+            config.globals.repo
+                |> Repo.getPostReactions (Post.id data.post)
+                |> List.filterMap (ResolvedPostReaction.resolve config.globals.repo)
+
+        reactionCount =
+            List.length reactions
+
         flyoutLabel =
-            if List.isEmpty reactors then
+            if List.isEmpty reactions then
                 "Acknowledge"
 
             else
                 "Acknowledged by"
     in
-    if Post.hasReacted post then
+    if Post.hasReacted data.post then
         button
             [ class "flex relative items-center mr-6 no-outline react-button"
             , onClick DeletePostReactionClicked
             ]
             [ Icons.thumbs Icons.On
-            , viewIf (Post.reactionCount post > 0) <|
+            , viewIf (reactionCount > 0) <|
                 div
                     [ class "ml-1 text-green font-bold text-sm"
                     ]
-                    [ text <| String.fromInt (Post.reactionCount post) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                    [ text <| String.fromInt reactionCount ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
                 [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
+                , viewUnless (List.isEmpty reactions) <|
+                    div [ class "mt-1" ] (List.map reactorView reactions)
                 ]
             ]
 
@@ -1459,21 +1468,25 @@ postReactionButton post reactors =
             , onClick CreatePostReactionClicked
             ]
             [ Icons.thumbs Icons.Off
-            , viewIf (Post.reactionCount post > 0) <|
+            , viewIf (reactionCount > 0) <|
                 div
                     [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
-                    [ text <| String.fromInt (Post.reactionCount post) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                    [ text <| String.fromInt reactionCount ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
                 [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
+                , viewUnless (List.isEmpty reactions) <|
+                    div [ class "mt-1" ] (List.map reactorView reactions)
                 ]
             ]
 
 
-reactorView : SpaceUser -> Html Msg
-reactorView user =
+reactorView : ResolvedPostReaction -> Html Msg
+reactorView resolvedReaction =
+    let
+        user =
+            resolvedReaction.spaceUser
+    in
     div
         [ class "flex items-center pr-4 mb-px no-underline text-white"
         ]

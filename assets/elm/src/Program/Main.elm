@@ -1593,7 +1593,13 @@ consumeEvent event ({ page } as model) =
             )
 
         Event.PostReactionDeleted resolvedReaction ->
-            ( { model | repo = Repo.removePostReaction (PostReaction.id resolvedReaction.reaction) model.repo }
+            let
+                newRepo =
+                    model.repo
+                        |> ResolvedPostReaction.addToRepo resolvedReaction
+                        |> Repo.removePostReaction (PostReaction.id resolvedReaction.reaction)
+            in
+            ( { model | repo = newRepo }
             , Cmd.none
             )
 
@@ -1603,7 +1609,13 @@ consumeEvent event ({ page } as model) =
             )
 
         Event.ReplyReactionDeleted resolvedReaction ->
-            ( { model | repo = Repo.removeReplyReaction (ReplyReaction.id resolvedReaction.reaction) model.repo }
+            let
+                newRepo =
+                    model.repo
+                        |> ResolvedReplyReaction.addToRepo resolvedReaction
+                        |> Repo.removeReplyReaction (ReplyReaction.id resolvedReaction.reaction)
+            in
+            ( { model | repo = newRepo }
             , Cmd.none
             )
 
