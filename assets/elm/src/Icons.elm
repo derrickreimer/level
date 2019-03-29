@@ -3,7 +3,7 @@ module Icons exposing
     , arrowLeft, arrowRight
     , check, chevronDown, chevronUp
     , alert, alertSmall, closed, commentWhite, file, hash, image, inbox, reaction, reply, sendWhite, thumbs, thumbsMedium
-    , bookmark, lock, lockLarge
+    , bookmark, lock, lockLarge, octothorpe, person
     , revokeMember, shield
     , reactionCreated, replyCreated, postClosed, postCreated
     , ex, exSmall, home, logOut, mail, menu, notification, people, plus, search, settings, zapWhite
@@ -35,7 +35,7 @@ module Icons exposing
 
 # Channels
 
-@docs bookmark, lock, lockLarge
+@docs bookmark, lock, lockLarge, octothorpe, person
 
 
 # Users
@@ -256,6 +256,18 @@ lockLarge : Html msg
 lockLarge =
     iconView <|
         svg [ width "15px", height "17px", viewBox "0 0 15 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "lock-copy", transform "translate(0.500000, 0.500000)", stroke "#8A98A5" ] [ rect [ id "Rectangle-path", fill "#8A98A5", x "0", y "7.2", width "14", height "8.8", rx "2" ] [], Svg.path [ d "M3.11111111,7.2 L3.11111111,4 C3.11111111,1.790861 4.85222597,1.24344979e-15 7,8.8817842e-16 C9.14777403,1.77635684e-16 10.8888889,1.790861 10.8888889,4 L10.8888889,7.2", id "Shape" ] [] ] ] ]
+
+
+octothorpe : Html msg
+octothorpe =
+    iconView <|
+        svg [ width "11px", height "13px", viewBox "0 0 11 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "hash-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M0,3.66666667 L9,3.66666667", id "Path" ] [], Svg.path [ d "M0,7.33333333 L9,7.33333333", id "Path" ] [], Svg.path [ d "M3.375,0 L2.25,11", id "Path" ] [], Svg.path [ d "M6.75,0 L5.625,11", id "Path" ] [] ] ] ]
+
+
+person : Html msg
+person =
+    iconView <|
+        svg [ width "11px", height "12px", viewBox "0 0 11 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "user", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M9,10 L9,8.88888889 C9,7.66158944 7.99264069,6.66666667 6.75,6.66666667 L2.25,6.66666667 C1.00735931,6.66666667 0,7.66158944 0,8.88888889 L0,10", id "Path" ] [], ellipse [ id "Oval", cx "4.5", cy "2.22222222", rx "2.25", ry "2.22222222" ] [] ] ] ]
 
 
 

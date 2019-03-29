@@ -1084,10 +1084,10 @@ desktopPostComposerView globals model data =
             case maybeRecipients of
                 Just recipients ->
                     if List.map SpaceUser.id recipients == [ model.viewerId ] then
-                        "Save Private Note"
+                        "Send"
 
                     else
-                        "Send Direct Message"
+                        "Send"
 
                 Nothing ->
                     if PostEditor.getBody editor == "" then

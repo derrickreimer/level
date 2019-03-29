@@ -190,7 +190,7 @@ directMessageLink config recipientIds =
             ]
             [ viewIf hasUnreads <|
                 div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
-            , div [ class "flex-no-grow mr-1" ] [ Icons.lock ]
+            , div [ class "flex-no-grow mr-1" ] [ Icons.person ]
             , div [ class "mr-2 flex-shrink truncate" ] [ text recipientsLabel ]
             ]
         ]
@@ -250,7 +250,8 @@ groupLink config group =
             ]
             [ viewIf hasUnreads <|
                 div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
-            , div [ class "mr-2 flex-shrink truncate" ] [ text <| "#" ++ Group.name group ]
+            , div [ class "flex-no-grow mr-1" ] [ Icons.octothorpe ]
+            , div [ class "mr-2 flex-shrink truncate" ] [ text <| Group.name group ]
             , privacyIcon
             ]
         ]
