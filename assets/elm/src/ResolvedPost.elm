@@ -5,6 +5,7 @@ import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Post exposing (Post)
+import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
@@ -16,7 +17,7 @@ type alias ResolvedPost =
     , author : ResolvedAuthor
     , groups : List Group
     , recipients : List SpaceUser
-    , reactors : List SpaceUser
+    , reactions : List PostReaction
     }
 
 
@@ -27,7 +28,7 @@ decoder =
         (field "author" ResolvedAuthor.decoder)
         (field "groups" (list Group.decoder))
         (field "recipients" (list SpaceUser.decoder))
-        (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
+        (Decode.at [ "reactions", "edges" ] (list <| field "node" PostReaction.decoder))
 
 
 addToRepo : ResolvedPost -> Repo -> Repo
@@ -37,7 +38,7 @@ addToRepo post repo =
         |> ResolvedAuthor.addToRepo post.author
         |> Repo.setGroups post.groups
         |> Repo.setSpaceUsers post.recipients
-        |> Repo.setSpaceUsers post.reactors
+        |> Repo.setPostReactions post.reactions
 
 
 addManyToRepo : List ResolvedPost -> Repo -> Repo
@@ -54,7 +55,7 @@ resolve repo postId =
                 (ResolvedAuthor.resolve repo (Post.author post))
                 (Just <| List.filterMap (\groupId -> Repo.getGroup groupId repo) (Post.groupIds post))
                 (Just <| Repo.getSpaceUsers (Post.recipientIds post) repo)
-                (Just <| Repo.getSpaceUsers (Post.reactorIds post) repo)
+                (Just <| Repo.getPostReactions (Post.id post) repo)
 
         Nothing ->
             Nothing

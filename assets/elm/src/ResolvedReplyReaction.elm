@@ -1,6 +1,7 @@
-module ResolvedReplyReaction exposing (ResolvedReplyReaction, addManyToRepo, addToRepo, decoder, resolve, unresolve)
+module ResolvedReplyReaction exposing (ResolvedReplyReaction, addManyToRepo, addToRepo, decoder, fragment, resolve, unresolve)
 
 import Connection exposing (Connection)
+import GraphQL exposing (Fragment)
 import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
@@ -19,6 +20,33 @@ type alias ResolvedReplyReaction =
     , resolvedPost : ResolvedPost
     , resolvedReply : ResolvedReply
     }
+
+
+fragment : Fragment
+fragment =
+    let
+        queryBody =
+            """
+            fragment ResolvedReplyReactionFields on ReplyReaction {
+              id
+              spaceUser {
+                ...SpaceUserFields
+              }
+              post {
+                ...PostFields
+              }
+              reply {
+                ...ReplyFields
+              }
+              value
+            }
+            """
+    in
+    GraphQL.toFragment queryBody
+        [ SpaceUser.fragment
+        , Post.fragment
+        , Reply.fragment
+        ]
 
 
 decoder : Decoder ResolvedReplyReaction

@@ -1,6 +1,6 @@
 module PostReaction exposing
     ( PostReaction
-    , spaceUserId, postId
+    , id, spaceUserId, postId, value
     , fragment
     , decoder
     )
@@ -15,7 +15,7 @@ module PostReaction exposing
 
 # API
 
-@docs spaceUserId, postId
+@docs id, spaceUserId, postId, value
 
 
 # GraphQL
@@ -32,7 +32,6 @@ module PostReaction exposing
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
-import Post
 import SpaceUser
 
 
@@ -45,13 +44,20 @@ type PostReaction
 
 
 type alias Data =
-    { spaceUserId : Id
+    { id : Id
+    , spaceUserId : Id
     , postId : Id
+    , value : String
     }
 
 
 
 -- API
+
+
+id : PostReaction -> Id
+id (PostReaction data) =
+    data.id
 
 
 spaceUserId : PostReaction -> Id
@@ -64,6 +70,11 @@ postId (PostReaction data) =
     data.postId
 
 
+value : PostReaction -> String
+value (PostReaction data) =
+    data.value
+
+
 
 -- GRAPHQL
 
@@ -74,18 +85,19 @@ fragment =
         queryBody =
             """
             fragment PostReactionFields on PostReaction {
+              id
               spaceUser {
-                ...SpaceUserFields
+                id
               }
               post {
-                ...PostFields
+                id
               }
+              value
             }
             """
     in
     GraphQL.toFragment queryBody
         [ SpaceUser.fragment
-        , Post.fragment
         ]
 
 
@@ -96,6 +108,8 @@ fragment =
 decoder : Decoder PostReaction
 decoder =
     Decode.map PostReaction <|
-        Decode.map2 Data
+        Decode.map4 Data
+            (Decode.field "id" Id.decoder)
             (Decode.at [ "spaceUser", "id" ] Id.decoder)
             (Decode.at [ "post", "id" ] Id.decoder)
+            (Decode.field "value" Decode.string)

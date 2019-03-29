@@ -10,6 +10,8 @@ module Repo exposing
     , getGroup, getGroups, getGroupsBySpaceId, getGroupByName, setGroup, setGroups, getBookmarks
     , getPost, getPosts, setPost, setPosts, getPostsBySpace, getPostsByGroup
     , getReply, getReplies, setReply, setReplies, getRepliesByPost
+    , getPostReactions, setPostReaction, setPostReactions, removePostReaction
+    , getReplyReactions, setReplyReaction, setReplyReactions, removeReplyReaction
     , getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
     )
 
@@ -71,6 +73,16 @@ module Repo exposing
 @docs getReply, getReplies, setReply, setReplies, getRepliesByPost
 
 
+# Post Reactions
+
+@docs getPostReactions, setPostReaction, setPostReactions, removePostReaction
+
+
+# Reply Reactions
+
+@docs getReplyReactions, setReplyReaction, setReplyReactions, removeReplyReaction
+
+
 # Notifications
 
 @docs getNotification, getNotifications, setNotification, getAllNotifications, dismissNotifications
@@ -83,7 +95,9 @@ import Group exposing (Group)
 import Id exposing (Id)
 import Notification exposing (Notification)
 import Post exposing (Post)
+import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
+import ReplyReaction exposing (ReplyReaction)
 import Set exposing (Set)
 import Space exposing (Space)
 import SpaceBot exposing (SpaceBot)
@@ -104,6 +118,8 @@ type alias InternalData =
     , groups : Dict Id Group
     , posts : Dict Id Post
     , replies : Dict Id Reply
+    , postReactions : Dict Id PostReaction
+    , replyReactions : Dict Id ReplyReaction
     , notifications : Dict Id Notification
     , queries : Set String
     }
@@ -115,7 +131,20 @@ type alias InternalData =
 
 empty : Repo
 empty =
-    Repo (InternalData Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Dict.empty Set.empty)
+    Repo
+        (InternalData
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Dict.empty
+            Set.empty
+        )
 
 
 union : Repo -> Repo -> Repo
@@ -129,6 +158,8 @@ union (Repo newer) (Repo older) =
             (Dict.union newer.groups older.groups)
             (Dict.union newer.posts older.posts)
             (Dict.union newer.replies older.replies)
+            (Dict.union newer.postReactions older.postReactions)
+            (Dict.union newer.replyReactions older.replyReactions)
             (Dict.union newer.notifications older.notifications)
             (Set.union newer.queries older.queries)
 
@@ -476,6 +507,72 @@ getRepliesByPost postId maybeBefore maybeAfter (Repo data) =
                         |> List.filter (\reply -> Time.posixToMillis (Reply.postedAt reply) > Time.posixToMillis after)
     in
     repliesWithBeforeAndAfter
+
+
+
+-- POST REACTIONS
+
+
+getPostReactions : Id -> Repo -> List PostReaction
+getPostReactions postId (Repo data) =
+    data.postReactions
+        |> Dict.values
+        |> List.filter (\reaction -> PostReaction.postId reaction == postId)
+
+
+setPostReaction : PostReaction -> Repo -> Repo
+setPostReaction reaction (Repo data) =
+    Repo
+        { data
+            | postReactions =
+                Dict.insert
+                    (PostReaction.id reaction)
+                    reaction
+                    data.postReactions
+        }
+
+
+setPostReactions : List PostReaction -> Repo -> Repo
+setPostReactions reactions repo =
+    List.foldr setPostReaction repo reactions
+
+
+removePostReaction : Id -> Repo -> Repo
+removePostReaction id (Repo data) =
+    Repo { data | postReactions = Dict.remove id data.postReactions }
+
+
+
+-- REPLY REACTIONS
+
+
+getReplyReactions : Id -> Repo -> List ReplyReaction
+getReplyReactions replyId (Repo data) =
+    data.replyReactions
+        |> Dict.values
+        |> List.filter (\reaction -> ReplyReaction.replyId reaction == replyId)
+
+
+setReplyReaction : ReplyReaction -> Repo -> Repo
+setReplyReaction reaction (Repo data) =
+    Repo
+        { data
+            | replyReactions =
+                Dict.insert
+                    (ReplyReaction.id reaction)
+                    reaction
+                    data.replyReactions
+        }
+
+
+setReplyReactions : List ReplyReaction -> Repo -> Repo
+setReplyReactions reactions repo =
+    List.foldr setReplyReaction repo reactions
+
+
+removeReplyReaction : Id -> Repo -> Repo
+removeReplyReaction id (Repo data) =
+    Repo { data | replyReactions = Dict.remove id data.replyReactions }
 
 
 

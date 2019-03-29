@@ -19,9 +19,11 @@ import Mutation.UpdateReply as UpdateReply
 import PostEditor exposing (PostEditor)
 import RenderedHtml
 import Reply exposing (Reply)
+import ReplyReaction exposing (ReplyReaction)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
 import ResolvedReply exposing (ResolvedReply)
+import ResolvedReplyReaction exposing (ResolvedReplyReaction)
 import Route
 import Route.SpaceUser
 import Session exposing (Session)
@@ -327,8 +329,12 @@ resolvedView config replyView data =
         author =
             data.resolvedReply.author
 
+        reactorIds =
+            data.resolvedReply.reactions
+                |> List.map ReplyReaction.spaceUserId
+
         reactors =
-            data.resolvedReply.reactors
+            Repo.getSpaceUsers reactorIds config.globals.repo
 
         bodyLength =
             String.length (Reply.body reply)
@@ -373,7 +379,7 @@ resolvedView config replyView data =
                     ]
             , viewIf (PostEditor.isExpanded replyView.editor) <| editorView config replyView.editor
             , viewUnless (PostEditor.isExpanded replyView.editor) <|
-                div [ class "pb-1/2 flex items-start" ] [ reactionButton reply reactors ]
+                div [ class "pb-1/2 flex items-start" ] [ reactionButton config replyView data ]
             ]
         ]
 
@@ -452,11 +458,22 @@ editorView viewConfig editor =
         ]
 
 
-reactionButton : Reply -> List SpaceUser -> Html Msg
-reactionButton reply reactors =
+reactionButton : ViewConfig -> ReplyView -> Data -> Html Msg
+reactionButton config replyView data =
     let
+        reply =
+            data.resolvedReply.reply
+
+        reactions =
+            config.globals.repo
+                |> Repo.getReplyReactions (Reply.id reply)
+                |> List.filterMap (ResolvedReplyReaction.resolve config.globals.repo)
+
+        reactionCount =
+            List.length reactions
+
         flyoutLabel =
-            if List.isEmpty reactors then
+            if reactionCount == 0 then
                 "Acknowledge"
 
             else
@@ -468,15 +485,15 @@ reactionButton reply reactors =
             , onClick DeleteReactionClicked
             ]
             [ Icons.thumbsMedium Icons.On
-            , viewIf (Reply.reactionCount reply > 0) <|
+            , viewIf (reactionCount > 0) <|
                 div
                     [ class "ml-1 text-green font-bold text-sm"
                     ]
-                    [ text <| String.fromInt (Reply.reactionCount reply) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                    [ text <| String.fromInt reactionCount ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
                 [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
+                , viewUnless (reactionCount == 0) <|
+                    div [ class "mt-1" ] (List.map reactorView reactions)
                 ]
             ]
 
@@ -486,21 +503,25 @@ reactionButton reply reactors =
             , onClick CreateReactionClicked
             ]
             [ Icons.thumbsMedium Icons.Off
-            , viewIf (Reply.reactionCount reply > 0) <|
+            , viewIf (reactionCount > 0) <|
                 div
                     [ class "ml-1 text-dusty-blue font-bold text-sm"
                     ]
-                    [ text <| String.fromInt (Reply.reactionCount reply) ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", List.isEmpty reactors ) ] ]
+                    [ text <| String.fromInt reactionCount ]
+            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
                 [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactors) <|
-                    div [ class "mt-1" ] (List.map reactorView reactors)
+                , viewUnless (reactionCount == 0) <|
+                    div [ class "mt-1" ] (List.map reactorView reactions)
                 ]
             ]
 
 
-reactorView : SpaceUser -> Html Msg
-reactorView user =
+reactorView : ResolvedReplyReaction -> Html Msg
+reactorView resolvedReaction =
+    let
+        user =
+            resolvedReaction.spaceUser
+    in
     div
         [ class "flex items-center pr-4 mb-px no-underline text-white"
         ]

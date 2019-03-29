@@ -7,7 +7,9 @@ import Json.Decode as Decode
 import Json.Encode as Encode
 import Post exposing (Post)
 import Reply exposing (Reply)
+import ResolvedPostReaction exposing (ResolvedPostReaction)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedReplyReaction exposing (ResolvedReplyReaction)
 import Socket
 import Subscription
 
@@ -110,36 +112,36 @@ postDeletedDecoder =
         Post.decoder
 
 
-postReactionCreatedDecoder : Decode.Decoder Post
+postReactionCreatedDecoder : Decode.Decoder ResolvedPostReaction
 postReactionCreatedDecoder =
     Subscription.decoder "spaceUser"
         "PostReactionCreated"
-        "post"
-        Post.decoder
+        "reaction"
+        ResolvedPostReaction.decoder
 
 
-postReactionDeletedDecoder : Decode.Decoder Post
+postReactionDeletedDecoder : Decode.Decoder ResolvedPostReaction
 postReactionDeletedDecoder =
     Subscription.decoder "spaceUser"
         "PostReactionDeleted"
-        "post"
-        Post.decoder
+        "reaction"
+        ResolvedPostReaction.decoder
 
 
-replyReactionCreatedDecoder : Decode.Decoder Reply
+replyReactionCreatedDecoder : Decode.Decoder ResolvedReplyReaction
 replyReactionCreatedDecoder =
     Subscription.decoder "spaceUser"
         "ReplyReactionCreated"
-        "reply"
-        Reply.decoder
+        "reaction"
+        ResolvedReplyReaction.decoder
 
 
-replyReactionDeletedDecoder : Decode.Decoder Reply
+replyReactionDeletedDecoder : Decode.Decoder ResolvedReplyReaction
 replyReactionDeletedDecoder =
     Subscription.decoder "spaceUser"
         "ReplyReactionDeleted"
-        "reply"
-        Reply.decoder
+        "reaction"
+        ResolvedReplyReaction.decoder
 
 
 groupBookmarkedDecoder : Decode.Decoder Group
@@ -273,23 +275,23 @@ document =
               }
             }
             ... on PostReactionCreatedPayload {
-              post {
-                ...PostFields
+              reaction {
+                ...ResolvedPostReactionFields
               }
             }
             ... on PostReactionDeletedPayload {
-              post {
-                ...PostFields
+              reaction {
+                ...ResolvedPostReactionFields
               }
             }
             ... on ReplyReactionCreatedPayload {
-              reply {
-                ...ReplyFields
+              reaction {
+                ...ResolvedReplyReactionFields
               }
             }
             ... on ReplyReactionDeletedPayload {
-              reply {
-                ...ReplyFields
+              reaction {
+                ...ResolvedReplyReactionFields
               }
             }
             ... on GroupBookmarkedPayload {
@@ -347,6 +349,8 @@ document =
         [ Group.fragment
         , Post.fragment
         , Reply.fragment
+        , ResolvedPostReaction.fragment
+        , ResolvedReplyReaction.fragment
         , Connection.fragment "ReplyConnection" Reply.fragment
         ]
 

@@ -1,6 +1,6 @@
 module ReplyReaction exposing
     ( ReplyReaction
-    , spaceUserId, postId, replyId
+    , id, spaceUserId, postId, replyId, value
     , fragment
     , decoder
     )
@@ -15,7 +15,7 @@ module ReplyReaction exposing
 
 # API
 
-@docs spaceUserId, postId, replyId
+@docs id, spaceUserId, postId, replyId, value
 
 
 # GraphQL
@@ -32,8 +32,6 @@ module ReplyReaction exposing
 import GraphQL exposing (Fragment)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder)
-import Post
-import Reply
 import SpaceUser
 
 
@@ -46,14 +44,21 @@ type ReplyReaction
 
 
 type alias Data =
-    { spaceUserId : Id
+    { id : Id
+    , spaceUserId : Id
     , postId : Id
     , replyId : Id
+    , value : String
     }
 
 
 
 -- API
+
+
+id : ReplyReaction -> Id
+id (ReplyReaction data) =
+    data.id
 
 
 spaceUserId : ReplyReaction -> Id
@@ -71,6 +76,11 @@ replyId (ReplyReaction data) =
     data.replyId
 
 
+value : ReplyReaction -> String
+value (ReplyReaction data) =
+    data.value
+
+
 
 -- GRAPHQL
 
@@ -81,22 +91,22 @@ fragment =
         queryBody =
             """
             fragment ReplyReactionFields on ReplyReaction {
+              id
               spaceUser {
-                ...SpaceUserFields
+                id
               }
               post {
-                ...PostFields
+                id
               }
               reply {
-                ...ReplyFields
+                id
               }
+              value
             }
             """
     in
     GraphQL.toFragment queryBody
         [ SpaceUser.fragment
-        , Post.fragment
-        , Reply.fragment
         ]
 
 
@@ -107,7 +117,9 @@ fragment =
 decoder : Decoder ReplyReaction
 decoder =
     Decode.map ReplyReaction <|
-        Decode.map3 Data
+        Decode.map5 Data
+            (Decode.field "id" Id.decoder)
             (Decode.at [ "spaceUser", "id" ] Id.decoder)
             (Decode.at [ "post", "id" ] Id.decoder)
             (Decode.at [ "reply", "id" ] Id.decoder)
+            (Decode.field "value" Decode.string)

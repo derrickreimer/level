@@ -45,13 +45,17 @@ import Page.Spaces
 import Page.UserSettings
 import Page.WelcomeTutorial
 import PageError exposing (PageError)
+import PostReaction
 import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
+import ReplyReaction
 import Repo exposing (Repo)
 import ResolvedNotification
+import ResolvedPostReaction
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
+import ResolvedReplyReaction
 import ResolvedSpace exposing (ResolvedSpace)
 import Response exposing (Response)
 import Route exposing (Route)
@@ -1583,23 +1587,35 @@ consumeEvent event ({ page } as model) =
             , Cmd.none
             )
 
-        Event.PostReactionCreated post ->
-            ( { model | repo = Repo.setPost post model.repo }
+        Event.PostReactionCreated resolvedReaction ->
+            ( { model | repo = ResolvedPostReaction.addToRepo resolvedReaction model.repo }
             , Cmd.none
             )
 
-        Event.PostReactionDeleted post ->
-            ( { model | repo = Repo.setPost post model.repo }
+        Event.PostReactionDeleted resolvedReaction ->
+            let
+                newRepo =
+                    model.repo
+                        |> ResolvedPostReaction.addToRepo resolvedReaction
+                        |> Repo.removePostReaction (PostReaction.id resolvedReaction.reaction)
+            in
+            ( { model | repo = newRepo }
             , Cmd.none
             )
 
-        Event.ReplyReactionCreated reply ->
-            ( { model | repo = Repo.setReply reply model.repo }
+        Event.ReplyReactionCreated resolvedReaction ->
+            ( { model | repo = ResolvedReplyReaction.addToRepo resolvedReaction model.repo }
             , Cmd.none
             )
 
-        Event.ReplyReactionDeleted reply ->
-            ( { model | repo = Repo.setReply reply model.repo }
+        Event.ReplyReactionDeleted resolvedReaction ->
+            let
+                newRepo =
+                    model.repo
+                        |> ResolvedReplyReaction.addToRepo resolvedReaction
+                        |> Repo.removeReplyReaction (ReplyReaction.id resolvedReaction.reaction)
+            in
+            ( { model | repo = newRepo }
             , Cmd.none
             )
 

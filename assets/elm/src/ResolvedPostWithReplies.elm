@@ -5,6 +5,7 @@ import Group exposing (Group)
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list)
 import Post exposing (Post)
+import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedAuthor exposing (ResolvedAuthor)
@@ -17,7 +18,7 @@ type alias ResolvedPostWithReplies =
     , author : ResolvedAuthor
     , groups : List Group
     , recipients : List SpaceUser
-    , reactors : List SpaceUser
+    , reactions : List PostReaction
     , resolvedReplies : Connection ResolvedReply
     }
 
@@ -29,7 +30,7 @@ decoder =
         (field "author" ResolvedAuthor.decoder)
         (field "groups" (list Group.decoder))
         (field "recipients" (list SpaceUser.decoder))
-        (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser" ] SpaceUser.decoder))
+        (Decode.at [ "reactions", "edges" ] (list <| field "node" PostReaction.decoder))
         (field "replies" (Connection.decoder ResolvedReply.decoder))
 
 
@@ -40,7 +41,7 @@ addToRepo post repo =
         |> ResolvedAuthor.addToRepo post.author
         |> Repo.setGroups post.groups
         |> Repo.setSpaceUsers post.recipients
-        |> Repo.setSpaceUsers post.reactors
+        |> Repo.setPostReactions post.reactions
         |> ResolvedReply.addManyToRepo (Connection.toList post.resolvedReplies)
 
 
