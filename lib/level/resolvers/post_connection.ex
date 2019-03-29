@@ -20,6 +20,7 @@ defmodule Level.Resolvers.PostConnection do
               inbox_state: :all,
               state: :all,
               last_activity: :all,
+              privacy: :all,
               recipients: []
             },
             order_by: %{
@@ -37,6 +38,7 @@ defmodule Level.Resolvers.PostConnection do
             inbox_state: :unread | :read | :dismissed | :undismissed | :all,
             state: :open | :closed | :all,
             last_activity: :today | :all,
+            privacy: :direct | :all,
             author: String.t(),
             recipients: [String.t()]
           },
@@ -62,6 +64,7 @@ defmodule Level.Resolvers.PostConnection do
       |> apply_last_activity(args)
       |> apply_author(args)
       |> apply_recipients(args)
+      |> apply_privacy(args)
 
     pagination_args =
       args
@@ -154,4 +157,10 @@ defmodule Level.Resolvers.PostConnection do
   end
 
   defp apply_recipients(base_query, _), do: base_query
+
+  defp apply_privacy(base_query, %{filter: %{privacy: :direct}}) do
+    Posts.Query.where_is_direct(base_query)
+  end
+
+  defp apply_privacy(base_query, _), do: base_query
 end

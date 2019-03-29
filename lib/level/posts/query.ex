@@ -229,6 +229,15 @@ defmodule Level.Posts.Query do
   end
 
   @doc """
+  Filters a posts query for posts that are direct (not in a channel).
+  """
+  @spec where_is_direct(Ecto.Query.t()) :: Ecto.Query.t()
+  def where_is_direct(query) do
+    from [p, su, u, g] in query,
+      where: is_nil(g.id)
+  end
+
+  @doc """
   Builds a count query.
   """
   @spec count(Ecto.Query.t()) :: Ecto.Query.t()
