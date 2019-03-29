@@ -83,7 +83,12 @@ view config =
             , viewUnless (List.isEmpty bookmarks) <|
                 div []
                     [ h3 [ class "mb-1p5 pl-3 font-sans text-base" ]
-                        [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
+                        [ a
+                            [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
+                            , class "text-dusty-blue no-underline"
+                            ]
+                            [ text "Channels" ]
+                        ]
                     , bookmarkList config bookmarks
                     ]
             , viewUnless (Set.isEmpty directMessageRecipients) <|
@@ -92,9 +97,8 @@ view config =
                     , directMessageList config directMessageRecipients
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ viewIf (List.isEmpty bookmarks) <|
-                    sidebarLink "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
-                , sidebarLink "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
+                [ sidebarLink "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
+                , sidebarLink "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
                 , sidebarLink "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
@@ -184,10 +188,10 @@ directMessageLink config recipientIds =
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
             ]
-            [ div [ class "flex-no-grow mr-1" ] [ Icons.lock ]
+            [ viewIf hasUnreads <|
+                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
+            , div [ class "flex-no-grow mr-1" ] [ Icons.lock ]
             , div [ class "mr-2 flex-shrink truncate" ] [ text recipientsLabel ]
-            , viewIf hasUnreads <|
-                div [ class "flex-no-shrink w-2 h-2 bg-blue rounded-full" ] []
             ]
         ]
 
@@ -244,10 +248,10 @@ groupLink config group =
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 ]
             ]
-            [ div [ class "mr-2 flex-shrink truncate" ] [ text <| "#" ++ Group.name group ]
+            [ viewIf hasUnreads <|
+                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
+            , div [ class "mr-2 flex-shrink truncate" ] [ text <| "#" ++ Group.name group ]
             , privacyIcon
-            , viewIf hasUnreads <|
-                div [ class "flex-no-shrink w-2 h-2 bg-blue rounded-full" ] []
             ]
         ]
 
