@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
     , setInboxState
     , fragment
     , decoder, decoderWithReplies
@@ -18,7 +18,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
 
 
 # Mutations
@@ -231,6 +231,11 @@ isUrgent (Post data) =
 isInGroup : Id -> Post -> Bool
 isInGroup groupId (Post data) =
     List.member groupId data.groupIds
+
+
+isDirect : Post -> Bool
+isDirect (Post data) =
+    List.isEmpty data.groupIds
 
 
 

@@ -124,9 +124,8 @@ recipientsTitle repo model =
             else
                 recipients
                     |> List.filter (\su -> SpaceUser.id su /= model.viewerId)
-                    |> List.map SpaceUser.firstName
+                    |> List.map SpaceUser.displayName
                     |> String.join ", "
-                    |> String.append "Me & "
                     |> Just
 
         Nothing ->
@@ -200,7 +199,7 @@ scaffold globals params viewer space =
         cachedPosts =
             if Repo.hasQuery (queryKey params) globals.repo then
                 globals.repo
-                    |> Repo.getPostsBySpace (Space.id space) Nothing
+                    |> Repo.getAllPosts
                     |> filterPosts globals.repo (Space.id space) params
                     |> List.sortWith Post.desc
                     |> List.take 20

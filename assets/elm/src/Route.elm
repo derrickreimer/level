@@ -119,8 +119,8 @@ isCurrent testRoute maybeCurrentRoute =
         ( Posts testParams, Just (Posts currentParams) ) ->
             Route.Posts.getAuthor testParams
                 == Route.Posts.getAuthor currentParams
-                && Route.Posts.getRecipients testParams
-                == Route.Posts.getRecipients currentParams
+                && Maybe.map List.sort (Route.Posts.getRecipients testParams)
+                == Maybe.map List.sort (Route.Posts.getRecipients currentParams)
 
         ( Settings _, Just (Settings _) ) ->
             True

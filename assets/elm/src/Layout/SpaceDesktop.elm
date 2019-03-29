@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Icons
+import Id exposing (Id)
 import InboxStateFilter
 import Json.Decode as Decode
 import Lazy exposing (Lazy(..))
@@ -22,6 +23,7 @@ import Route.NewPost
 import Route.Posts
 import Route.Settings
 import Route.SpaceUsers
+import Set exposing (Set)
 import Space exposing (Space)
 import SpaceUser exposing (SpaceUser)
 import User exposing (User)
@@ -227,6 +229,15 @@ fullSidebar config =
                 |> Repo.getBookmarks (Space.id config.space)
                 |> List.sortBy Group.name
 
+        directMessageRecipients =
+            config.globals.repo
+                |> Repo.getAllPosts
+                |> List.filter (Post.withSpace (Space.id config.space))
+                |> List.filter Post.isDirect
+                |> List.map Post.recipientIds
+                |> List.map (\ids -> List.sort ids)
+                |> Set.fromList
+
         sentByMeParams =
             spaceSlug
                 |> Route.Posts.init
@@ -251,9 +262,14 @@ fullSidebar config =
                 ]
             , viewUnless (List.isEmpty bookmarks) <|
                 div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-base" ]
                         [ a [ Route.href (Route.Groups (Route.Groups.init spaceSlug)), class "text-dusty-blue no-underline" ] [ text "Channels" ] ]
                     , bookmarkList config bookmarks
+                    ]
+            , viewUnless (Set.isEmpty directMessageRecipients) <|
+                div []
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-base text-dusty-blue" ] [ text "Direct Messages" ]
+                    , directMessageList config directMessageRecipients
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ viewIf (List.isEmpty bookmarks) <|
@@ -272,6 +288,82 @@ fullSidebar config =
                     , div [ class "font-bold truncate" ] [ text (SpaceUser.displayName config.spaceUser) ]
                     ]
                 ]
+            ]
+        ]
+
+
+directMessageList : Config msg -> Set (List Id) -> Html msg
+directMessageList config recipientLists =
+    let
+        listItems =
+            recipientLists
+                |> Set.toList
+                |> List.map (directMessageLink config)
+    in
+    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
+
+
+directMessageLink : Config msg -> List Id -> Html msg
+directMessageLink config recipientIds =
+    let
+        recipients =
+            config.globals.repo
+                |> Repo.getSpaceUsers recipientIds
+
+        hasUnreads =
+            config.globals.repo
+                |> Repo.getAllPosts
+                |> List.filter (Post.withRecipients (Just recipientIds))
+                |> List.filter (Post.withInboxState InboxStateFilter.Unread)
+                |> List.isEmpty
+                |> not
+
+        recipientsLabel =
+            case recipients of
+                [ singleRecipient ] ->
+                    SpaceUser.displayName singleRecipient
+
+                _ ->
+                    recipients
+                        |> List.filter (\su -> SpaceUser.id su /= SpaceUser.id config.spaceUser)
+                        |> List.map SpaceUser.displayName
+                        |> String.join ", "
+
+        params =
+            if hasUnreads then
+                Route.Posts.init (Space.slug config.space)
+                    |> Route.Posts.clearFilters
+                    |> Route.Posts.setRecipients (Just <| List.map SpaceUser.handle recipients)
+                    |> Route.Posts.setInboxState InboxStateFilter.Undismissed
+
+            else
+                Route.Posts.init (Space.slug config.space)
+                    |> Route.Posts.clearFilters
+                    |> Route.Posts.setRecipients (Just <| List.map SpaceUser.handle recipients)
+
+        route =
+            Route.Posts params
+
+        currentRoute =
+            config.globals.currentRoute
+
+        isCurrent =
+            Route.isCurrent route currentRoute
+    in
+    li []
+        [ a
+            [ Route.href route
+            , classList
+                [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
+                , ( "font-bold", hasUnreads )
+                , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
+                ]
+            ]
+            [ div [ class "flex-no-grow mr-1" ] [ Icons.lock ]
+            , div [ class "mr-2 flex-shrink truncate" ] [ text recipientsLabel ]
+            , viewIf hasUnreads <|
+                div [ class "flex-no-shrink w-2 h-2 bg-blue rounded-full" ] []
             ]
         ]
 
@@ -331,7 +423,7 @@ groupLink config group =
             [ div [ class "mr-2 flex-shrink truncate" ] [ text <| "#" ++ Group.name group ]
             , privacyIcon
             , viewIf hasUnreads <|
-                div [ class "w-2 h-2 bg-blue rounded-full" ] []
+                div [ class "flex-no-shrink w-2 h-2 bg-blue rounded-full" ] []
             ]
         ]
 
