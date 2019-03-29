@@ -146,6 +146,7 @@ init repo replyLimit post =
         replies =
             repo
                 |> Repo.getRepliesByPost postId Nothing Nothing
+                |> List.filter Reply.notDeleted
                 |> List.sortWith Reply.desc
                 |> List.take replyLimit
                 |> List.sortWith Reply.asc
