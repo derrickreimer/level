@@ -41,11 +41,14 @@ defmodule Level.Posts.Query do
 
   defp build_base_query_with_space_user(query) do
     from [p, su, u] in query,
+      join: s in assoc(p, :space),
       left_join: g in assoc(p, :groups),
       left_join: gu in GroupUser,
       on: gu.space_user_id == su.id and gu.group_id == g.id,
       left_join: pu in assoc(p, :post_users),
       on: pu.space_user_id == su.id,
+      where: s.state == "ACTIVE",
+      where: su.state == "ACTIVE",
       where: p.state != "DELETED",
       where: not is_nil(pu.id) or g.is_private == false or gu.access == "PRIVATE",
       distinct: p.id
@@ -56,7 +59,7 @@ defmodule Level.Posts.Query do
   """
   @spec select_last_activity_at(Ecto.Query.t()) :: Ecto.Query.t()
   def select_last_activity_at(query) do
-    from [p, su, u, g, gu, pu] in query,
+    from [p, su, u, s, g, gu, pu] in query,
       left_join: pl in PostLog,
       on: pl.post_id == p.id,
       group_by: p.id,
@@ -72,7 +75,7 @@ defmodule Level.Posts.Query do
   def where_last_active_today(query, now) do
     where(
       query,
-      [p, su, u, g, gu, pu, pl],
+      [p, su, u, s, g, gu, pu, pl],
       fragment(
         "date_trunc('day', timezone(?, ?::timestamptz)) = date_trunc('day', timezone(?, ?))",
         u.time_zone,
@@ -88,7 +91,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_last_active_after(Ecto.Query.t(), DateTime.t()) :: Ecto.Query.t()
   def where_last_active_after(query, timestamp) do
-    from [p, su, u, g, gu, pu, pl] in query,
+    from [p, su, u, s, g, gu, pu, pl] in query,
       where: pl.occurred_at >= ^timestamp
   end
 
@@ -97,7 +100,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_open(Ecto.Query.t()) :: Ecto.Query.t()
   def where_open(query) do
-    where(query, [p, su, u, g, gu, pu], p.state == "OPEN")
+    where(query, [p, su, u, s, g, gu, pu], p.state == "OPEN")
   end
 
   @doc """
@@ -105,7 +108,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_closed(Ecto.Query.t()) :: Ecto.Query.t()
   def where_closed(query) do
-    where(query, [p, su, u, g, gu, pu], p.state == "CLOSED")
+    where(query, [p, su, u, s, g, gu, pu], p.state == "CLOSED")
   end
 
   @doc """
@@ -113,7 +116,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_unread_in_inbox(Ecto.Query.t()) :: Ecto.Query.t()
   def where_unread_in_inbox(query) do
-    where(query, [p, su, u, g, gu, pu], pu.inbox_state == "UNREAD")
+    where(query, [p, su, u, s, g, gu, pu], pu.inbox_state == "UNREAD")
   end
 
   @doc """
@@ -121,7 +124,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_read_in_inbox(Ecto.Query.t()) :: Ecto.Query.t()
   def where_read_in_inbox(query) do
-    where(query, [p, su, u, g, gu, pu], pu.inbox_state == "READ")
+    where(query, [p, su, u, s, g, gu, pu], pu.inbox_state == "READ")
   end
 
   @doc """
@@ -129,7 +132,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_undismissed_in_inbox(Ecto.Query.t()) :: Ecto.Query.t()
   def where_undismissed_in_inbox(query) do
-    where(query, [p, su, u, g, gu, pu], pu.inbox_state in ["UNREAD", "READ"])
+    where(query, [p, su, u, s, g, gu, pu], pu.inbox_state in ["UNREAD", "READ"])
   end
 
   @doc """
@@ -137,7 +140,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_dismissed_from_inbox(Ecto.Query.t()) :: Ecto.Query.t()
   def where_dismissed_from_inbox(query) do
-    where(query, [p, su, u, g, gu, pu], pu.inbox_state == "DISMISSED")
+    where(query, [p, su, u, s, g, gu, pu], pu.inbox_state == "DISMISSED")
   end
 
   @doc """
@@ -145,7 +148,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_is_following_and_not_subscribed(Ecto.Query.t()) :: Ecto.Query.t()
   def where_is_following_and_not_subscribed(query) do
-    from [p, su, u, g, gu, pu] in query,
+    from [p, su, u, s, g, gu, pu] in query,
       where: gu.state in ["SUBSCRIBED", "WATCHING"],
       where: pu.subscription_state in ["NOT_SUBSCRIBED", "UNSUBSCRIBED"] or is_nil(pu.id),
       group_by: p.id
@@ -156,7 +159,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_is_following(Ecto.Query.t()) :: Ecto.Query.t()
   def where_is_following(query) do
-    from [p, su, u, g, gu, pu] in query,
+    from [p, su, u, s, g, gu, pu] in query,
       where: gu.state in ["SUBSCRIBED", "WATCHING"] or pu.subscription_state == "SUBSCRIBED",
       group_by: p.id
   end
@@ -175,7 +178,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_in_group(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
   def where_in_group(query, group_id) do
-    from [p, su, u, g, gu, pu] in query,
+    from [p, su, u, s, g, gu, pu] in query,
       where: g.id == ^group_id
   end
 
@@ -196,7 +199,7 @@ defmodule Level.Posts.Query do
   @spec where_specific_recipients(Ecto.Query.t(), [String.t()]) :: Ecto.Query.t()
   def where_specific_recipients(query, handles) do
     # base_query =
-    #   from [p, su, u, g, gu, pu] in query,
+    #   from [p, su, u, s, g, gu, pu] in query,
     #     inner_join: pu2 in PostUser,
     #     on: pu2.post_id == p.id,
     #     left_join: su2 in SpaceUser,
@@ -214,7 +217,7 @@ defmodule Level.Posts.Query do
     # end)
 
     base_query =
-      from [p, su, u, g, gu, pu] in query,
+      from [p, su, u, s, g, gu, pu] in query,
         inner_join: pu2 in PostUser,
         on: pu2.post_id == p.id,
         left_join: su2 in SpaceUser,
@@ -233,7 +236,7 @@ defmodule Level.Posts.Query do
   """
   @spec where_is_direct(Ecto.Query.t()) :: Ecto.Query.t()
   def where_is_direct(query) do
-    from [p, su, u, g] in query,
+    from [p, su, u, s, g] in query,
       where: is_nil(g.id)
   end
 
