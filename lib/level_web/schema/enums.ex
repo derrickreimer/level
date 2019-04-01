@@ -141,6 +141,11 @@ defmodule LevelWeb.Schema.Enums do
     value :all
   end
 
+  enum :privacy_filter do
+    value :direct
+    value :all
+  end
+
   enum :notification_state do
     value :undismissed, as: "UNDISMISSED"
     value :dismissed, as: "DISMISSED"

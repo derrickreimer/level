@@ -100,6 +100,11 @@ defmodule LevelWeb.Schema.InputObjects do
     field :last_activity, :last_activity_filter, default_value: :all
 
     @desc """
+    Filter by privacy.
+    """
+    field :privacy, :privacy_filter, default_value: :all
+
+    @desc """
     Filter by author handle.
     """
     field :author, :string

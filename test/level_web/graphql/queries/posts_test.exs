@@ -11,6 +11,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
       $inbox_state: InboxStateFilter,
       $state: PostStateFilter,
       $last_activity: LastActivityFilter,
+      $privacy: PrivacyFilter,
       $author: String,
       $recipients: [String]
     ) {
@@ -22,6 +23,7 @@ defmodule LevelWeb.GraphQL.PostsTest do
             inboxState: $inbox_state,
             state: $state,
             lastActivity: $last_activity,
+            privacy: $privacy,
             author: $author,
             recipients: $recipients
           }
@@ -341,6 +343,41 @@ defmodule LevelWeb.GraphQL.PostsTest do
 
     refute Enum.any?(edges, fn edge ->
              edge["node"]["body"] == "I'm wrong"
+           end)
+  end
+
+  test "filtering for private messages", %{conn: conn, space: space, space_user: space_user} do
+    {:ok, %{space_user: _}} = create_space_member(space, %{handle: "felix"})
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: _}} = create_global_post(space_user, %{body: "@felix I'm a private message"})
+    {:ok, %{post: _}} = create_post(space_user, group, %{body: "I'm a channel message"})
+
+    variables = %{
+      space_id: space_user.space_id,
+      privacy: "DIRECT"
+    }
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    %{
+      "data" => %{
+        "space" => %{
+          "posts" => %{
+            "edges" => edges
+          }
+        }
+      }
+    } = json_response(conn, 200)
+
+    assert Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "@felix I'm a private message"
+           end)
+
+    refute Enum.any?(edges, fn edge ->
+             edge["node"]["body"] == "I'm a channel message"
            end)
   end
 end

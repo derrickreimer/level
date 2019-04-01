@@ -66,6 +66,19 @@ defmodule LevelWeb.Schema do
 
       resolve &Level.Resolvers.notifications/2
     end
+
+    @desc "A paginated list of posts ."
+    field :posts, non_null(:post_connection) do
+      arg :first, :integer
+      arg :last, :integer
+      arg :before, :timestamp
+      arg :after, :timestamp
+
+      @desc "Filtering criteria for posts."
+      arg :filter, :post_filters
+
+      resolve &Level.Resolvers.posts/2
+    end
   end
 
   mutation do
