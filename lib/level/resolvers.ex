@@ -269,7 +269,7 @@ defmodule Level.Resolvers do
   defp handle_reply_views_fetched(_), do: {:ok, true}
 
   @doc """
-  Fetches posts accessible by the current user.
+  Fetches posts accessible by the current user in given scope.
   """
   @spec posts(Space.t() | Group.t(), map(), info()) :: paginated_result()
   def posts(%Space{} = space, args, info) do
@@ -278,6 +278,14 @@ defmodule Level.Resolvers do
 
   def posts(%Group{} = group, args, info) do
     PostConnection.get(group, struct(PostConnection, args), info)
+  end
+
+  @doc """
+  Fetches posts accessible by the current user.
+  """
+  @spec posts(map(), info()) :: paginated_result()
+  def posts(args, info) do
+    PostConnection.get(nil, struct(PostConnection, args), info)
   end
 
   @doc """

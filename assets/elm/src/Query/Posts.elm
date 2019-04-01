@@ -47,7 +47,6 @@ document =
           $stateFilter: PostStateFilter!,
           $inboxStateFilter: InboxStateFilter!,
           $lastActivityFilter: LastActivityFilter!,
-          $privacyFilter: PrivacyFilter!,
           $author: String,
           $recipients: [String]
         ) {
@@ -63,7 +62,6 @@ document =
                   state: $stateFilter,
                   inboxState: $inboxStateFilter,
                   lastActivity: $lastActivityFilter,
-                  privacy: $privacyFilter,
                   author: $author,
                   recipients: $recipients
                 }
@@ -103,7 +101,6 @@ variables params limit maybeAfter =
             , ( "followingStateFilter", Encode.string followingStateFilter )
             , ( "inboxStateFilter", Encode.string (InboxStateFilter.toEnum (Route.Posts.getInboxState params)) )
             , ( "lastActivityFilter", Encode.string (LastActivityFilter.toEnum (Route.Posts.getLastActivity params)) )
-            , ( "privacyFilter", Encode.string "ALL" )
             ]
 
         cursors =

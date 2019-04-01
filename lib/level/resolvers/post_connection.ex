@@ -51,11 +51,12 @@ defmodule Level.Resolvers.PostConnection do
   @doc """
   Executes a paginated query for posts.
   """
-  @spec get(Space.t() | Group.t(), map(), map()) ::
+  @spec get(nil | Space.t() | Group.t(), map(), map()) ::
           {:ok, Pagination.Result.t()} | {:error, String.t()}
   def get(parent, args, %{context: %{current_user: user}}) do
     base_query =
       user
+      |> Posts.Query.base_query()
       |> build_base_query(parent)
       |> apply_order_fields(args)
       |> apply_following_state(args)
@@ -75,17 +76,15 @@ defmodule Level.Resolvers.PostConnection do
     Pagination.fetch_result(query, pagination_args)
   end
 
-  defp build_base_query(user, %Space{id: space_id}) do
-    user
-    |> Posts.Query.base_query()
-    |> Posts.Query.where_in_space(space_id)
+  defp build_base_query(query, %Space{id: space_id}) do
+    Posts.Query.where_in_space(query, space_id)
   end
 
-  defp build_base_query(user, %Group{id: group_id}) do
-    user
-    |> Posts.Query.base_query()
-    |> Posts.Query.where_in_group(group_id)
+  defp build_base_query(query, %Group{id: group_id}) do
+    Posts.Query.where_in_group(query, group_id)
   end
+
+  defp build_base_query(query, _), do: query
 
   defp process_args(%{order_by: %{field: :posted_at} = order_by} = args) do
     %{args | order_by: %{order_by | field: :inserted_at}}

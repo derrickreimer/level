@@ -50,6 +50,7 @@ import PostStateFilter
 import Presence exposing (PresenceList)
 import PushStatus exposing (PushStatus)
 import Query.MainInit as MainInit
+import Query.RecentDirectPosts as RecentDirectPosts
 import ReplyReaction
 import Repo exposing (Repo)
 import ResolvedNotification
@@ -208,12 +209,17 @@ setup resp url model =
             -- time zone on file differs from the one currently detected in their browser,
             -- and ask if they want to change it.
             if User.timeZone resp.currentUser /= newModel.timeZone then
-                model.session
+                newModel.session
                     |> UpdateUser.request (UpdateUser.timeZoneVariables newModel.timeZone)
                     |> Task.attempt TimeZoneUpdated
 
             else
                 Cmd.none
+
+        fetchRecentDirectPosts =
+            newModel.session
+                |> RecentDirectPosts.request RecentDirectPosts.variables
+                |> Task.attempt RecentDirectPostsFetched
 
         setupNotifications =
             newModel.notificationPanel
@@ -227,6 +233,7 @@ setup resp url model =
         , subscribeToSpaces
         , subscribeToSpaceUsers
         , updateTimeZone
+        , fetchRecentDirectPosts
         , setupNotifications
         ]
     )
@@ -261,6 +268,7 @@ type Msg
     | AppInitialized Url (Result Session.Error ( Session, MainInit.Response ))
     | SessionRefreshed (Result Session.Error Session)
     | TimeZoneUpdated (Result Session.Error ( Session, UpdateUser.Response ))
+    | RecentDirectPostsFetched (Result Session.Error ( Session, RecentDirectPosts.Response ))
     | ToggleNotifications
     | NotificationPanelMsg NotificationPanel.Msg
     | InternalLinkClicked String
@@ -403,6 +411,15 @@ update msg model =
             ( { model | currentUser = Loaded newUser, session = newSession }, Cmd.none )
 
         ( TimeZoneUpdated _, _ ) ->
+            ( model, Cmd.none )
+
+        ( RecentDirectPostsFetched (Ok ( newSession, resp )), _ ) ->
+            ( { model | repo = Repo.union resp.repo model.repo }, Cmd.none )
+
+        ( RecentDirectPostsFetched (Err Session.Expired), _ ) ->
+            ( model, Route.toLogin )
+
+        ( RecentDirectPostsFetched _, _ ) ->
             ( model, Cmd.none )
 
         ( ToggleNotifications, _ ) ->
