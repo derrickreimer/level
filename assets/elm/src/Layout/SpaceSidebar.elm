@@ -82,10 +82,10 @@ view config =
                 ]
             , viewUnless (List.isEmpty bookmarks) <|
                 div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-base" ]
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
                         [ a
                             [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
-                            , class "text-dusty-blue no-underline"
+                            , class "text-dusty-blue-dark no-underline"
                             ]
                             [ text "Channels" ]
                         ]
@@ -93,7 +93,7 @@ view config =
                     ]
             , viewUnless (Set.isEmpty directMessageRecipients) <|
                 div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-base text-dusty-blue" ] [ text "Direct Messages" ]
+                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "Direct Messages" ]
                     , directMessageList config directMessageRecipients
                     ]
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
