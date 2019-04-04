@@ -261,13 +261,13 @@ lockLarge =
 octothorpe : Html msg
 octothorpe =
     iconView <|
-        svg [ width "11px", height "13px", viewBox "0 0 11 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "hash-copy", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M0,3.66666667 L9,3.66666667", id "Path" ] [], Svg.path [ d "M0,7.33333333 L9,7.33333333", id "Path" ] [], Svg.path [ d "M3.375,0 L2.25,11", id "Path" ] [], Svg.path [ d "M6.75,0 L5.625,11", id "Path" ] [] ] ] ]
+        svg [ width "11px", height "13px", viewBox "0 0 11 13", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "hash-copy", transform "translate(1.000000, 1.000000)", stroke "#4B73E1", strokeWidth "2" ] [ Svg.path [ d "M0,3.66666667 L9,3.66666667", id "Path" ] [], Svg.path [ d "M0,7.33333333 L9,7.33333333", id "Path" ] [], Svg.path [ d "M3.375,0 L2.25,11", id "Path" ] [], Svg.path [ d "M6.75,0 L5.625,11", id "Path" ] [] ] ] ]
 
 
 person : Html msg
 person =
     iconView <|
-        svg [ width "11px", height "12px", viewBox "0 0 11 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "user", transform "translate(1.000000, 1.000000)", stroke "#8A98A5", strokeWidth "2" ] [ Svg.path [ d "M9,10 L9,8.88888889 C9,7.66158944 7.99264069,6.66666667 6.75,6.66666667 L2.25,6.66666667 C1.00735931,6.66666667 0,7.66158944 0,8.88888889 L0,10", id "Path" ] [], ellipse [ id "Oval", cx "4.5", cy "2.22222222", rx "2.25", ry "2.22222222" ] [] ] ] ]
+        svg [ width "11px", height "12px", viewBox "0 0 11 12", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd", strokeLinecap "round", strokeLinejoin "round" ] [ g [ id "user", transform "translate(1.000000, 1.000000)", stroke "#38C172", strokeWidth "2" ] [ Svg.path [ d "M9,10 L9,9 C9,7.8954305 8.24194336,7 6.75,7 L2.25,7 C0.796142578,7 0,7.8954305 0,9 L0,10", id "Path" ] [], ellipse [ id "Oval", cx "4.5", cy "2.22222222", rx "2.25", ry "2.22222222" ] [] ] ] ]
 
 
 
