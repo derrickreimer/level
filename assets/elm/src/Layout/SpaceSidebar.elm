@@ -70,11 +70,9 @@ view config =
                 ]
             , unreadList config
             , bookmarkList config
-            , directMessageList config
+            , peopleList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
-                [ sidebarLink "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
-                , sidebarLink "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
-                , sidebarLink "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
+                [ sidebarLink "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
                 , sidebarLink "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                 ]
@@ -95,9 +93,12 @@ view config =
 -- INTERNAL
 
 
-directMessageList : Config -> Html msg
-directMessageList config =
+peopleList : Config -> Html msg
+peopleList config =
     let
+        spaceSlug =
+            Space.slug config.space
+
         recipientLists =
             config.globals.repo
                 |> Repo.getAllPosts
@@ -112,11 +113,22 @@ directMessageList config =
                 |> Set.toList
                 |> List.map (directMessageLink config)
     in
-    viewUnless (Set.isEmpty recipientLists) <|
-        div []
-            [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "Direct Messages" ]
-            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
+    div []
+        [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+            [ a
+                [ Route.href (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug))
+                , class "text-dusty-blue-dark no-underline"
+                ]
+                [ text "People" ]
             ]
+        , viewUnless (Set.isEmpty recipientLists) <|
+            ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
+
+        -- This is kind of a hack, we should clean it up.
+        , viewIf (Set.isEmpty recipientLists) <|
+            ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
+                [ directMessageLink config [ SpaceUser.id config.spaceUser ] ]
+        ]
 
 
 directMessageLink : Config -> List Id -> Html msg
@@ -222,18 +234,17 @@ bookmarkList config =
                 |> List.filter (Filter.all [ not << GroupFilters.hasUnreads repo, Group.isBookmarked ])
                 |> List.sortBy Group.name
     in
-    viewUnless (List.isEmpty channels) <|
-        div []
-            [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
-                [ a
-                    [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
-                    , class "text-dusty-blue-dark no-underline"
-                    ]
-                    [ text "Channels" ]
+    div []
+        [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+            [ a
+                [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
+                , class "text-dusty-blue-dark no-underline"
                 ]
-            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] <|
-                List.map (channelLink config) channels
+                [ text "Channels" ]
             ]
+        , viewUnless (List.isEmpty channels) <|
+            ul [ class "mb-6 list-reset leading-semi-loose select-none" ] (List.map (channelLink config) channels)
+        ]
 
 
 channelLink : Config -> Group -> Html msg
@@ -277,10 +288,10 @@ channelLink config group =
         [ a
             [ Route.href route
             , classList
-                [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
+                [ ( "flex items-center w-full mb-px pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
                 , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
-                , ( "font-bold", hasUnreads )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
+                , ( "bg-gold", isCurrent && hasUnreads )
                 ]
             ]
             [ viewIf hasUnreads <|

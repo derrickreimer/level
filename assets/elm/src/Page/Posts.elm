@@ -119,7 +119,10 @@ recipientsTitle repo model =
     case maybeRecipients of
         Just recipients ->
             if List.map SpaceUser.id recipients == [ model.viewerId ] then
-                Just "Private Notes"
+                recipients
+                    |> List.map SpaceUser.displayName
+                    |> String.join ", "
+                    |> Just
 
             else
                 recipients
