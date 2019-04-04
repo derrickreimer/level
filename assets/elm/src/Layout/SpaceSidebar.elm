@@ -55,6 +55,25 @@ view config =
                 |> Route.Posts.init
                 |> Route.Posts.setAuthor (Just <| SpaceUser.handle config.spaceUser)
                 |> Route.Posts.setInboxState InboxStateFilter.All
+
+        hasUnreads recipientIds =
+            config.globals.repo
+                |> Repo.getAllPosts
+                |> List.filter (Post.withRecipients (Just recipientIds))
+                |> List.filter (Post.withInboxState InboxStateFilter.Unread)
+                |> List.isEmpty
+                |> not
+
+        ( recipientsWithUnreads, recipientsWithoutUnreads ) =
+            config.globals.repo
+                |> Repo.getAllPosts
+                |> List.filter (Post.withSpace (Space.id config.space))
+                |> List.filter Post.isDirect
+                |> List.map Post.recipientIds
+                |> List.map (\ids -> List.sort ids)
+                |> Set.fromList
+                |> Set.toList
+                |> List.partition hasUnreads
     in
     div []
         [ div [ class "p-4 pt-1" ]
@@ -68,9 +87,9 @@ view config =
                 [ sidebarLink "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Sent" Nothing (Route.Posts sentByMeParams) config.globals.currentRoute
                 ]
-            , unreadList config
+            , unreadList config recipientsWithUnreads
             , bookmarkList config
-            , peopleList config
+            , peopleList config recipientsWithoutUnreads
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ sidebarLink "Settings" Nothing (Route.Settings (Route.Settings.init spaceSlug Route.Settings.Preferences)) config.globals.currentRoute
                 , sidebarLink "Integrations" Nothing (Route.Apps (Route.Apps.init spaceSlug)) config.globals.currentRoute
@@ -93,25 +112,45 @@ view config =
 -- INTERNAL
 
 
-peopleList : Config -> Html msg
-peopleList config =
+unreadList : Config -> List (List Id) -> Html msg
+unreadList config recipientsWithUnreads =
     let
         spaceSlug =
             Space.slug config.space
 
-        recipientLists =
+        repo =
             config.globals.repo
-                |> Repo.getAllPosts
-                |> List.filter (Post.withSpace (Space.id config.space))
-                |> List.filter Post.isDirect
-                |> List.map Post.recipientIds
-                |> List.map (\ids -> List.sort ids)
-                |> Set.fromList
+
+        channels =
+            repo
+                |> Repo.getGroupsBySpaceId (Space.id config.space)
+                |> List.filter (GroupFilters.hasUnreads repo)
+                |> List.sortBy Group.name
+                |> List.map (channelLink config True)
+
+        directRecipients =
+            recipientsWithUnreads
+                |> List.map (directMessageLink config True)
+
+        allUnreads =
+            channels ++ directRecipients
+    in
+    viewUnless (List.isEmpty allUnreads) <|
+        div []
+            [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "Unread" ]
+            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] allUnreads
+            ]
+
+
+peopleList : Config -> List (List Id) -> Html msg
+peopleList config recipientsWithoutUnreads =
+    let
+        spaceSlug =
+            Space.slug config.space
 
         listItems =
-            recipientLists
-                |> Set.toList
-                |> List.map (directMessageLink config)
+            recipientsWithoutUnreads
+                |> List.map (directMessageLink config False)
     in
     div []
         [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
@@ -121,30 +160,99 @@ peopleList config =
                 ]
                 [ text "People" ]
             ]
-        , viewUnless (Set.isEmpty recipientLists) <|
+        , viewUnless (List.isEmpty listItems) <|
             ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
 
         -- This is kind of a hack, we should clean it up.
-        , viewIf (Set.isEmpty recipientLists) <|
+        , viewIf (List.isEmpty listItems) <|
             ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ directMessageLink config [ SpaceUser.id config.spaceUser ] ]
+                [ directMessageLink config False [ SpaceUser.id config.spaceUser ] ]
         ]
 
 
-directMessageLink : Config -> List Id -> Html msg
-directMessageLink config recipientIds =
+bookmarkList : Config -> Html msg
+bookmarkList config =
+    let
+        spaceSlug =
+            Space.slug config.space
+
+        repo =
+            config.globals.repo
+
+        channels =
+            repo
+                |> Repo.getGroupsBySpaceId (Space.id config.space)
+                |> List.filter (Filter.all [ not << GroupFilters.hasUnreads repo, Group.isBookmarked ])
+                |> List.sortBy Group.name
+    in
+    div []
+        [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+            [ a
+                [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
+                , class "text-dusty-blue-dark no-underline"
+                ]
+                [ text "Channels" ]
+            ]
+        , viewUnless (List.isEmpty channels) <|
+            ul [ class "mb-6 list-reset leading-semi-loose select-none" ] (List.map (channelLink config False) channels)
+        ]
+
+
+channelLink : Config -> Bool -> Group -> Html msg
+channelLink config hasUnreads group =
+    let
+        slug =
+            Space.slug config.space
+
+        params =
+            if hasUnreads then
+                Route.Group.init slug (Group.name group)
+                    |> Route.Group.setInboxState InboxStateFilter.Undismissed
+
+            else
+                Route.Group.init slug (Group.name group)
+
+        route =
+            Route.Group params
+
+        currentRoute =
+            config.globals.currentRoute
+
+        isCurrent =
+            Route.isCurrent route currentRoute
+
+        privacyIcon =
+            if Group.isPrivate group then
+                div [ class "flex-no-grow mr-2" ] [ Icons.lock ]
+
+            else
+                text ""
+    in
+    li []
+        [ a
+            [ Route.href route
+            , classList
+                [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
+                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
+                , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
+                , ( "bg-gold", isCurrent && hasUnreads )
+                ]
+            ]
+            [ viewIf hasUnreads <|
+                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-orange rounded-full shadow-white" ] []
+            , div [ class "flex-no-grow mr-1" ] [ Icons.octothorpe ]
+            , div [ class "mr-2 flex-shrink truncate" ] [ text <| Group.name group ]
+            , privacyIcon
+            ]
+        ]
+
+
+directMessageLink : Config -> Bool -> List Id -> Html msg
+directMessageLink config hasUnreads recipientIds =
     let
         recipients =
             config.globals.repo
                 |> Repo.getSpaceUsers recipientIds
-
-        hasUnreads =
-            config.globals.repo
-                |> Repo.getAllPosts
-                |> List.filter (Post.withRecipients (Just recipientIds))
-                |> List.filter (Post.withInboxState InboxStateFilter.Unread)
-                |> List.isEmpty
-                |> not
 
         recipientsLabel =
             case recipients of
@@ -184,121 +292,14 @@ directMessageLink config recipientIds =
             , classList
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
                 , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
-                , ( "font-bold", hasUnreads )
-                , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
-                ]
-            ]
-            [ viewIf hasUnreads <|
-                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
-            , div [ class "flex-no-grow mr-1" ] [ Icons.person ]
-            , div [ class "mr-2 flex-shrink truncate" ] [ text recipientsLabel ]
-            ]
-        ]
-
-
-unreadList : Config -> Html msg
-unreadList config =
-    let
-        spaceSlug =
-            Space.slug config.space
-
-        repo =
-            config.globals.repo
-
-        channels =
-            repo
-                |> Repo.getGroupsBySpaceId (Space.id config.space)
-                |> List.filter (GroupFilters.hasUnreads repo)
-                |> List.sortBy Group.name
-    in
-    viewUnless (List.isEmpty channels) <|
-        div []
-            [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "New Activity" ]
-            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] <|
-                List.map (channelLink config) channels
-            ]
-
-
-bookmarkList : Config -> Html msg
-bookmarkList config =
-    let
-        spaceSlug =
-            Space.slug config.space
-
-        repo =
-            config.globals.repo
-
-        channels =
-            repo
-                |> Repo.getGroupsBySpaceId (Space.id config.space)
-                |> List.filter (Filter.all [ not << GroupFilters.hasUnreads repo, Group.isBookmarked ])
-                |> List.sortBy Group.name
-    in
-    div []
-        [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
-            [ a
-                [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
-                , class "text-dusty-blue-dark no-underline"
-                ]
-                [ text "Channels" ]
-            ]
-        , viewUnless (List.isEmpty channels) <|
-            ul [ class "mb-6 list-reset leading-semi-loose select-none" ] (List.map (channelLink config) channels)
-        ]
-
-
-channelLink : Config -> Group -> Html msg
-channelLink config group =
-    let
-        slug =
-            Space.slug config.space
-
-        hasUnreads =
-            config.globals.repo
-                |> Repo.getPostsByGroup (Group.id group) Nothing
-                |> List.filter (Post.withInboxState InboxStateFilter.Unread)
-                |> List.isEmpty
-                |> not
-
-        params =
-            if hasUnreads then
-                Route.Group.init slug (Group.name group)
-                    |> Route.Group.setInboxState InboxStateFilter.Undismissed
-
-            else
-                Route.Group.init slug (Group.name group)
-
-        route =
-            Route.Group params
-
-        currentRoute =
-            config.globals.currentRoute
-
-        isCurrent =
-            Route.isCurrent route currentRoute
-
-        privacyIcon =
-            if Group.isPrivate group then
-                div [ class "flex-no-grow mr-2" ] [ Icons.lock ]
-
-            else
-                text ""
-    in
-    li []
-        [ a
-            [ Route.href route
-            , classList
-                [ ( "flex items-center w-full mb-px pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
-                , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
                 , ( "bg-gold", isCurrent && hasUnreads )
                 ]
             ]
             [ viewIf hasUnreads <|
                 div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-orange rounded-full shadow-white" ] []
-            , div [ class "flex-no-grow mr-1" ] [ Icons.octothorpe ]
-            , div [ class "mr-2 flex-shrink truncate" ] [ text <| Group.name group ]
-            , privacyIcon
+            , div [ class "flex-no-grow mr-1" ] [ Icons.person ]
+            , div [ class "mr-2 flex-shrink truncate" ] [ text recipientsLabel ]
             ]
         ]
 
