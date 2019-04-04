@@ -1,8 +1,10 @@
 module Layout.SpaceSidebar exposing (Config, view)
 
 import Avatar
+import Filter
 import Globals exposing (Globals)
 import Group exposing (Group)
+import GroupFilters
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -48,20 +50,6 @@ view config =
         spaceSlug =
             Space.slug config.space
 
-        bookmarks =
-            config.globals.repo
-                |> Repo.getBookmarks (Space.id config.space)
-                |> List.sortBy Group.name
-
-        directMessageRecipients =
-            config.globals.repo
-                |> Repo.getAllPosts
-                |> List.filter (Post.withSpace (Space.id config.space))
-                |> List.filter Post.isDirect
-                |> List.map Post.recipientIds
-                |> List.map (\ids -> List.sort ids)
-                |> Set.fromList
-
         sentByMeParams =
             spaceSlug
                 |> Route.Posts.init
@@ -80,22 +68,9 @@ view config =
                 [ sidebarLink "Home" Nothing (Route.Posts (Route.Posts.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Sent" Nothing (Route.Posts sentByMeParams) config.globals.currentRoute
                 ]
-            , viewUnless (List.isEmpty bookmarks) <|
-                div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
-                        [ a
-                            [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
-                            , class "text-dusty-blue-dark no-underline"
-                            ]
-                            [ text "Channels" ]
-                        ]
-                    , bookmarkList config bookmarks
-                    ]
-            , viewUnless (Set.isEmpty directMessageRecipients) <|
-                div []
-                    [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "Direct Messages" ]
-                    , directMessageList config directMessageRecipients
-                    ]
+            , unreadList config
+            , bookmarkList config
+            , directMessageList config
             , ul [ class "mb-4 list-reset leading-semi-loose select-none" ]
                 [ sidebarLink "People" Nothing (Route.SpaceUsers (Route.SpaceUsers.init spaceSlug)) config.globals.currentRoute
                 , sidebarLink "Channels" Nothing (Route.Groups (Route.Groups.init spaceSlug)) config.globals.currentRoute
@@ -120,15 +95,28 @@ view config =
 -- INTERNAL
 
 
-directMessageList : Config -> Set (List Id) -> Html msg
-directMessageList config recipientLists =
+directMessageList : Config -> Html msg
+directMessageList config =
     let
+        recipientLists =
+            config.globals.repo
+                |> Repo.getAllPosts
+                |> List.filter (Post.withSpace (Space.id config.space))
+                |> List.filter Post.isDirect
+                |> List.map Post.recipientIds
+                |> List.map (\ids -> List.sort ids)
+                |> Set.fromList
+
         listItems =
             recipientLists
                 |> Set.toList
                 |> List.map (directMessageLink config)
     in
-    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
+    viewUnless (Set.isEmpty recipientLists) <|
+        div []
+            [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "Direct Messages" ]
+            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
+            ]
 
 
 directMessageLink : Config -> List Id -> Html msg
@@ -196,13 +184,60 @@ directMessageLink config recipientIds =
         ]
 
 
-bookmarkList : Config -> List Group -> Html msg
-bookmarkList config bookmarks =
-    ul [ class "mb-6 list-reset leading-semi-loose select-none" ] (List.map (groupLink config) bookmarks)
+unreadList : Config -> Html msg
+unreadList config =
+    let
+        spaceSlug =
+            Space.slug config.space
+
+        repo =
+            config.globals.repo
+
+        channels =
+            repo
+                |> Repo.getGroupsBySpaceId (Space.id config.space)
+                |> List.filter (GroupFilters.hasUnreads repo)
+                |> List.sortBy Group.name
+    in
+    viewUnless (List.isEmpty channels) <|
+        div []
+            [ h3 [ class "mb-1p5 pl-3 font-sans text-md text-dusty-blue-dark" ] [ text "New Activity" ]
+            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] <|
+                List.map (channelLink config) channels
+            ]
 
 
-groupLink : Config -> Group -> Html msg
-groupLink config group =
+bookmarkList : Config -> Html msg
+bookmarkList config =
+    let
+        spaceSlug =
+            Space.slug config.space
+
+        repo =
+            config.globals.repo
+
+        channels =
+            repo
+                |> Repo.getGroupsBySpaceId (Space.id config.space)
+                |> List.filter (Filter.all [ not << GroupFilters.hasUnreads repo, Group.isBookmarked ])
+                |> List.sortBy Group.name
+    in
+    viewUnless (List.isEmpty channels) <|
+        div []
+            [ h3 [ class "mb-1p5 pl-3 font-sans text-md" ]
+                [ a
+                    [ Route.href (Route.Groups (Route.Groups.init spaceSlug))
+                    , class "text-dusty-blue-dark no-underline"
+                    ]
+                    [ text "Channels" ]
+                ]
+            , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] <|
+                List.map (channelLink config) channels
+            ]
+
+
+channelLink : Config -> Group -> Html msg
+channelLink config group =
     let
         slug =
             Space.slug config.space
@@ -249,7 +284,7 @@ groupLink config group =
                 ]
             ]
             [ viewIf hasUnreads <|
-                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-blue rounded-full shadow-white" ] []
+                div [ class "absolute -ml-4 mr-2 flex-no-shrink w-2 h-2 bg-orange rounded-full shadow-white" ] []
             , div [ class "flex-no-grow mr-1" ] [ Icons.octothorpe ]
             , div [ class "mr-2 flex-shrink truncate" ] [ text <| Group.name group ]
             , privacyIcon
