@@ -235,7 +235,6 @@ channelLink config hasUnreads group =
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
                 , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
-                , ( "bg-gold", isCurrent && hasUnreads )
                 ]
             ]
             [ viewIf hasUnreads <|
@@ -293,7 +292,6 @@ directMessageLink config hasUnreads recipientIds =
                 [ ( "flex items-center w-full pl-3 pr-2 mr-2 no-underline transition-bg rounded-full", True )
                 , ( "text-dusty-blue-darker bg-white hover:bg-grey-light", not isCurrent )
                 , ( "text-dusty-blue-darkest bg-grey font-bold", isCurrent )
-                , ( "bg-gold", isCurrent && hasUnreads )
                 ]
             ]
             [ viewIf hasUnreads <|
