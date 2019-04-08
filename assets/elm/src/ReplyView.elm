@@ -367,7 +367,6 @@ resolvedView config replyView data =
                     [ div
                         [ classList
                             [ ( "markdown pb-1 break-words", True )
-                            , ( "text-lg", bodyLength <= 3 )
                             ]
                         ]
                         [ RenderedHtml.node
