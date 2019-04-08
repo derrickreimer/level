@@ -960,8 +960,15 @@ resolvedView config postView data =
                 ]
                 []
         , div [ class "flex-no-shrink mr-3" ]
-            [ div [ classList [ ( "border border-white rounded-full", True ), ( "shadow-outline", config.isSelected ) ] ]
-                [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author) ]
+            [ div [ classList [ ( "relative border border-white rounded-full", True ), ( "shadow-outline", config.isSelected ) ] ]
+                [ Avatar.fromConfig (ResolvedAuthor.avatarConfig Avatar.Medium data.author)
+                , viewIf (Post.isUrgent data.post && Post.state data.post == Post.Open) <|
+                    div
+                        [ class "absolute shadow-white pin-l pin-t -ml-1 -mt-1 rounded-full tooltip tooltip-bottom mr-5"
+                        , attribute "data-tooltip" "Marked as urgent"
+                        ]
+                        [ Icons.alertSmall ]
+                ]
             ]
         , div [ class "flex-grow min-w-0 leading-normal" ]
             [ div [ class "pb-1/2 flex items-center flex-wrap" ]
@@ -986,12 +993,6 @@ resolvedView config postView data =
                 , viewIf (Post.state data.post == Post.Open) (closeButton data.post)
                 , viewIf (Post.state data.post == Post.Closed) (reopenButton data.post)
                 , inboxButton data.post
-                , viewIf (Post.isUrgent data.post && Post.state data.post == Post.Open) <|
-                    div
-                        [ class "tooltip tooltip-bottom mr-5"
-                        , attribute "data-tooltip" "Marked as urgent"
-                        ]
-                        [ Icons.alertSmall ]
                 ]
             , viewIf config.showRecipients <|
                 recipientsLabel config postView data
