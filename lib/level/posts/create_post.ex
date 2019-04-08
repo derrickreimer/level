@@ -17,6 +17,7 @@ defmodule Level.Posts.CreatePost do
   alias Level.Schemas.PostLog
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceUser
+  alias Level.StringHelpers
   alias Level.TaggedGroups
   alias Level.WebPush
   alias LevelWeb.Router.Helpers
@@ -275,7 +276,8 @@ defmodule Level.Posts.CreatePost do
 
   defp build_push_payload(post, author) do
     post = Repo.preload(post, :space)
-    body = "@#{author.handle} posted an urgent message"
+    snippet = StringHelpers.truncate(post.body)
+    body = "@#{author.handle}: #{snippet}"
     url = Helpers.main_path(LevelWeb.Endpoint, :index, [post.space.slug, "posts", post.id])
 
     %WebPush.Payload{
