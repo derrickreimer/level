@@ -168,7 +168,7 @@ defmodule Level.Posts.CreatePost do
     {:ok, subscribers} = Posts.get_subscribers(post)
     record_notifications(post, subscribers)
 
-    send_push_notifications(result, author)
+    send_push_notifications(result, author, subscribers)
     send_events(post)
 
     {:ok, result}
@@ -185,7 +185,7 @@ defmodule Level.Posts.CreatePost do
     {:ok, subscribers} = Posts.get_subscribers(post)
     record_notifications(post, subscribers)
 
-    send_push_notifications(result, author)
+    send_push_notifications(result, author, subscribers)
     send_events(post)
 
     {:ok, result}
@@ -261,18 +261,21 @@ defmodule Level.Posts.CreatePost do
   end
 
   defp send_push_notifications(
-         %{post: %Post{is_urgent: true} = post, mentions: %{space_users: mentioned_users}},
-         author
+         %{post: %Post{is_urgent: true} = post},
+         author,
+         subscribers
        ) do
     payload = build_push_payload(post, author)
 
-    mentioned_users
-    |> Enum.each(fn %SpaceUser{user_id: user_id} ->
-      WebPush.send_web_push(user_id, payload)
+    subscribers
+    |> Enum.each(fn %SpaceUser{id: id, user_id: user_id} ->
+      if id !== author.id do
+        WebPush.send_web_push(user_id, payload)
+      end
     end)
   end
 
-  defp send_push_notifications(_, _), do: true
+  defp send_push_notifications(_, _, _), do: true
 
   defp build_push_payload(post, author) do
     post = Repo.preload(post, :space)
