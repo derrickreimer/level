@@ -37,6 +37,11 @@ defmodule Level.Markdown do
   end
 
   defp markdownify(input) do
+    # One of the reasons smartypants is disabled is because double-dashes in hyperlinks
+    # were getting converted into en-dashes. Rather than figure out how to preserve
+    # URLs properly that are destined for auto-linking, it's easier just to disable this.
+    # It's also arguably more programmer friendly to not have it enabled too, because
+    # nobody wants smart quotes in their code snippets on accident.
     Earmark.as_html(input, %Options{gfm: true, breaks: true, smartypants: false})
   end
 
