@@ -67,7 +67,7 @@ defmodule Level.Mixfile do
       {:bamboo_postmark, "~> 0.4.2"},
       {:excoveralls, "~> 0.8", only: :test},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
-      {:earmark, "~> 1.2.5"},
+      {:earmark, "~> 1.3.2"},
       {:html_sanitize_ex, "~> 1.3.0"},
       {:number, "~> 0.5.7"},
       {:floki, "~> 0.20.3"},

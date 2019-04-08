@@ -37,7 +37,7 @@ defmodule Level.Markdown do
   end
 
   defp markdownify(input) do
-    Earmark.as_html(input, %Options{gfm: true, breaks: true})
+    Earmark.as_html(input, %Options{gfm: true, breaks: true, smartypants: false})
   end
 
   defp sanitize({status, html, errors}) do
