@@ -1609,7 +1609,7 @@ desktopPostComposerView globals model data =
             }
     in
     PostEditor.wrapper config
-        [ label [ class "composer" ]
+        [ label [ class "composer pl-3" ]
             [ div [ class "flex" ]
                 [ div [ class "flex-no-shrink mt-2 mr-3 z-10" ] [ SpaceUser.avatar Avatar.Medium data.viewer ]
                 , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
