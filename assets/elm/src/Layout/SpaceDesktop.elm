@@ -62,7 +62,7 @@ layout config children =
             ]
             [ div
                 [ classList
-                    [ ( "fixed w-48 h-full min-h-screen z-30", True )
+                    [ ( "fixed w-48 xxl:w-64 h-full min-h-screen z-30", True )
                     ]
                 ]
                 [ SpaceSidebar.view
