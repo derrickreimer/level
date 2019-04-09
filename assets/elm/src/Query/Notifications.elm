@@ -92,9 +92,28 @@ catchUpVariables limit cursor =
 
 decoder : Decoder Data
 decoder =
+    let
+        toData maybeNotifications =
+            maybeNotifications
+                |> Connection.filterMap identity
+                |> Data
+    in
     Decode.at [ "data", "notifications" ] <|
-        Decode.map Data
-            (Connection.decoder ResolvedNotification.decoder)
+        Decode.map toData
+            (Connection.decoder notificationDecoder)
+
+
+notificationDecoder : Decoder (Maybe ResolvedNotification)
+notificationDecoder =
+    maybeListDecoder ResolvedNotification.decoder
+
+
+maybeListDecoder : Decoder a -> Decoder (Maybe a)
+maybeListDecoder validDecoder =
+    Decode.oneOf
+        [ Decode.andThen (\v -> Decode.succeed (Just v)) validDecoder
+        , Decode.succeed Nothing
+        ]
 
 
 buildResponse : ( Session, Data ) -> ( Session, Response )

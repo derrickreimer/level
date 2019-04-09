@@ -465,7 +465,7 @@ notificationView globals resolvedNotification =
                 ]
     in
     case resolvedNotification.event of
-        PostCreated (Just resolvedPost) ->
+        PostCreated resolvedPost ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -478,7 +478,7 @@ notificationView globals resolvedNotification =
                 , isUndismissed = Notification.isUndismissed notification
                 }
 
-        PostClosed (Just resolvedPost) (Just actor) ->
+        PostClosed resolvedPost actor ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -491,7 +491,7 @@ notificationView globals resolvedNotification =
                 , isUndismissed = Notification.isUndismissed notification
                 }
 
-        PostReopened (Just resolvedPost) (Just actor) ->
+        PostReopened resolvedPost actor ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -504,7 +504,7 @@ notificationView globals resolvedNotification =
                 , isUndismissed = Notification.isUndismissed notification
                 }
 
-        ReplyCreated (Just resolvedReply) ->
+        ReplyCreated resolvedReply ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -517,7 +517,7 @@ notificationView globals resolvedNotification =
                 , isUndismissed = Notification.isUndismissed notification
                 }
 
-        PostReactionCreated (Just resolvedReaction) ->
+        PostReactionCreated resolvedReaction ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -530,7 +530,7 @@ notificationView globals resolvedNotification =
                 , isUndismissed = Notification.isUndismissed notification
                 }
 
-        ReplyReactionCreated (Just resolvedReaction) ->
+        ReplyReactionCreated resolvedReaction ->
             cardTemplate globals
                 { id = Notification.id notification
                 , topic = Notification.topic notification
@@ -542,9 +542,6 @@ notificationView globals resolvedNotification =
                 , preview = replyPreview globals resolvedReaction.resolvedReply
                 , isUndismissed = Notification.isUndismissed notification
                 }
-
-        _ ->
-            text ""
 
 
 

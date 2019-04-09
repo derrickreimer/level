@@ -22,12 +22,12 @@ type alias ResolvedNotification =
 
 
 type Event
-    = PostCreated (Maybe ResolvedPost)
-    | PostClosed (Maybe ResolvedPost) (Maybe Actor)
-    | PostReopened (Maybe ResolvedPost) (Maybe Actor)
-    | ReplyCreated (Maybe ResolvedReply)
-    | PostReactionCreated (Maybe ResolvedPostReaction)
-    | ReplyReactionCreated (Maybe ResolvedReplyReaction)
+    = PostCreated ResolvedPost
+    | PostClosed ResolvedPost Actor
+    | PostReopened ResolvedPost Actor
+    | ReplyCreated ResolvedReply
+    | PostReactionCreated ResolvedPostReaction
+    | ReplyReactionCreated ResolvedReplyReaction
 
 
 decoder : Decoder ResolvedNotification
@@ -45,29 +45,29 @@ eventDecoder =
             case typename of
                 "PostCreatedNotification" ->
                     Decode.map PostCreated
-                        (field "post" (maybe ResolvedPost.decoder))
+                        (field "post" ResolvedPost.decoder)
 
                 "PostClosedNotification" ->
                     Decode.map2 PostClosed
-                        (field "post" (maybe ResolvedPost.decoder))
-                        (field "actor" (maybe Actor.decoder))
+                        (field "post" ResolvedPost.decoder)
+                        (field "actor" Actor.decoder)
 
                 "PostReopenedNotification" ->
                     Decode.map2 PostReopened
-                        (field "post" (maybe ResolvedPost.decoder))
-                        (field "actor" (maybe Actor.decoder))
+                        (field "post" ResolvedPost.decoder)
+                        (field "actor" Actor.decoder)
 
                 "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated
-                        (field "reply" (maybe ResolvedReply.decoder))
+                        (field "reply" ResolvedReply.decoder)
 
                 "PostReactionCreatedNotification" ->
                     Decode.map PostReactionCreated
-                        (field "reaction" (maybe ResolvedPostReaction.decoder))
+                        (field "reaction" ResolvedPostReaction.decoder)
 
                 "ReplyReactionCreatedNotification" ->
                     Decode.map ReplyReactionCreated
-                        (field "reaction" (maybe ResolvedReplyReaction.decoder))
+                        (field "reaction" ResolvedReplyReaction.decoder)
 
                 _ ->
                     Decode.fail "event not recognized"
@@ -81,30 +81,27 @@ addToRepo resolvedNotification repo =
     let
         newRepo =
             case resolvedNotification.event of
-                PostCreated (Just resolvedPost) ->
+                PostCreated resolvedPost ->
                     ResolvedPost.addToRepo resolvedPost repo
 
-                PostClosed (Just resolvedPost) (Just actor) ->
+                PostClosed resolvedPost actor ->
                     repo
                         |> ResolvedPost.addToRepo resolvedPost
                         |> Repo.setActor actor
 
-                PostReopened (Just resolvedPost) (Just actor) ->
+                PostReopened resolvedPost actor ->
                     repo
                         |> ResolvedPost.addToRepo resolvedPost
                         |> Repo.setActor actor
 
-                ReplyCreated (Just resolvedReply) ->
+                ReplyCreated resolvedReply ->
                     ResolvedReply.addToRepo resolvedReply repo
 
-                PostReactionCreated (Just resolvedReaction) ->
+                PostReactionCreated resolvedReaction ->
                     ResolvedPostReaction.addToRepo resolvedReaction repo
 
-                ReplyReactionCreated (Just resolvedReaction) ->
+                ReplyReactionCreated resolvedReaction ->
                     ResolvedReplyReaction.addToRepo resolvedReaction repo
-
-                _ ->
-                    repo
     in
     Repo.setNotification resolvedNotification.notification newRepo
 
@@ -121,35 +118,31 @@ resolve repo id =
             let
                 maybeEvent =
                     case Notification.event notification of
-                        Notification.PostCreated maybePostId ->
-                            maybePostId
-                                |> Maybe.map (ResolvedPost.resolve repo)
-                                |> Maybe.map PostCreated
+                        Notification.PostCreated postId ->
+                            Maybe.map PostCreated
+                                (ResolvedPost.resolve repo postId)
 
-                        Notification.PostClosed maybePostId maybeActorId ->
+                        Notification.PostClosed postId actorId ->
                             Maybe.map2 PostClosed
-                                (Maybe.map (ResolvedPost.resolve repo) maybePostId)
-                                (Maybe.map (\actorId -> Repo.getActor actorId repo) maybeActorId)
+                                (ResolvedPost.resolve repo postId)
+                                (Repo.getActor actorId repo)
 
-                        Notification.PostReopened maybePostId maybeActorId ->
+                        Notification.PostReopened postId actorId ->
                             Maybe.map2 PostReopened
-                                (Maybe.map (ResolvedPost.resolve repo) maybePostId)
-                                (Maybe.map (\actorId -> Repo.getActor actorId repo) maybeActorId)
+                                (ResolvedPost.resolve repo postId)
+                                (Repo.getActor actorId repo)
 
-                        Notification.ReplyCreated maybeReplyId ->
-                            maybeReplyId
-                                |> Maybe.map (ResolvedReply.resolve repo)
-                                |> Maybe.map ReplyCreated
+                        Notification.ReplyCreated replyId ->
+                            Maybe.map ReplyCreated
+                                (ResolvedReply.resolve repo replyId)
 
-                        Notification.PostReactionCreated maybePostReaction ->
-                            maybePostReaction
-                                |> Maybe.map (ResolvedPostReaction.resolve repo)
-                                |> Maybe.map PostReactionCreated
+                        Notification.PostReactionCreated postReaction ->
+                            Maybe.map PostReactionCreated
+                                (ResolvedPostReaction.resolve repo postReaction)
 
-                        Notification.ReplyReactionCreated maybeReplyReaction ->
-                            maybeReplyReaction
-                                |> Maybe.map (ResolvedReplyReaction.resolve repo)
-                                |> Maybe.map ReplyReactionCreated
+                        Notification.ReplyReactionCreated replyReaction ->
+                            Maybe.map ReplyReactionCreated
+                                (ResolvedReplyReaction.resolve repo replyReaction)
             in
             Maybe.map2 ResolvedNotification
                 (Just notification)

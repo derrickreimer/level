@@ -43,6 +43,7 @@ import Post exposing (Post)
 import PostReaction exposing (PostReaction)
 import Reply exposing (Reply)
 import ReplyReaction exposing (ReplyReaction)
+import SpaceUser exposing (SpaceUser)
 import Time exposing (Posix)
 import Util exposing (dateDecoder)
 
@@ -65,12 +66,12 @@ type alias Data =
 
 
 type Event
-    = PostCreated (Maybe Id)
-    | PostClosed (Maybe Id) (Maybe ActorId)
-    | PostReopened (Maybe Id) (Maybe ActorId)
-    | ReplyCreated (Maybe Id)
-    | PostReactionCreated (Maybe PostReaction)
-    | ReplyReactionCreated (Maybe ReplyReaction)
+    = PostCreated Id
+    | PostClosed Id ActorId
+    | PostReopened Id ActorId
+    | ReplyCreated Id
+    | PostReactionCreated PostReaction
+    | ReplyReactionCreated ReplyReaction
 
 
 type State
@@ -176,6 +177,12 @@ fragment =
                 state
                 reaction {
                   ...PostReactionFields
+                  spaceUser {
+                    ...SpaceUserFields
+                  }
+                  post {
+                    ...PostFields
+                  }
                 }
                 occurredAt
               }
@@ -185,6 +192,15 @@ fragment =
                 state
                 reaction {
                   ...ReplyReactionFields
+                  spaceUser {
+                    ...SpaceUserFields
+                  }
+                  post {
+                    ...PostFields
+                  }
+                  reply {
+                    ...ReplyFields
+                  }
                 }
                 occurredAt
               }
@@ -197,6 +213,7 @@ fragment =
         , Reply.fragment
         , PostReaction.fragment
         , ReplyReaction.fragment
+        , SpaceUser.fragment
         ]
 
 
@@ -223,21 +240,21 @@ eventDecoder =
             case typename of
                 "PostCreatedNotification" ->
                     Decode.map PostCreated <|
-                        field "post" (maybe (field "id" Id.decoder))
+                        field "post" (field "id" Id.decoder)
 
                 "PostClosedNotification" ->
                     Decode.map2 PostClosed
-                        (field "post" (maybe (field "id" Id.decoder)))
-                        (field "actor" (maybe Actor.idDecoder))
+                        (field "post" (field "id" Id.decoder))
+                        (field "actor" Actor.idDecoder)
 
                 "PostReopenedNotification" ->
                     Decode.map2 PostReopened
-                        (field "post" (maybe (field "id" Id.decoder)))
-                        (field "actor" (maybe Actor.idDecoder))
+                        (field "post" (field "id" Id.decoder))
+                        (field "actor" Actor.idDecoder)
 
                 "ReplyCreatedNotification" ->
                     Decode.map ReplyCreated <|
-                        field "reply" (maybe (field "id" Id.decoder))
+                        field "reply" (field "id" Id.decoder)
 
                 "PostReactionCreatedNotification" ->
                     -- It's possible the reaction will not decode properly
@@ -245,10 +262,7 @@ eventDecoder =
                     -- treat it the same as if the reaction itself had been
                     -- deleted.
                     Decode.map PostReactionCreated <|
-                        Decode.oneOf
-                            [ field "reaction" (maybe PostReaction.decoder)
-                            , Decode.succeed Nothing
-                            ]
+                        field "reaction" PostReaction.decoder
 
                 "ReplyReactionCreatedNotification" ->
                     -- It's possible the reaction will not decode properly
@@ -256,10 +270,7 @@ eventDecoder =
                     -- treat it the same as if the reaction itself had been
                     -- deleted.
                     Decode.map ReplyReactionCreated <|
-                        Decode.oneOf
-                            [ field "reaction" (maybe ReplyReaction.decoder)
-                            , Decode.succeed Nothing
-                            ]
+                        field "reaction" ReplyReaction.decoder
 
                 _ ->
                     Decode.fail "event not recognized"
