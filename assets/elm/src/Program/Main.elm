@@ -1964,7 +1964,7 @@ rightmostSidebar model =
             [ Icons.notification Icons.Off
             , div
                 [ classList
-                    [ ( "opacity-0 absolute rounded-full bg-orange shadow-white pin-t pin-r transition-opacity", True )
+                    [ ( "opacity-0 absolute rounded-full bg-blue shadow-white pin-t pin-r transition-opacity", True )
                     , ( "opacity-100", NotificationPanel.hasUndismissed model.notificationPanel )
                     ]
                 , style "width" "10px"

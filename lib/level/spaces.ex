@@ -137,11 +137,7 @@ defmodule Level.Spaces do
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
-    |> Multi.run(:space_user, fn %{space: space} -> create_owner(user, space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
-    |> Multi.run(:default_group, fn %{space_user: space_user} ->
-      create_everyone_group(space_user)
-    end)
     |> Repo.transaction()
     |> after_create_space(user)
   end
@@ -156,9 +152,12 @@ defmodule Level.Spaces do
     end
   end
 
-  defp after_create_space({:ok, %{space: space, space_user: space_user}} = result, user) do
-    _ = Events.space_joined(user.id, space, space_user)
-    result
+  defp after_create_space({:ok, %{space: space} = data}, user) do
+    {:ok, owner} = create_owner(user, space)
+    {:ok, default_group} = create_everyone_group(owner)
+    Events.space_joined(user.id, space, owner)
+
+    {:ok, Map.merge(data, %{space_user: owner, default_group: default_group})}
   end
 
   defp after_create_space(err, _), do: err

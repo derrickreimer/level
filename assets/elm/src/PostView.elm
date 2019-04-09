@@ -955,7 +955,7 @@ resolvedView config postView data =
     div [ id (postNodeId postView), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
             div
-                [ class "tooltip tooltip-top mr-2 -ml-3 mt-px w-1 h-12 rounded pin-t bg-orange flex-no-shrink shadow-white"
+                [ class "tooltip tooltip-top mr-2 -ml-4 mt-5 w-2 h-2 rounded pin-t bg-blue flex-no-shrink shadow-white"
                 , attribute "data-tooltip" "Unread in your inbox"
                 ]
                 []
