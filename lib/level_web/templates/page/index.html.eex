@@ -2,9 +2,9 @@
   <h1 class="marketing-headline sm:text-center">Team chat that respects focus.</h1>
 
   <div class="mx-auto max-w-md">
-    <blockquote class="mb-6 -ml-8 px-8 py-6 border-l-4 border-turquoise text-dusty-blue-darker text-2xl sm:text-3xl bg-grey-light rounded-r-xl">
+    <blockquote class="mb-6 -mx-12 px-12 py-6 text-dusty-blue-darker text-2xl sm:text-3xl banknote-bg sm:rounded-xl font-serif tracking-semi-tight">
       &ldquo;Efforts to deepen your focus will struggle if you don&rsquo;t simultaneously wean your mind from a dependence on distraction.&rdquo;
-      <div class="mt-4 text-dusty-blue-dark text-xl sm:text-2xl text-right">&mdash; Cal Newport, Deep Work</div>
+      <div class="mt-2 text-dusty-blue-dark text-xl text-right">&mdash; Cal Newport, Deep Work</div>
     </blockquote>
 
     <p>Hi, I&rsquo;m
@@ -21,8 +21,8 @@
 
     <p>When your brain is hooked on distraction, it&rsquo;s constantly seeking the next hit of cheap stimulation, be it from social media, email, or chat. Stanford researcher Clifford Nass puts it this way:</p>
 
-    <blockquote class="mb-6 -ml-8 px-8 py-6 border-l-4 border-turquoise text-dusty-blue-darker text-2xl sm:text-3xl bg-grey-light rounded-r-xl">
-      &ldquo;People who multitask all the time can&rsquo;t filter out irrelevancy...They&rsquo;re chronically distracted. They initiate much larger parts of their brain that are irrelevant to the task at hand...<strong>they&rsquo;re pretty much mental wrecks</strong>.&rdquo;
+    <blockquote class="mb-6 -mx-12 px-12 py-6 text-dusty-blue-darker text-2xl sm:text-3xl banknote-bg sm:rounded-xl font-serif tracking-semi-tight">
+      &ldquo;People who multitask all the time can&rsquo;t filter out irrelevancy. They&rsquo;re chronically distracted. <strong>They&rsquo;re pretty much mental wrecks</strong>.&rdquo;
     </blockquote>
 
     <p>Yikes.</p>
@@ -69,7 +69,7 @@
 
 <div id="buy" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
   <div class="mx-auto max-w-md">
-    <h1 class="marketing-headline mb-6 text-5xl sm:text-6xl">Interested?</h1>
+    <h1 class="marketing-headline tracking-tight mb-6 text-5xl sm:text-6xl">Interested?</h1>
 
     <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
   </div>
