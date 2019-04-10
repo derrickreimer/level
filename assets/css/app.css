@@ -687,6 +687,26 @@ a.user-mention:hover {
 }
 
 /**
+ * Emoji reactions
+ */
+
+.emoji-reaction {
+  @apply font-emoji w-7 h-7 bg-white rounded-full text-center;
+  line-height: 1.75rem;
+}
+
+/**
+ * Emojis appear smaller on hi-dpi screens, so we need to boost the size up a notch.
+ * They also get shifted to the left slightly, so we need to add a little left padding.
+ * This media query is borrowed from github.com.
+ */
+@media not all, only screen and (-webkit-min-device-pixel-ratio: 2), not all, not all, only screen and (min-resolution: 2dppx), only screen and (min-resolution: 192dpi) {
+  .emoji-reaction {
+    @apply pl-1 text-lg;
+  }
+}
+
+/**
  * This injects all of Tailwind's utility classes, generated based on your
  * config file.
  *

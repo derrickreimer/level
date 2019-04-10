@@ -202,6 +202,12 @@ module.exports = {
       'Liberation Mono',
       'Courier New',
       'monospace',
+    ],
+    'emoji': [
+      'Apple Color Emoji',
+      'Segoe UI',
+      'Segoe UI Emoji',
+      'Segoe UI Symbol'
     ]
   },
 
@@ -708,6 +714,7 @@ module.exports = {
     'px': '1px',
     '0': '0',
     '1': '0.25rem',
+    '3/2': '0.375rem',
     '2': '0.5rem',
     '3': '0.75rem',
     '4': '1rem',

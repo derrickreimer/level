@@ -965,6 +965,10 @@ resolvedView config postView data =
                 |> Repo.getPostReactions (Post.id data.post)
                 |> List.filterMap (ResolvedPostReaction.resolve config.globals.repo)
                 |> groupReactionsByValue
+
+        trayItems =
+            groupedReactionViews config groupedReactions
+                ++ [ reactionPaletteView config postView data, replyButtonView config postView data ]
     in
     div [ id (postNodeId postView), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
@@ -1014,11 +1018,7 @@ resolvedView config postView data =
                 bodyView config.space data.post
             , viewIf (PostEditor.isExpanded postView.editor) <|
                 editorView config postView.editor
-            , div [ class "pb-2 flex items-center" ]
-                [ groupedReactionsView config groupedReactions
-                , reactionPaletteView config postView data
-                , replyButtonView config postView data
-                ]
+            , div [ class "flex items-center flex-wrap" ] trayItems
             , div [ class "relative" ]
                 [ repliesView config postView data
                 , replyComposerView config postView data
@@ -1140,7 +1140,7 @@ recipientsLabel config postView data =
                     |> Route.Posts.setRecipients (Just <| List.map SpaceUser.handle data.recipients)
         in
         if List.isEmpty recipientsExceptAuthor then
-            div [ class "pb-1 mr-3 text-base text-dusty-blue-dark" ]
+            div [ class "pb-3/2 mr-3 text-base text-dusty-blue-dark" ]
                 [ a
                     [ Route.href (Route.Posts feedParams)
                     , class "no-underline text-dusty-blue-dark whitespace-no-wrap"
@@ -1183,7 +1183,7 @@ bodyView space post =
     div []
         [ div
             [ classList
-                [ ( "markdown pb-3/2 break-words", True )
+                [ ( "markdown break-words", True )
                 ]
             ]
             [ RenderedHtml.node
@@ -1395,27 +1395,26 @@ replyPromptView config postView data =
 
 replyButtonView : ViewConfig -> PostView -> Data -> Html Msg
 replyButtonView config postView data =
-    if Post.state data.post == Post.Open then
-        button
-            [ class "tooltip tooltip-bottom"
-            , onClick ExpandReplyComposer
-            , attribute "data-tooltip" "Reply"
-            ]
-            [ Icons.reply ]
+    let
+        ( clickMsg, tooltipText ) =
+            if Post.state data.post == Post.Open then
+                ( ExpandReplyComposer, "Reply" )
 
-    else
-        button
-            [ class "tooltip tooltip-bottom"
-            , onClick ReopenPostClicked
-            , attribute "data-tooltip" "Reopen"
-            ]
-            [ Icons.reply ]
+            else
+                ( ReopenPostClicked, "Reopen" )
+    in
+    button
+        [ class "tooltip tooltip-bottom flex items-center justify-center mb-1 w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
+        , onClick clickMsg
+        , attribute "data-tooltip" tooltipText
+        ]
+        [ Icons.reply ]
 
 
 staticFilesView : List File -> Html msg
 staticFilesView files =
     viewUnless (List.isEmpty files) <|
-        div [ class "pb-2" ] <|
+        div [ class "py-1" ] <|
             List.map staticFileView files
 
 
@@ -1445,14 +1444,14 @@ staticFileView file =
 reactionPaletteView : ViewConfig -> PostView -> Data -> Html Msg
 reactionPaletteView config postView data =
     if postView.isReactionMenuOpen then
-        div [ class "flex items-center mr-6 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline" ]
-            [ reactionButton "👍"
-            , reactionButton "😊"
-            , reactionButton "😂"
-            , reactionButton "😕"
-            , reactionButton "❤️"
-            , reactionButton "🎉"
-            , reactionButton "🚀"
+        div [ class "flex items-center my-1 mr-6 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline" ]
+            [ reactButton "👍"
+            , reactButton "😊"
+            , reactButton "😂"
+            , reactButton "😕"
+            , reactButton "❤️"
+            , reactButton "🎉"
+            , reactButton "🚀"
             , button
                 [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-transparent hover:bg-grey-light transition-bg rounded-full"
                 , onClick ReactionMenuToggled
@@ -1462,29 +1461,26 @@ reactionPaletteView config postView data =
 
     else
         button
-            [ class "flex relative items-center mr-6 no-outline react-button"
+            [ class "flex items-center justify-center -ml-3/2 mb-1 mr-4 w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
             , onClick ReactionMenuToggled
             ]
-            [ Icons.reaction
-            ]
+            [ Icons.reaction ]
 
 
-reactionButton : String -> Html Msg
-reactionButton value =
+reactButton : String -> Html Msg
+reactButton value =
     button
-        [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-white rounded-full"
+        [ class "flex-no-shrink mx-1/2 emoji-reaction"
         , onClick (CreatePostReactionClicked value)
         ]
         [ text value ]
 
 
-groupedReactionsView : ViewConfig -> Dict String (List SpaceUser) -> Html Msg
-groupedReactionsView config groupedReactions =
-    div [ class "flex items-center" ]
-        (groupedReactions
-            |> Dict.map (groupedReactionView config)
-            |> Dict.values
-        )
+groupedReactionViews : ViewConfig -> Dict String (List SpaceUser) -> List (Html Msg)
+groupedReactionViews config groupedReactions =
+    groupedReactions
+        |> Dict.map (groupedReactionView config)
+        |> Dict.values
 
 
 groupedReactionView : ViewConfig -> String -> List SpaceUser -> Html Msg
@@ -1497,16 +1493,16 @@ groupedReactionView config value spaceUsers =
             else
                 CreatePostReactionClicked value
     in
-    button [ class "flex items-center mr-1 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline", onClick clickMsg ]
-        [ div [ class "flex ml-1/2 mr-1p5 items-center justify-center w-7 h-7 bg-white rounded-full" ] [ text value ]
-        , div [ class "flex pl-2 pr-1/2 items-center" ] (List.map reactorAvatar spaceUsers)
+    button [ class "flex items-center mr-2 my-1 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline", onClick clickMsg ]
+        [ div [ class "flex-no-shrink ml-1/2 mr-1p5 emoji-reaction" ] [ text value ]
+        , div [ class "flex items-center pl-2 pr-1/2" ] (List.map reactorAvatar spaceUsers)
         ]
 
 
 reactorAvatar : SpaceUser -> Html Msg
 reactorAvatar spaceUser =
     div
-        [ class "mx-1/2 rounded-full shadow-grey-light -ml-2"
+        [ class "flex-no-shrink mx-1/2 rounded-full shadow-grey-light -ml-2"
         ]
         [ SpaceUser.avatar Avatar.Tiny spaceUser ]
 
