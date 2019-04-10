@@ -838,11 +838,7 @@ defmodule Level.PostsTest do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
 
-      refute Posts.reacted?(space_user, post)
-
-      {:ok, _} = Posts.create_post_reaction(space_user, post)
-
-      assert Posts.reacted?(space_user, post)
+      {:ok, _} = Posts.create_post_reaction(space_user, post, "👍")
 
       assert Repo.get_by(PostLog,
                space_user_id: space_user.id,
@@ -855,7 +851,7 @@ defmodule Level.PostsTest do
       post_id = post.id
 
       assert {:ok, %PostReaction{space_user_id: ^space_user_id, post_id: ^post_id}} =
-               Posts.create_post_reaction(space_user, post)
+               Posts.create_post_reaction(space_user, post, "👍")
     end
 
     test "records a notification for all subscribers" do
@@ -864,7 +860,7 @@ defmodule Level.PostsTest do
       {:ok, %{group: group}} = create_group(reactor)
       {:ok, %{post: post}} = create_post(author, group)
 
-      {:ok, _} = Posts.create_post_reaction(reactor, post)
+      {:ok, _} = Posts.create_post_reaction(reactor, post, "👍")
 
       # Does not record a notification for the reactor
       refute Enum.any?(Notifications.list(reactor, post), fn notification ->
@@ -882,13 +878,9 @@ defmodule Level.PostsTest do
       {:ok, %{space_user: space_user}} = create_user_and_space()
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
-      {:ok, reaction} = Posts.create_post_reaction(space_user, post)
-
-      assert Posts.reacted?(space_user, post)
-
-      {:ok, deleted_reaction} = Posts.delete_post_reaction(space_user, post)
+      {:ok, reaction} = Posts.create_post_reaction(space_user, post, "👍")
+      {:ok, deleted_reaction} = Posts.delete_post_reaction(space_user, post, "👍")
       assert deleted_reaction.id == reaction.id
-      refute Posts.reacted?(space_user, post)
     end
 
     test "returns an error if the user had not reacted" do
@@ -896,9 +888,7 @@ defmodule Level.PostsTest do
       {:ok, %{group: group}} = create_group(space_user)
       {:ok, %{post: post}} = create_post(space_user, group)
 
-      refute Posts.reacted?(space_user, post)
-
-      {:error, "Reaction not found"} = Posts.delete_post_reaction(space_user, post)
+      {:error, "Reaction not found"} = Posts.delete_post_reaction(space_user, post, "👍")
     end
   end
 

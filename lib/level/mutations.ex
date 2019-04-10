@@ -975,7 +975,7 @@ defmodule Level.Mutations do
   def create_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
-         {:ok, reaction} <- Posts.create_post_reaction(space_user, post) do
+         {:ok, reaction} <- Posts.create_post_reaction(space_user, post, args.value) do
       {:ok, %{success: true, errors: [], post: post, reaction: reaction}}
     else
       %Ecto.Changeset{} = changeset ->
@@ -1001,7 +1001,7 @@ defmodule Level.Mutations do
   def delete_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
-         {:ok, reaction} <- Posts.delete_post_reaction(space_user, post) do
+         {:ok, reaction} <- Posts.delete_post_reaction(space_user, post, args.value) do
       {:ok, %{success: true, errors: [], post: post, reaction: reaction}}
     else
       %Ecto.Changeset{} = changeset ->

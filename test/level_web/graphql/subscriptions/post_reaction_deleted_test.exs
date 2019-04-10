@@ -34,12 +34,12 @@ defmodule LevelWeb.GraphQL.PostReactionDeletedTest do
   } do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
-    {:ok, _} = Posts.create_post_reaction(space_user, post)
+    {:ok, _} = Posts.create_post_reaction(space_user, post, "👍")
 
     ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, _} = Posts.delete_post_reaction(space_user, post)
+    {:ok, _} = Posts.delete_post_reaction(space_user, post, "👍")
 
     payload = %{
       result: %{

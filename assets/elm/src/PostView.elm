@@ -713,7 +713,7 @@ update msg globals postView =
         CreatePostReactionClicked value ->
             let
                 variables =
-                    CreatePostReaction.variables postView.spaceId postView.id
+                    CreatePostReaction.variables postView.spaceId postView.id value
 
                 cmd =
                     globals.session
@@ -738,7 +738,7 @@ update msg globals postView =
         DeletePostReactionClicked value ->
             let
                 variables =
-                    DeletePostReaction.variables postView.spaceId postView.id
+                    DeletePostReaction.variables postView.spaceId postView.id value
 
                 cmd =
                     globals.session
@@ -1480,7 +1480,7 @@ reactionButton value =
 
 groupedReactionsView : ViewConfig -> Dict String (List SpaceUser) -> Html Msg
 groupedReactionsView config groupedReactions =
-    div []
+    div [ class "flex items-center" ]
         (groupedReactions
             |> Dict.map (groupedReactionView config)
             |> Dict.values

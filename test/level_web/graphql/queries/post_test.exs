@@ -2,8 +2,6 @@ defmodule LevelWeb.GraphQL.PostTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Posts
-
   @query """
     query GetPost(
       $space_id: ID!
@@ -203,62 +201,6 @@ defmodule LevelWeb.GraphQL.PostTest do
                "space" => %{
                  "post" => %{
                    "canEdit" => false
-                 }
-               }
-             }
-           }
-  end
-
-  test "exposes the reaction state", %{conn: conn, space_user: space_user} do
-    {:ok, %{group: group}} = create_group(space_user)
-    {:ok, %{post: post}} = create_post(space_user, group)
-
-    query = """
-      query GetPost(
-        $space_id: ID!
-        $post_id: ID!
-      ) {
-        space(id: $space_id) {
-          post(id: $post_id) {
-            hasReacted
-          }
-        }
-      }
-    """
-
-    variables = %{
-      space_id: space_user.space_id,
-      post_id: post.id
-    }
-
-    conn =
-      conn
-      |> put_graphql_headers()
-      |> post("/graphql", %{query: query, variables: variables})
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "post" => %{
-                   "hasReacted" => false
-                 }
-               }
-             }
-           }
-
-    {:ok, _} = Posts.create_post_reaction(space_user, post)
-
-    conn =
-      conn
-      |> recycle()
-      |> put_graphql_headers()
-      |> post("/graphql", %{query: query, variables: variables})
-
-    assert json_response(conn, 200) == %{
-             "data" => %{
-               "space" => %{
-                 "post" => %{
-                   "hasReacted" => true
                  }
                }
              }
