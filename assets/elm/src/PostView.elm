@@ -65,6 +65,7 @@ import Mutation.ReopenPost as ReopenPost
 import Mutation.UpdatePost as UpdatePost
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
+import PostReaction
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
@@ -102,6 +103,7 @@ type alias PostView =
     , editor : PostEditor
     , replyComposer : PostEditor
     , isChecked : Bool
+    , isReactionMenuOpen : Bool
     }
 
 
@@ -162,6 +164,7 @@ init repo replyLimit post =
         (Post.postedAt post)
         (PostEditor.init <| "post-editor-" ++ postId)
         (PostEditor.init <| "reply-composer-" ++ postId)
+        False
         False
 
 
@@ -275,8 +278,9 @@ type Msg
     | PostEditorFileUploadError Id
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
-    | CreatePostReactionClicked
-    | DeletePostReactionClicked
+    | ReactionMenuToggled
+    | CreatePostReactionClicked String
+    | DeletePostReactionClicked String
     | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
     | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
     | ClosePostClicked
@@ -703,7 +707,10 @@ update msg globals postView =
             in
             ( ( { postView | editor = newPostEditor }, Cmd.none ), globals )
 
-        CreatePostReactionClicked ->
+        ReactionMenuToggled ->
+            ( ( { postView | isReactionMenuOpen = not postView.isReactionMenuOpen }, Cmd.none ), globals )
+
+        CreatePostReactionClicked value ->
             let
                 variables =
                     CreatePostReaction.variables postView.spaceId postView.id
@@ -720,7 +727,7 @@ update msg globals postView =
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( postView, recordView newGlobals postView ), newGlobals )
+            ( ( { postView | isReactionMenuOpen = False }, recordView newGlobals postView ), newGlobals )
 
         PostReactionCreated (Err Session.Expired) ->
             redirectToLogin globals postView
@@ -728,7 +735,7 @@ update msg globals postView =
         PostReactionCreated _ ->
             ( ( postView, Cmd.none ), globals )
 
-        DeletePostReactionClicked ->
+        DeletePostReactionClicked value ->
             let
                 variables =
                     DeletePostReaction.variables postView.spaceId postView.id
@@ -952,6 +959,13 @@ view config postView =
 
 resolvedView : ViewConfig -> PostView -> Data -> Html Msg
 resolvedView config postView data =
+    let
+        groupedReactions =
+            config.globals.repo
+                |> Repo.getPostReactions (Post.id data.post)
+                |> List.filterMap (ResolvedPostReaction.resolve config.globals.repo)
+                |> groupReactionsByValue
+    in
     div [ id (postNodeId postView), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
             div
@@ -1000,8 +1014,9 @@ resolvedView config postView data =
                 bodyView config.space data.post
             , viewIf (PostEditor.isExpanded postView.editor) <|
                 editorView config postView.editor
-            , div [ class "pb-2 flex items-start" ]
-                [ reactionButton config postView data
+            , div [ class "pb-2 flex items-center" ]
+                [ groupedReactionsView config groupedReactions
+                , reactionPaletteView config postView data
                 , replyButtonView config postView data
                 ]
             , div [ class "relative" ]
@@ -1427,59 +1442,73 @@ staticFileView file =
 -- REACTIONS
 
 
-reactionButton : ViewConfig -> PostView -> Data -> Html Msg
-reactionButton config postView data =
-    let
-        reactions =
-            config.globals.repo
-                |> Repo.getPostReactions (Post.id data.post)
-                |> List.filterMap (ResolvedPostReaction.resolve config.globals.repo)
-
-        reactionCount =
-            List.length reactions
-
-        flyoutLabel =
-            if List.isEmpty reactions then
-                "Acknowledge"
-
-            else
-                "Acknowledged by"
-    in
-    if Post.hasReacted data.post then
-        button
-            [ class "flex relative items-center mr-6 no-outline react-button"
-            , onClick DeletePostReactionClicked
-            ]
-            [ Icons.thumbs Icons.On
-            , viewIf (reactionCount > 0) <|
-                div
-                    [ class "ml-1 text-green font-bold text-sm"
-                    ]
-                    [ text <| String.fromInt reactionCount ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
-                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactions) <|
-                    div [ class "mt-1" ] (List.map reactorView reactions)
+reactionPaletteView : ViewConfig -> PostView -> Data -> Html Msg
+reactionPaletteView config postView data =
+    if postView.isReactionMenuOpen then
+        div [ class "flex items-center mr-6 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline" ]
+            [ reactionButton "👍"
+            , reactionButton "😊"
+            , reactionButton "😂"
+            , reactionButton "😕"
+            , reactionButton "❤️"
+            , reactionButton "🎉"
+            , reactionButton "🚀"
+            , button
+                [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-transparent hover:bg-grey-light transition-bg rounded-full"
+                , onClick ReactionMenuToggled
                 ]
+                [ Icons.exSmall ]
             ]
 
     else
         button
             [ class "flex relative items-center mr-6 no-outline react-button"
-            , onClick CreatePostReactionClicked
+            , onClick ReactionMenuToggled
             ]
-            [ Icons.thumbs Icons.Off
-            , viewIf (reactionCount > 0) <|
-                div
-                    [ class "ml-1 text-dusty-blue font-bold text-sm"
-                    ]
-                    [ text <| String.fromInt reactionCount ]
-            , div [ classList [ ( "reactors", True ), ( "no-reactors", reactionCount == 0 ) ] ]
-                [ div [ class "text-xs font-bold text-white" ] [ text flyoutLabel ]
-                , viewUnless (List.isEmpty reactions) <|
-                    div [ class "mt-1" ] (List.map reactorView reactions)
-                ]
+            [ Icons.reaction
             ]
+
+
+reactionButton : String -> Html Msg
+reactionButton value =
+    button
+        [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-white rounded-full"
+        , onClick (CreatePostReactionClicked value)
+        ]
+        [ text value ]
+
+
+groupedReactionsView : ViewConfig -> Dict String (List SpaceUser) -> Html Msg
+groupedReactionsView config groupedReactions =
+    div []
+        (groupedReactions
+            |> Dict.map (groupedReactionView config)
+            |> Dict.values
+        )
+
+
+groupedReactionView : ViewConfig -> String -> List SpaceUser -> Html Msg
+groupedReactionView config value spaceUsers =
+    let
+        clickMsg =
+            if List.member config.currentUser spaceUsers then
+                DeletePostReactionClicked value
+
+            else
+                CreatePostReactionClicked value
+    in
+    button [ class "flex items-center mr-1 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline", onClick clickMsg ]
+        [ div [ class "flex ml-1/2 mr-1p5 items-center justify-center w-7 h-7 bg-white rounded-full" ] [ text value ]
+        , div [ class "flex pl-2 pr-1/2 items-center" ] (List.map reactorAvatar spaceUsers)
+        ]
+
+
+reactorAvatar : SpaceUser -> Html Msg
+reactorAvatar spaceUser =
+    div
+        [ class "mx-1/2 rounded-full shadow-grey-light -ml-2"
+        ]
+        [ SpaceUser.avatar Avatar.Tiny spaceUser ]
 
 
 reactorView : ResolvedPostReaction -> Html Msg
@@ -1494,3 +1523,25 @@ reactorView resolvedReaction =
         [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
         , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
         ]
+
+
+
+-- HELPERS
+
+
+groupReactionsByValue : List ResolvedPostReaction -> Dict String (List SpaceUser)
+groupReactionsByValue resolvedReactions =
+    let
+        reducer resolvedReaction dict =
+            let
+                value =
+                    PostReaction.value resolvedReaction.reaction
+            in
+            case Dict.get value dict of
+                Just users ->
+                    Dict.insert value (resolvedReaction.spaceUser :: users) dict
+
+                Nothing ->
+                    Dict.insert value [ resolvedReaction.spaceUser ] dict
+    in
+    List.foldr reducer Dict.empty resolvedReactions
