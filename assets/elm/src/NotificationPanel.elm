@@ -662,7 +662,8 @@ replyPreview globals resolvedReply =
 
                 -- , staticFilesView (Reply.files reply)
                 ]
-            , div [ class "pb-1/2 flex items-start" ] [ replyReactionIndicator resolvedReply ]
+
+            -- , div [ class "pb-1/2 flex items-start" ] [ replyReactionIndicator resolvedReply ]
             ]
         ]
 
@@ -674,26 +675,4 @@ authorLabel author =
         ]
         [ span [ class "font-bold text-dusty-blue-dark mr-2" ] [ text <| ResolvedAuthor.displayName author ]
         , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
-        ]
-
-
-replyReactionIndicator : ResolvedReply -> Html Msg
-replyReactionIndicator resolvedReply =
-    let
-        toggleState =
-            if Reply.hasReacted resolvedReply.reply then
-                Icons.On
-
-            else
-                Icons.Off
-    in
-    div
-        [ class "flex relative items-center mr-6 no-outline react-button"
-        ]
-        [ Icons.thumbsMedium toggleState
-        , viewIf (Reply.reactionCount resolvedReply.reply > 0) <|
-            div
-                [ class "ml-1 text-dusty-blue font-bold text-sm"
-                ]
-                [ text <| String.fromInt (Reply.reactionCount resolvedReply.reply) ]
         ]

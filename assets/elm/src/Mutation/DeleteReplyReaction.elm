@@ -23,13 +23,14 @@ document =
         mutation DeleteReplyReaction(
           $spaceId: ID!,
           $postId: ID!,
-          $replyId: ID!
+          $replyId: ID!,
+          $value: String!
         ) {
           deleteReplyReaction(
             spaceId: $spaceId,
             postId: $postId,
             replyId: $replyId,
-            value: "👍"
+            value: $value
           ) {
             ...ValidationFields
             reply {
@@ -43,13 +44,14 @@ document =
         ]
 
 
-variables : Id -> Id -> Id -> Maybe Encode.Value
-variables spaceId postId replyId =
+variables : Id -> Id -> Id -> String -> Maybe Encode.Value
+variables spaceId postId replyId value =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "postId", Id.encoder postId )
             , ( "replyId", Id.encoder replyId )
+            , ( "value", Encode.string value )
             ]
 
 

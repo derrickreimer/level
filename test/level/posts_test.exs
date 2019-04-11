@@ -899,11 +899,7 @@ defmodule Level.PostsTest do
       {:ok, %{post: post}} = create_post(space_user, group)
       {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-      refute Posts.reacted?(space_user, reply)
-
-      {:ok, _} = Posts.create_reply_reaction(space_user, post, reply)
-
-      assert Posts.reacted?(space_user, reply)
+      {:ok, _} = Posts.create_reply_reaction(space_user, post, reply, "👍")
 
       assert Repo.get_by(PostLog,
                space_user_id: space_user.id,
@@ -917,7 +913,7 @@ defmodule Level.PostsTest do
       reply_id = reply.id
 
       assert {:ok, %ReplyReaction{space_user_id: ^space_user_id, reply_id: ^reply_id}} =
-               Posts.create_reply_reaction(space_user, post, reply)
+               Posts.create_reply_reaction(space_user, post, reply, "👍")
     end
 
     test "records a notification for the reply author" do
@@ -927,7 +923,7 @@ defmodule Level.PostsTest do
       {:ok, %{post: post}} = create_post(reactor, group)
       {:ok, %{reply: reply}} = create_reply(author, post)
 
-      {:ok, _} = Posts.create_reply_reaction(reactor, post, reply)
+      {:ok, _} = Posts.create_reply_reaction(reactor, post, reply, "👍")
 
       # Does not record a notification for the reactor
       refute Enum.any?(Notifications.list(reactor, post), fn notification ->
@@ -947,13 +943,10 @@ defmodule Level.PostsTest do
       {:ok, %{post: post}} = create_post(space_user, group)
       {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-      {:ok, reaction} = Posts.create_reply_reaction(space_user, post, reply)
+      {:ok, reaction} = Posts.create_reply_reaction(space_user, post, reply, "👍")
 
-      assert Posts.reacted?(space_user, reply)
-
-      {:ok, deleted_reaction} = Posts.delete_reply_reaction(space_user, reply)
+      {:ok, deleted_reaction} = Posts.delete_reply_reaction(space_user, reply, "👍")
       assert deleted_reaction.id == reaction.id
-      refute Posts.reacted?(space_user, reply)
     end
 
     test "returns an error if the user had not reacted" do
@@ -962,9 +955,7 @@ defmodule Level.PostsTest do
       {:ok, %{post: post}} = create_post(space_user, group)
       {:ok, %{reply: reply}} = create_reply(space_user, post)
 
-      refute Posts.reacted?(space_user, reply)
-
-      {:error, "Reaction not found"} = Posts.delete_reply_reaction(space_user, reply)
+      {:error, "Reaction not found"} = Posts.delete_reply_reaction(space_user, reply, "👍")
     end
   end
 

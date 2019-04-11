@@ -2,8 +2,6 @@ defmodule LevelWeb.GraphQL.CreateReplyReactionTest do
   use LevelWeb.ConnCase, async: true
   import LevelWeb.GraphQL.TestHelpers
 
-  alias Level.Posts
-
   @query """
     mutation CreateReplyReaction(
       $space_id: ID!,
@@ -57,7 +55,5 @@ defmodule LevelWeb.GraphQL.CreateReplyReactionTest do
                }
              }
            }
-
-    assert Posts.reacted?(space_user, reply)
   end
 end

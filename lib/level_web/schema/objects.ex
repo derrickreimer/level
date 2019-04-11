@@ -577,11 +577,6 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.has_viewed_reply/3
     end
 
-    @desc "Determines whether the current viewer has reacted to the reply."
-    field :has_reacted, non_null(:boolean) do
-      resolve &Resolvers.has_reacted/3
-    end
-
     @desc "Determines if the viewer is eligible to edit the reply."
     field :can_edit, non_null(:boolean) do
       resolve &Resolvers.can_edit_reply/3
