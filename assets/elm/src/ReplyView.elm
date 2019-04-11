@@ -349,7 +349,7 @@ resolvedView config replyView data =
 
         trayItems =
             groupedReactionViews config groupedReactions
-                ++ [ reactionPaletteView config replyView data ]
+                ++ [ reactionMenuView config replyView data ]
     in
     div
         [ id (nodeId replyView.id)
@@ -495,12 +495,8 @@ staticFileView file =
             text ""
 
 
-
--- REACTIONS
-
-
-reactionPaletteView : ViewConfig -> ReplyView -> Data -> Html Msg
-reactionPaletteView config replyView data =
+reactionMenuView : ViewConfig -> ReplyView -> Data -> Html Msg
+reactionMenuView config replyView data =
     if replyView.isReactionMenuOpen then
         div [ class "flex items-center p-1/2 bg-white rounded-full no-outline" ]
             [ reactButton "👍"

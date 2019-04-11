@@ -968,7 +968,7 @@ resolvedView config postView data =
 
         trayItems =
             groupedReactionViews config groupedReactions
-                ++ [ reactionPaletteView config postView data, replyButtonView config postView data ]
+                ++ [ reactionMenuView config postView data, replyButtonView config postView data ]
     in
     div [ id (postNodeId postView), class "flex relative" ]
         [ viewIf (Post.inboxState data.post == Post.Unread) <|
@@ -1025,10 +1025,6 @@ resolvedView config postView data =
                 ]
             ]
         ]
-
-
-
--- PRIVATE POST VIEW FUNCTIONS
 
 
 inboxButton : Post -> Html Msg
@@ -1250,10 +1246,6 @@ editorView viewConfig editor =
         ]
 
 
-
--- PRIVATE REPLY VIEW FUNCTIONS
-
-
 repliesView : ViewConfig -> PostView -> Data -> Html Msg
 repliesView config postView data =
     let
@@ -1437,12 +1429,8 @@ staticFileView file =
             text ""
 
 
-
--- REACTIONS
-
-
-reactionPaletteView : ViewConfig -> PostView -> Data -> Html Msg
-reactionPaletteView config postView data =
+reactionMenuView : ViewConfig -> PostView -> Data -> Html Msg
+reactionMenuView config postView data =
     if postView.isReactionMenuOpen then
         div [ class "flex items-center my-1 mr-6 p-1/2 bg-grey-light rounded-full no-outline" ]
             [ reactButton "👍"
@@ -1505,20 +1493,6 @@ reactorAvatar spaceUser =
         [ class "flex-no-shrink mx-1/2 rounded-full shadow-grey-light -ml-2"
         ]
         [ SpaceUser.avatar Avatar.Tiny spaceUser ]
-
-
-reactorView : ResolvedPostReaction -> Html Msg
-reactorView resolvedReaction =
-    let
-        user =
-            resolvedReaction.spaceUser
-    in
-    div
-        [ class "flex items-center pr-4 mb-px no-underline text-white"
-        ]
-        [ div [ class "flex-no-shrink mr-2" ] [ SpaceUser.avatar Avatar.Tiny user ]
-        , div [ class "flex-grow text-sm truncate" ] [ text <| SpaceUser.displayName user ]
-        ]
 
 
 
