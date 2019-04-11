@@ -1404,7 +1404,7 @@ replyButtonView config postView data =
                 ( ReopenPostClicked, "Reopen" )
     in
     button
-        [ class "tooltip tooltip-bottom flex items-center justify-center mb-1 w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
+        [ class "tooltip tooltip-bottom flex items-center justify-center w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
         , onClick clickMsg
         , attribute "data-tooltip" tooltipText
         ]
@@ -1444,14 +1444,14 @@ staticFileView file =
 reactionPaletteView : ViewConfig -> PostView -> Data -> Html Msg
 reactionPaletteView config postView data =
     if postView.isReactionMenuOpen then
-        div [ class "flex items-center my-1 mr-6 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline" ]
+        div [ class "flex items-center my-1 mr-6 p-1/2 bg-grey-light rounded-full no-outline" ]
             [ reactButton "👍"
             , reactButton "😊"
             , reactButton "😂"
-            , reactButton "😕"
-            , reactButton "❤️"
             , reactButton "🎉"
-            , reactButton "🚀"
+            , reactButton "😕"
+
+            -- , input [ type_ "text", class "mx-1/2 px-2 h-7 w-20 rounded-full bg-white text-dusty-blue-dark focus:shadow-outline no-outline", placeholder "Type..." ] []
             , button
                 [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-transparent hover:bg-grey-light transition-bg rounded-full"
                 , onClick ReactionMenuToggled
@@ -1461,7 +1461,7 @@ reactionPaletteView config postView data =
 
     else
         button
-            [ class "flex items-center justify-center -ml-3/2 mb-1 mr-4 w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
+            [ class "flex items-center justify-center -ml-3/2 mr-4 w-8 h-8 rounded-full bg-transparent hover:bg-grey-light transition-bg"
             , onClick ReactionMenuToggled
             ]
             [ Icons.reaction ]
@@ -1470,7 +1470,7 @@ reactionPaletteView config postView data =
 reactButton : String -> Html Msg
 reactButton value =
     button
-        [ class "flex-no-shrink mx-1/2 emoji-reaction"
+        [ class "flex-no-shrink mx-1/2 emoji-reaction hover:text-xl"
         , onClick (CreatePostReactionClicked value)
         ]
         [ text value ]
@@ -1493,8 +1493,8 @@ groupedReactionView config value spaceUsers =
             else
                 CreatePostReactionClicked value
     in
-    button [ class "flex items-center mr-2 my-1 px-1/2 py-1 bg-grey-light hover:bg-grey transition-bg rounded-full no-outline", onClick clickMsg ]
-        [ div [ class "flex-no-shrink ml-1/2 mr-1p5 emoji-reaction" ] [ text value ]
+    button [ class "flex items-center mr-2 my-1 py-1/2 bg-grey-light rounded-full no-outline", onClick clickMsg ]
+        [ div [ class "flex-no-shrink mx-1/2 emoji-reaction" ] [ text value ]
         , div [ class "flex items-center pl-2 pr-1/2" ] (List.map reactorAvatar spaceUsers)
         ]
 

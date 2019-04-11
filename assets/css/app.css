@@ -691,7 +691,7 @@ a.user-mention:hover {
  */
 
 .emoji-reaction {
-  @apply font-emoji w-7 h-7 bg-white rounded-full text-center;
+  @apply font-emoji w-7 h-7 bg-transparent rounded-full text-center;
   line-height: 1.75rem;
 }
 
