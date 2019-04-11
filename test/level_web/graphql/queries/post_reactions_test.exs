@@ -53,8 +53,8 @@ defmodule LevelWeb.GraphQL.PostReactions do
       last: 5
     }
 
-    {:ok, _} = Posts.create_post_reaction(space_user, post)
-    {:ok, _} = Posts.create_post_reaction(another_user, post)
+    {:ok, _} = Posts.create_post_reaction(space_user, post, "👍")
+    {:ok, _} = Posts.create_post_reaction(another_user, post, "👍")
 
     conn =
       conn

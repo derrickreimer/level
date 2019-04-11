@@ -383,19 +383,6 @@ defmodule Level.Resolvers do
   end
 
   @doc """
-  Determines whether the current user has reacted to the post or reply.
-  """
-  @spec has_reacted(Post.t(), map(), info()) :: {:ok, boolean()}
-  def has_reacted(%Post{} = post, _, %{context: %{current_user: user}}) do
-    {:ok, Posts.reacted?(user, post)}
-  end
-
-  @spec has_reacted(Reply.t(), map(), info()) :: {:ok, boolean()}
-  def has_reacted(%Reply{} = reply, _, %{context: %{current_user: user}}) do
-    {:ok, Posts.reacted?(user, reply)}
-  end
-
-  @doc """
   Fetches search results.
   """
   @spec search(Space.t(), map(), info()) :: paginated_result()

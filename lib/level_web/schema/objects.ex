@@ -520,11 +520,6 @@ defmodule LevelWeb.Schema.Objects do
       resolve &Resolvers.can_edit_post/3
     end
 
-    @desc "Determines whether the current viewer has reacted to the reply."
-    field :has_reacted, non_null(:boolean) do
-      resolve &Resolvers.has_reacted/3
-    end
-
     interface :fetch_timeable
 
     @desc "The timestamp representing when the object was fetched."
@@ -580,11 +575,6 @@ defmodule LevelWeb.Schema.Objects do
     @desc "Determines whether the current viewer has viewed the reply."
     field :has_viewed, non_null(:boolean) do
       resolve &Resolvers.has_viewed_reply/3
-    end
-
-    @desc "Determines whether the current viewer has reacted to the reply."
-    field :has_reacted, non_null(:boolean) do
-      resolve &Resolvers.has_reacted/3
     end
 
     @desc "Determines if the viewer is eligible to edit the reply."

@@ -22,12 +22,13 @@ document =
         """
         mutation CreatePostReaction(
           $spaceId: ID!,
-          $postId: ID!
+          $postId: ID!,
+          $value: String!
         ) {
           createPostReaction(
             spaceId: $spaceId,
             postId: $postId,
-            value: "👍"
+            value: $value
           ) {
             ...ValidationFields
             post {
@@ -41,12 +42,13 @@ document =
         ]
 
 
-variables : Id -> Id -> Maybe Encode.Value
-variables spaceId postId =
+variables : Id -> Id -> String -> Maybe Encode.Value
+variables spaceId postId value =
     Just <|
         Encode.object
             [ ( "spaceId", Id.encoder spaceId )
             , ( "postId", Id.encoder postId )
+            , ( "value", Encode.string value )
             ]
 
 

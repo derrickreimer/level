@@ -677,18 +677,18 @@ defmodule Level.Posts do
   @doc """
   Creates a reaction to a post.
   """
-  @spec create_post_reaction(SpaceUser.t(), Post.t()) ::
+  @spec create_post_reaction(SpaceUser.t(), Post.t(), String.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
-  def create_post_reaction(%SpaceUser{} = space_user, %Post{} = post) do
+  def create_post_reaction(%SpaceUser{} = space_user, %Post{} = post, value) do
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
       post_id: post.id,
-      value: "👍"
+      value: value
     }
 
     %PostReaction{}
-    |> Ecto.Changeset.change(params)
+    |> PostReaction.create_changeset(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
     |> after_create_post_reaction(space_user, post)
   end
@@ -714,14 +714,18 @@ defmodule Level.Posts do
   @doc """
   Deletes a reaction to a post.
   """
-  @spec delete_post_reaction(SpaceUser.t(), Post.t()) ::
+  @spec delete_post_reaction(SpaceUser.t(), Post.t(), String.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
-  def delete_post_reaction(%SpaceUser{id: space_user_id} = space_user, %Post{id: post_id} = post) do
+  def delete_post_reaction(
+        %SpaceUser{id: space_user_id} = space_user,
+        %Post{id: post_id} = post,
+        value
+      ) do
     query =
       from pr in PostReaction,
         where: pr.space_user_id == ^space_user_id,
         where: pr.post_id == ^post_id,
-        where: pr.value == "👍"
+        where: pr.value == ^value
 
     case Repo.one(query) do
       %PostReaction{} = reaction ->
@@ -745,19 +749,19 @@ defmodule Level.Posts do
   @doc """
   Creates a reaction to a reply.
   """
-  @spec create_reply_reaction(SpaceUser.t(), Post.t(), Reply.t()) ::
+  @spec create_reply_reaction(SpaceUser.t(), Post.t(), Reply.t(), String.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()}
-  def create_reply_reaction(%SpaceUser{} = space_user, post, %Reply{} = reply) do
+  def create_reply_reaction(%SpaceUser{} = space_user, post, %Reply{} = reply, value) do
     params = %{
       space_id: space_user.space_id,
       space_user_id: space_user.id,
       post_id: reply.post_id,
       reply_id: reply.id,
-      value: "👍"
+      value: value
     }
 
     %ReplyReaction{}
-    |> Ecto.Changeset.change(params)
+    |> ReplyReaction.create_changeset(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
     |> after_create_reply_reaction(space_user, post, reply)
   end
@@ -783,17 +787,18 @@ defmodule Level.Posts do
   @doc """
   Deletes a reaction to a reply.
   """
-  @spec delete_reply_reaction(SpaceUser.t(), Reply.t()) ::
+  @spec delete_reply_reaction(SpaceUser.t(), Reply.t(), String.t()) ::
           {:ok, PostReaction.t()} | {:error, Ecto.Changeset.t()} | {:error, String.t()}
   def delete_reply_reaction(
         %SpaceUser{id: space_user_id} = space_user,
-        %Reply{id: reply_id} = reply
+        %Reply{id: reply_id} = reply,
+        value
       ) do
     query =
       from pr in ReplyReaction,
         where: pr.space_user_id == ^space_user_id,
         where: pr.reply_id == ^reply_id,
-        where: pr.value == "👍"
+        where: pr.value == ^value
 
     case Repo.one(query) do
       %ReplyReaction{} = reaction ->
@@ -813,57 +818,6 @@ defmodule Level.Posts do
   end
 
   defp after_delete_reply_reaction(err, _, _), do: err
-
-  @doc """
-  Determines if a user has reacted to a post.
-  """
-  @spec reacted?(SpaceUser.t(), Post.t()) :: boolean()
-  def reacted?(%SpaceUser{id: space_user_id}, %Post{id: post_id}) do
-    params = [space_user_id: space_user_id, post_id: post_id]
-
-    case Repo.get_by(PostReaction, params) do
-      %PostReaction{} -> true
-      _ -> false
-    end
-  end
-
-  @spec reacted?(User.t(), Post.t()) :: boolean()
-  def reacted?(%User{id: user_id}, %Post{id: post_id}) do
-    query =
-      from pr in PostReaction,
-        join: su in assoc(pr, :space_user),
-        on: su.user_id == ^user_id,
-        where: pr.post_id == ^post_id
-
-    case Repo.one(query) do
-      %PostReaction{} -> true
-      _ -> false
-    end
-  end
-
-  @spec reacted?(SpaceUser.t(), Reply.t()) :: boolean()
-  def reacted?(%SpaceUser{id: space_user_id}, %Reply{id: reply_id}) do
-    params = [space_user_id: space_user_id, reply_id: reply_id]
-
-    case Repo.get_by(ReplyReaction, params) do
-      %ReplyReaction{} -> true
-      _ -> false
-    end
-  end
-
-  @spec reacted?(User.t(), Reply.t()) :: boolean()
-  def reacted?(%User{id: user_id}, %Reply{id: reply_id}) do
-    query =
-      from rr in ReplyReaction,
-        join: su in assoc(rr, :space_user),
-        on: su.user_id == ^user_id,
-        where: rr.reply_id == ^reply_id
-
-    case Repo.one(query) do
-      %ReplyReaction{} -> true
-      _ -> false
-    end
-  end
 
   @doc """
   Publishes a post to particular group.

@@ -36,7 +36,7 @@ defmodule LevelWeb.GraphQL.DeletePostReactionTest do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
 
-    {:ok, _} = Posts.create_post_reaction(space_user, post)
+    {:ok, _} = Posts.create_post_reaction(space_user, post, "👍")
 
     variables = %{space_id: space.id, post_id: post.id}
 
@@ -56,7 +56,5 @@ defmodule LevelWeb.GraphQL.DeletePostReactionTest do
                }
              }
            }
-
-    refute Posts.reacted?(space_user, post)
   end
 end

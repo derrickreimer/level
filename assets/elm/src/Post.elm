@@ -1,6 +1,6 @@
 module Post exposing
     ( Post, Data, InboxState(..), State(..), SubscriptionState(..)
-    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
+    , id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
     , setInboxState
     , fragment
     , decoder, decoderWithReplies
@@ -18,7 +18,7 @@ module Post exposing
 
 # Properties
 
-@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, hasReacted, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
+@docs id, spaceId, fetchedAt, postedAt, author, groupIds, groupsInclude, recipientIds, state, body, bodyHtml, files, url, subscriptionState, inboxState, canEdit, reactionCount, reactorIds, isPrivate, isUrgent, isInGroup, isDirect
 
 
 # Mutations
@@ -106,7 +106,6 @@ type alias Data =
     , subscriptionState : SubscriptionState
     , inboxState : InboxState
     , canEdit : Bool
-    , hasReacted : Bool
     , reactionCount : Int
     , reactorIds : List Id
     , url : String
@@ -203,11 +202,6 @@ canEdit (Post data) =
     data.canEdit
 
 
-hasReacted : Post -> Bool
-hasReacted (Post data) =
-    data.hasReacted
-
-
 reactionCount : Post -> Int
 reactionCount (Post data) =
     data.reactionCount
@@ -289,7 +283,6 @@ fragment =
               }
               url
               canEdit
-              hasReacted
               isPrivate
               isUrgent
               lastActivityAt
@@ -327,7 +320,6 @@ decoder =
             |> required "subscriptionState" subscriptionStateDecoder
             |> required "inboxState" inboxStateDecoder
             |> required "canEdit" bool
-            |> required "hasReacted" bool
             |> custom (Decode.at [ "reactions", "totalCount" ] int)
             |> custom (Decode.at [ "reactions", "edges" ] (list <| Decode.at [ "node", "spaceUser", "id" ] Id.decoder))
             |> required "url" string

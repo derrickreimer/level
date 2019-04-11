@@ -524,7 +524,7 @@ notificationView globals resolvedNotification =
                 , url = Post.url resolvedReaction.resolvedPost.post
                 , icon = Icons.reactionCreated
                 , displayName = spaceUserDisplayName resolvedReaction.spaceUser
-                , action = "acknowledged"
+                , action = "reacted with " ++ PostReaction.value resolvedReaction.reaction
                 , occurredAt = Notification.occurredAt notification
                 , preview = postPreview globals resolvedReaction.resolvedPost
                 , isUndismissed = Notification.isUndismissed notification
@@ -537,7 +537,7 @@ notificationView globals resolvedNotification =
                 , url = Reply.url resolvedReaction.resolvedReply.reply
                 , icon = Icons.reactionCreated
                 , displayName = spaceUserDisplayName resolvedReaction.spaceUser
-                , action = "acknowledged"
+                , action = "reacted with " ++ ReplyReaction.value resolvedReaction.reaction
                 , occurredAt = Notification.occurredAt notification
                 , preview = replyPreview globals resolvedReaction.resolvedReply
                 , isUndismissed = Notification.isUndismissed notification
@@ -627,7 +627,8 @@ postPreview globals resolvedPost =
 
                 -- , staticFilesView (Reply.files reply)
                 ]
-            , div [ class "pb-1/2 flex items-start" ] [ postReactionIndicator resolvedPost ]
+
+            -- , div [ class "pb-1/2 flex items-start" ] [ postReactionIndicator resolvedPost ]
             ]
         ]
 
@@ -661,7 +662,8 @@ replyPreview globals resolvedReply =
 
                 -- , staticFilesView (Reply.files reply)
                 ]
-            , div [ class "pb-1/2 flex items-start" ] [ replyReactionIndicator resolvedReply ]
+
+            -- , div [ class "pb-1/2 flex items-start" ] [ replyReactionIndicator resolvedReply ]
             ]
         ]
 
@@ -673,48 +675,4 @@ authorLabel author =
         ]
         [ span [ class "font-bold text-dusty-blue-dark mr-2" ] [ text <| ResolvedAuthor.displayName author ]
         , span [ class "ml-2 text-dusty-blue hidden" ] [ text <| "@" ++ ResolvedAuthor.handle author ]
-        ]
-
-
-postReactionIndicator : ResolvedPost -> Html Msg
-postReactionIndicator resolvedPost =
-    let
-        toggleState =
-            if Post.hasReacted resolvedPost.post then
-                Icons.On
-
-            else
-                Icons.Off
-    in
-    div
-        [ class "flex relative items-center mr-6 no-outline react-button"
-        ]
-        [ Icons.thumbsMedium toggleState
-        , viewIf (Post.reactionCount resolvedPost.post > 0) <|
-            div
-                [ class "ml-1 text-dusty-blue font-bold text-sm"
-                ]
-                [ text <| String.fromInt (Post.reactionCount resolvedPost.post) ]
-        ]
-
-
-replyReactionIndicator : ResolvedReply -> Html Msg
-replyReactionIndicator resolvedReply =
-    let
-        toggleState =
-            if Reply.hasReacted resolvedReply.reply then
-                Icons.On
-
-            else
-                Icons.Off
-    in
-    div
-        [ class "flex relative items-center mr-6 no-outline react-button"
-        ]
-        [ Icons.thumbsMedium toggleState
-        , viewIf (Reply.reactionCount resolvedReply.reply > 0) <|
-            div
-                [ class "ml-1 text-dusty-blue font-bold text-sm"
-                ]
-                [ text <| String.fromInt (Reply.reactionCount resolvedReply.reply) ]
         ]

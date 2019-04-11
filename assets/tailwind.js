@@ -202,6 +202,12 @@ module.exports = {
       'Liberation Mono',
       'Courier New',
       'monospace',
+    ],
+    'emoji': [
+      'Apple Color Emoji',
+      'Segoe UI',
+      'Segoe UI Emoji',
+      'Segoe UI Symbol'
     ]
   },
 
@@ -462,6 +468,7 @@ module.exports = {
     '10': '2.5rem',
     '12': '3rem',
     '16': '4rem',
+    '20': '5rem',
     '24': '6rem',
     '32': '8rem',
     '40': '10rem',
@@ -671,6 +678,7 @@ module.exports = {
     'auto': 'auto',
     'px': '1px',
     '0': '0',
+    '1/2': '0.125rem',
     '1': '0.25rem',
     '1p5': '0.375rem',
     '2': '0.5rem',
@@ -707,6 +715,7 @@ module.exports = {
     'px': '1px',
     '0': '0',
     '1': '0.25rem',
+    '3/2': '0.375rem',
     '2': '0.5rem',
     '3': '0.75rem',
     '4': '1rem',
@@ -741,6 +750,7 @@ module.exports = {
     'inner': 'inset 0 2px 4px 0 rgba(0,0,0,0.06)',
     'outline': '0 0 0 3px rgba(52,144,220,0.5)',
     'white': '0 0 0 3px rgba(255,255,255,1)',
+    'grey-light': '0 0 0 3px #f5f6f7',
     'dropdown': '0 0 1px 0 rgba(0,0,0,0.20), 0 15px 30px 0 rgba(0,0,0,0.11), 0 5px 15px 0 rgba(0,0,0,0.08)',
     'none': 'none',
   },
@@ -886,7 +896,7 @@ module.exports = {
     svgStroke: [],
     textAlign: ['responsive'],
     textColors: ['responsive', 'hover'],
-    textSizes: ['responsive'],
+    textSizes: ['responsive', 'hover'],
     textStyle: ['responsive', 'hover'],
     tracking: ['responsive'],
     userSelect: ['responsive'],

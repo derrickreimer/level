@@ -35,7 +35,7 @@ defmodule LevelWeb.GraphQL.PostReactionCreatedTest do
     ref = push_subscription(socket, @operation, %{"id" => space_user.id})
     assert_reply(ref, :ok, %{subscriptionId: subscription_id}, 1000)
 
-    {:ok, _} = Posts.create_post_reaction(space_user, post)
+    {:ok, _} = Posts.create_post_reaction(space_user, post, "👍")
 
     payload = %{
       result: %{

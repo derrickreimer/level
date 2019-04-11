@@ -975,10 +975,10 @@ defmodule Level.Mutations do
   def create_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
-         {:ok, reaction} <- Posts.create_post_reaction(space_user, post) do
+         {:ok, reaction} <- Posts.create_post_reaction(space_user, post, args.value) do
       {:ok, %{success: true, errors: [], post: post, reaction: reaction}}
     else
-      %Ecto.Changeset{} = changeset ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset), post: nil}}
 
       err ->
@@ -1001,10 +1001,10 @@ defmodule Level.Mutations do
   def delete_post_reaction(args, %{context: %{current_user: user}}) do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
-         {:ok, reaction} <- Posts.delete_post_reaction(space_user, post) do
+         {:ok, reaction} <- Posts.delete_post_reaction(space_user, post, args.value) do
       {:ok, %{success: true, errors: [], post: post, reaction: reaction}}
     else
-      %Ecto.Changeset{} = changeset ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset), post: nil, reaction: nil}}
 
       err ->
@@ -1028,10 +1028,10 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
          {:ok, reply} <- Posts.get_reply(post, args.reply_id),
-         {:ok, reaction} <- Posts.create_reply_reaction(space_user, post, reply) do
+         {:ok, reaction} <- Posts.create_reply_reaction(space_user, post, reply, args.value) do
       {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
     else
-      %Ecto.Changeset{} = changeset ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset), reply: nil, reaction: nil}}
 
       err ->
@@ -1055,10 +1055,10 @@ defmodule Level.Mutations do
     with {:ok, %{space_user: space_user}} <- Spaces.get_space(user, args.space_id),
          {:ok, post} <- Posts.get_post(space_user, args.post_id),
          {:ok, reply} <- Posts.get_reply(post, args.reply_id),
-         {:ok, reaction} <- Posts.delete_reply_reaction(space_user, reply) do
+         {:ok, reaction} <- Posts.delete_reply_reaction(space_user, reply, args.value) do
       {:ok, %{success: true, errors: [], reply: reply, reaction: reaction}}
     else
-      %Ecto.Changeset{} = changeset ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:ok, %{success: false, errors: format_errors(changeset), reply: nil, reaction: nil}}
 
       err ->
