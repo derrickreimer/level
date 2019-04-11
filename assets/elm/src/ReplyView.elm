@@ -49,6 +49,7 @@ type alias ReplyView =
     , postedAt : Posix
     , editor : PostEditor
     , isReactionMenuOpen : Bool
+    , customReaction : String
     }
 
 
@@ -76,6 +77,7 @@ init spaceId reply =
         (Reply.postedAt reply)
         (PostEditor.init (Reply.id reply))
         False
+        ""
 
 
 
@@ -96,6 +98,7 @@ type Msg
     | DeleteClicked
     | ReplyDeleted (Result Session.Error ( Session, DeleteReply.Response ))
     | ReactionMenuToggled
+    | CustomReactionChanged String
     | CreateReactionClicked String
     | DeleteReactionClicked String
     | ReactionCreated (Result Session.Error ( Session, CreateReplyReaction.Response ))
@@ -248,6 +251,13 @@ update msg globals replyView =
         ReactionMenuToggled ->
             ( ( { replyView | isReactionMenuOpen = not replyView.isReactionMenuOpen }, Cmd.none ), globals )
 
+        CustomReactionChanged newValue ->
+            if String.length newValue <= 16 then
+                ( ( { replyView | customReaction = newValue }, Cmd.none ), globals )
+
+            else
+                ( ( replyView, Cmd.none ), globals )
+
         CreateReactionClicked value ->
             let
                 variables =
@@ -265,7 +275,7 @@ update msg globals replyView =
                 newGlobals =
                     { globals | repo = Repo.setReply reply globals.repo, session = newSession }
             in
-            ( ( { replyView | isReactionMenuOpen = False }, Cmd.none ), newGlobals )
+            ( ( { replyView | isReactionMenuOpen = False, customReaction = "" }, Cmd.none ), newGlobals )
 
         ReactionCreated (Err Session.Expired) ->
             redirectToLogin globals replyView
@@ -504,8 +514,18 @@ reactionMenuView config replyView data =
             , reactButton "😂"
             , reactButton "🎉"
             , reactButton "😕"
-
-            -- , input [ type_ "text", class "mx-1/2 px-2 h-7 w-20 rounded-full bg-white text-dusty-blue-dark focus:shadow-outline no-outline", placeholder "Type..." ] []
+            , input
+                [ type_ "text"
+                , class "mx-1/2 px-2 h-7 w-20 rounded-full bg-white text-dusty-blue-dark focus:shadow-outline no-outline"
+                , placeholder "Custom"
+                , onInput CustomReactionChanged
+                , value replyView.customReaction
+                , onKeydown preventDefault
+                    [ ( [], enter, \event -> CreateReactionClicked replyView.customReaction )
+                    , ( [ Meta ], enter, \event -> CreateReactionClicked replyView.customReaction )
+                    ]
+                ]
+                []
             , button
                 [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-transparent hover:bg-grey-light transition-bg rounded-full"
                 , onClick ReactionMenuToggled

@@ -104,6 +104,7 @@ type alias PostView =
     , replyComposer : PostEditor
     , isChecked : Bool
     , isReactionMenuOpen : Bool
+    , customReaction : String
     }
 
 
@@ -166,6 +167,7 @@ init repo replyLimit post =
         (PostEditor.init <| "reply-composer-" ++ postId)
         False
         False
+        ""
 
 
 setup : Globals -> PostView -> Cmd Msg
@@ -279,10 +281,11 @@ type Msg
     | PostEditorSubmitted
     | PostUpdated (Result Session.Error ( Session, UpdatePost.Response ))
     | ReactionMenuToggled
-    | CreatePostReactionClicked String
-    | DeletePostReactionClicked String
-    | PostReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
-    | PostReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
+    | CustomReactionChanged String
+    | CreateReactionClicked String
+    | DeleteReactionClicked String
+    | ReactionCreated (Result Session.Error ( Session, CreatePostReaction.Response ))
+    | ReactionDeleted (Result Session.Error ( Session, DeletePostReaction.Response ))
     | ClosePostClicked
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
@@ -710,7 +713,14 @@ update msg globals postView =
         ReactionMenuToggled ->
             ( ( { postView | isReactionMenuOpen = not postView.isReactionMenuOpen }, Cmd.none ), globals )
 
-        CreatePostReactionClicked value ->
+        CustomReactionChanged newValue ->
+            if String.length newValue <= 16 then
+                ( ( { postView | customReaction = newValue }, Cmd.none ), globals )
+
+            else
+                ( ( postView, Cmd.none ), globals )
+
+        CreateReactionClicked value ->
             let
                 variables =
                     CreatePostReaction.variables postView.spaceId postView.id value
@@ -718,24 +728,24 @@ update msg globals postView =
                 cmd =
                     globals.session
                         |> CreatePostReaction.request variables
-                        |> Task.attempt PostReactionCreated
+                        |> Task.attempt ReactionCreated
             in
             ( ( postView, cmd ), globals )
 
-        PostReactionCreated (Ok ( newSession, CreatePostReaction.Success post )) ->
+        ReactionCreated (Ok ( newSession, CreatePostReaction.Success post )) ->
             let
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
-            ( ( { postView | isReactionMenuOpen = False }, recordView newGlobals postView ), newGlobals )
+            ( ( { postView | isReactionMenuOpen = False, customReaction = "" }, recordView newGlobals postView ), newGlobals )
 
-        PostReactionCreated (Err Session.Expired) ->
+        ReactionCreated (Err Session.Expired) ->
             redirectToLogin globals postView
 
-        PostReactionCreated _ ->
+        ReactionCreated _ ->
             ( ( postView, Cmd.none ), globals )
 
-        DeletePostReactionClicked value ->
+        DeleteReactionClicked value ->
             let
                 variables =
                     DeletePostReaction.variables postView.spaceId postView.id value
@@ -743,21 +753,21 @@ update msg globals postView =
                 cmd =
                     globals.session
                         |> DeletePostReaction.request variables
-                        |> Task.attempt PostReactionDeleted
+                        |> Task.attempt ReactionDeleted
             in
             ( ( postView, cmd ), globals )
 
-        PostReactionDeleted (Ok ( newSession, DeletePostReaction.Success post )) ->
+        ReactionDeleted (Ok ( newSession, DeletePostReaction.Success post )) ->
             let
                 newGlobals =
                     { globals | repo = Repo.setPost post globals.repo, session = newSession }
             in
             ( ( postView, recordView newGlobals postView ), newGlobals )
 
-        PostReactionDeleted (Err Session.Expired) ->
+        ReactionDeleted (Err Session.Expired) ->
             redirectToLogin globals postView
 
-        PostReactionDeleted _ ->
+        ReactionDeleted _ ->
             ( ( postView, Cmd.none ), globals )
 
         ClosePostClicked ->
@@ -1438,8 +1448,18 @@ reactionMenuView config postView data =
             , reactButton "😂"
             , reactButton "🎉"
             , reactButton "😕"
-
-            -- , input [ type_ "text", class "mx-1/2 px-2 h-7 w-20 rounded-full bg-white text-dusty-blue-dark focus:shadow-outline no-outline", placeholder "Type..." ] []
+            , input
+                [ type_ "text"
+                , class "mx-1/2 px-2 h-7 w-20 rounded-full bg-white text-dusty-blue-dark focus:shadow-outline no-outline"
+                , placeholder "Custom"
+                , onInput CustomReactionChanged
+                , value postView.customReaction
+                , onKeydown preventDefault
+                    [ ( [], enter, \event -> CreateReactionClicked postView.customReaction )
+                    , ( [ Meta ], enter, \event -> CreateReactionClicked postView.customReaction )
+                    ]
+                ]
+                []
             , button
                 [ class "flex mx-1/2 items-center justify-center w-7 h-7 bg-transparent hover:bg-grey-light transition-bg rounded-full"
                 , onClick ReactionMenuToggled
@@ -1459,7 +1479,7 @@ reactButton : String -> Html Msg
 reactButton value =
     button
         [ class "flex-no-shrink mx-1/2 emoji-reaction hover:text-xl"
-        , onClick (CreatePostReactionClicked value)
+        , onClick (CreateReactionClicked value)
         ]
         [ text value ]
 
@@ -1476,10 +1496,10 @@ groupedReactionView config value spaceUsers =
     let
         clickMsg =
             if List.member config.currentUser spaceUsers then
-                DeletePostReactionClicked value
+                DeleteReactionClicked value
 
             else
-                CreatePostReactionClicked value
+                CreateReactionClicked value
     in
     button [ class "flex items-center mr-2 my-1 py-1/2 bg-grey-light rounded-full no-outline", onClick clickMsg ]
         [ div [ class "flex-no-shrink mx-1/2 emoji-reaction" ] [ text value ]
