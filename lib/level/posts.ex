@@ -688,7 +688,7 @@ defmodule Level.Posts do
     }
 
     %PostReaction{}
-    |> Ecto.Changeset.change(params)
+    |> PostReaction.create_changeset(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
     |> after_create_post_reaction(space_user, post)
   end
@@ -761,7 +761,7 @@ defmodule Level.Posts do
     }
 
     %ReplyReaction{}
-    |> Ecto.Changeset.change(params)
+    |> ReplyReaction.create_changeset(params)
     |> Repo.insert(on_conflict: :nothing, returning: true)
     |> after_create_reply_reaction(space_user, post, reply)
   end

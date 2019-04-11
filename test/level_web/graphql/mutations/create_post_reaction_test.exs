@@ -5,16 +5,20 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
   @query """
     mutation CreatePostReaction(
       $space_id: ID!,
-      $post_id: ID!
+      $post_id: ID!,
+      $value: String!
     ) {
       createPostReaction(
         spaceId: $space_id,
         postId: $post_id,
-        value: "👍"
+        value: $value
       ) {
         success
         post {
           id
+        }
+        reaction {
+          value
         }
         errors {
           attribute
@@ -34,7 +38,7 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
     {:ok, %{group: group}} = create_group(space_user)
     {:ok, %{post: post}} = create_post(space_user, group)
 
-    variables = %{space_id: space.id, post_id: post.id}
+    variables = %{space_id: space.id, post_id: post.id, value: "👍"}
 
     conn =
       conn
@@ -48,7 +52,35 @@ defmodule LevelWeb.GraphQL.CreatePostReactionTest do
                  "post" => %{
                    "id" => post.id
                  },
+                 "reaction" => %{
+                   "value" => "👍"
+                 },
                  "errors" => []
+               }
+             }
+           }
+  end
+
+  test "errors out if reaction is too long", %{conn: conn, space: space, space_user: space_user} do
+    {:ok, %{group: group}} = create_group(space_user)
+    {:ok, %{post: post}} = create_post(space_user, group)
+
+    variables = %{space_id: space.id, post_id: post.id, value: "12345678912345678"}
+
+    conn =
+      conn
+      |> put_graphql_headers()
+      |> post("/graphql", %{query: @query, variables: variables})
+
+    assert json_response(conn, 200) == %{
+             "data" => %{
+               "createPostReaction" => %{
+                 "errors" => [
+                   %{"attribute" => "value", "message" => "should be at most 16 character(s)"}
+                 ],
+                 "post" => nil,
+                 "reaction" => nil,
+                 "success" => false
                }
              }
            }
