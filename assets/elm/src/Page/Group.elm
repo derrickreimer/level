@@ -1,4 +1,4 @@
-module Page.Group exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Group exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Browser.Navigation as Nav
@@ -43,6 +43,7 @@ import PostEditor exposing (PostEditor)
 import PostSet exposing (PostSet)
 import PostStateFilter
 import PostView exposing (PostView)
+import Presence
 import PushStatus
 import Query.FeaturedMemberships as FeaturedMemberships
 import Query.GroupPosts as GroupPosts
@@ -248,8 +249,8 @@ teardown globals model =
             teardownSockets model.groupId
 
         postsCmd =
-            PostSet.toList model.postViews
-                |> List.map (\post -> Cmd.map (PostViewMsg post.id) (PostView.teardown globals post))
+            model.postViews
+                |> PostSet.mapList (\postView -> Cmd.map (PostViewMsg postView.id) (PostView.teardown globals postView))
                 |> Cmd.batch
     in
     Cmd.batch [ pageCmd, postsCmd ]
@@ -1283,6 +1284,26 @@ consumeKeyboardEvent globals event model =
 
         _ ->
             ( ( model, Cmd.none ), globals )
+
+
+receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
+receivePresence event globals model =
+    let
+        viewsAndCmds =
+            PostSet.mapList (PostView.receivePresence event globals) model.postViews
+
+        reducer ( postView, cmd ) ( postSet, cmdBatch ) =
+            ( PostSet.update postView postSet
+            , Cmd.batch [ Cmd.map (PostViewMsg postView.id) cmd, cmdBatch ]
+            )
+
+        ( newPostViews, cmds ) =
+            List.foldr reducer ( model.postViews, Cmd.none ) viewsAndCmds
+
+        newModel =
+            { model | postViews = newPostViews }
+    in
+    ( newModel, cmds )
 
 
 

@@ -26,8 +26,7 @@ import Mutation.ReopenPost as ReopenPost
 import Post exposing (Post)
 import PostEditor
 import PostView exposing (PostView)
-import Presence exposing (Presence, PresenceList)
-import Query.GetSpaceUser as GetSpaceUser
+import Presence
 import Query.PostInit as PostInit
 import Reply exposing (Reply)
 import ReplySet
@@ -55,7 +54,6 @@ type alias Model =
     , viewerId : Id
     , spaceId : Id
     , postView : PostView
-    , currentViewers : Lazy PresenceList
     , isChangingState : Bool
     , isChangingInboxState : Bool
 
@@ -124,7 +122,6 @@ buildModel spaceSlug globals ( newSession, resp ) =
                 resp.viewerId
                 resp.spaceId
                 postView
-                NotLoaded
                 False
                 False
                 False
@@ -168,7 +165,6 @@ type Msg
     | InternalLinkClicked String
     | PostViewMsg PostView.Msg
     | ViewRecorded (Result Session.Error ( Session, RecordPostView.Response ))
-    | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | ClosePostClicked
     | ReopenPostClicked
     | PostClosed (Result Session.Error ( Session, ClosePost.Response ))
@@ -217,24 +213,6 @@ update msg globals model =
             redirectToLogin globals model
 
         ViewRecorded (Err _) ->
-            noCmd globals model
-
-        SpaceUserFetched (Ok ( newSession, response )) ->
-            let
-                newRepo =
-                    case response of
-                        GetSpaceUser.Success spaceUser ->
-                            Repo.setSpaceUser spaceUser globals.repo
-
-                        _ ->
-                            globals.repo
-            in
-            noCmd { globals | session = newSession, repo = newRepo } model
-
-        SpaceUserFetched (Err Session.Expired) ->
-            redirectToLogin globals model
-
-        SpaceUserFetched (Err _) ->
             noCmd globals model
 
         ClosePostClicked ->
@@ -379,46 +357,6 @@ consumeEvent globals event model =
             ( model, Cmd.none )
 
 
-receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
-receivePresence event globals model =
-    case event of
-        Presence.Sync topic list ->
-            if topic == viewingTopic model then
-                handleSync list model
-
-            else
-                ( model, Cmd.none )
-
-        Presence.Join topic presence ->
-            if topic == viewingTopic model then
-                handleJoin presence globals model
-
-            else
-                ( model, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
-
-
-handleSync : PresenceList -> Model -> ( Model, Cmd Msg )
-handleSync list model =
-    ( { model | currentViewers = Loaded list }, Cmd.none )
-
-
-handleJoin : Presence -> Globals -> Model -> ( Model, Cmd Msg )
-handleJoin presence globals model =
-    case Repo.getSpaceUserByUserId model.spaceId (Presence.getUserId presence) globals.repo of
-        Just _ ->
-            ( model, Cmd.none )
-
-        Nothing ->
-            ( model
-            , globals.session
-                |> GetSpaceUser.request model.spaceId (Presence.getUserId presence)
-                |> Task.attempt SpaceUserFetched
-            )
-
-
 
 -- EVENTS
 
@@ -466,6 +404,17 @@ consumeKeyboardEvent globals event model =
 
         _ ->
             ( ( model, Cmd.none ), globals )
+
+
+receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
+receivePresence event globals model =
+    let
+        ( newPostView, cmd ) =
+            PostView.receivePresence event globals model.postView
+    in
+    ( { model | postView = newPostView }
+    , Cmd.map PostViewMsg cmd
+    )
 
 
 
@@ -674,7 +623,7 @@ sidebarView : Repo -> Model -> Data -> List (Html Msg)
 sidebarView repo model data =
     let
         listView =
-            case model.currentViewers of
+            case model.postView.presenceState of
                 Loaded state ->
                     View.PresenceList.view repo data.space state
 

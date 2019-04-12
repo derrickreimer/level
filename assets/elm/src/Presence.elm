@@ -5,13 +5,13 @@ import Json.Decode as Decode exposing (Decoder, field, list, string)
 import Ports
 
 
+type Presence
+    = Presence PresenceData
+
+
 type alias PresenceData =
     { userId : Id
     }
-
-
-type Presence
-    = Presence PresenceData
 
 
 type alias Topic =

@@ -1,7 +1,7 @@
 module PostView exposing
     ( PostView
     , init, setup, teardown
-    , postNodeId, recordView, expandReplyComposer, refreshFromCache
+    , postNodeId, recordView, expandReplyComposer, refreshFromCache, receivePresence
     , Msg(..), update
     , ViewConfig, view
     )
@@ -21,7 +21,7 @@ module PostView exposing
 
 # API
 
-@docs postNodeId, recordView, expandReplyComposer, refreshFromCache
+@docs postNodeId, recordView, expandReplyComposer, refreshFromCache, receivePresence
 
 
 # Update
@@ -51,6 +51,7 @@ import Html.Events exposing (..)
 import Icons
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, maybe, string)
+import Lazy exposing (Lazy(..))
 import Markdown
 import Mutation.ClosePost as ClosePost
 import Mutation.CreatePostReaction as CreatePostReaction
@@ -66,6 +67,8 @@ import Mutation.UpdatePost as UpdatePost
 import Post exposing (Post)
 import PostEditor exposing (PostEditor)
 import PostReaction
+import Presence exposing (Presence, PresenceList)
+import Query.GetSpaceUser as GetSpaceUser
 import Query.Replies
 import RenderedHtml
 import Reply exposing (Reply)
@@ -105,6 +108,7 @@ type alias PostView =
     , isChecked : Bool
     , isReactionMenuOpen : Bool
     , customReaction : String
+    , presenceState : Lazy PresenceList
     }
 
 
@@ -168,18 +172,20 @@ init repo replyLimit post =
         False
         False
         ""
+        NotLoaded
 
 
 setup : Globals -> PostView -> Cmd Msg
 setup globals postView =
     Cmd.batch
-        [ markVisibleRepliesAsViewed globals postView
+        [ Presence.join (channelTopic postView)
+        , markVisibleRepliesAsViewed globals postView
         ]
 
 
 teardown : Globals -> PostView -> Cmd Msg
 teardown globals postView =
-    Cmd.none
+    Presence.leave (channelTopic postView)
 
 
 
@@ -189,6 +195,11 @@ teardown globals postView =
 postNodeId : PostView -> String
 postNodeId postView =
     "post-" ++ postView.id
+
+
+channelTopic : PostView -> String
+channelTopic postView =
+    "posts:" ++ postView.id
 
 
 recordView : Globals -> PostView -> Cmd Msg
@@ -243,6 +254,46 @@ refreshFromCache globals postView =
     ( newPostView, Cmd.none )
 
 
+receivePresence : Presence.Event -> Globals -> PostView -> ( PostView, Cmd Msg )
+receivePresence event globals postView =
+    case event of
+        Presence.Sync topic list ->
+            if topic == channelTopic postView then
+                handleSync list postView
+
+            else
+                ( postView, Cmd.none )
+
+        Presence.Join topic presence ->
+            if topic == channelTopic postView then
+                handleJoin presence globals postView
+
+            else
+                ( postView, Cmd.none )
+
+        _ ->
+            ( postView, Cmd.none )
+
+
+handleSync : PresenceList -> PostView -> ( PostView, Cmd Msg )
+handleSync list postView =
+    ( { postView | presenceState = Loaded list }, Cmd.none )
+
+
+handleJoin : Presence -> Globals -> PostView -> ( PostView, Cmd Msg )
+handleJoin presence globals postView =
+    case Repo.getSpaceUserByUserId postView.spaceId (Presence.getUserId presence) globals.repo of
+        Just _ ->
+            ( postView, Cmd.none )
+
+        Nothing ->
+            ( postView
+            , globals.session
+                |> GetSpaceUser.request postView.spaceId (Presence.getUserId presence)
+                |> Task.attempt SpaceUserFetched
+            )
+
+
 
 -- UPDATE
 
@@ -292,6 +343,7 @@ type Msg
     | PostReopened (Result Session.Error ( Session, ReopenPost.Response ))
     | DeletePostClicked
     | PostDeleted (Result Session.Error ( Session, DeletePost.Response ))
+    | SpaceUserFetched (Result Session.Error ( Session, GetSpaceUser.Response ))
     | InternalLinkClicked String
 
 
@@ -324,9 +376,19 @@ update msg globals postView =
             let
                 newReplyComposer =
                     PostEditor.setBody val postView.replyComposer
+
+                indicatorCmd =
+                    if val == "" then
+                        Presence.leave (channelTopic postView)
+
+                    else if PostEditor.getBody postView.replyComposer == "" then
+                        Presence.join (channelTopic postView)
+
+                    else
+                        Cmd.none
             in
             ( ( { postView | replyComposer = newReplyComposer }
-              , PostEditor.saveLocal newReplyComposer
+              , Cmd.batch [ PostEditor.saveLocal newReplyComposer, indicatorCmd ]
               )
             , globals
             )
@@ -404,6 +466,7 @@ update msg globals postView =
                     [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                     , cmd
                     , recordView newGlobals newPostView
+                    , Presence.leave (channelTopic postView)
                     ]
               )
             , newGlobals
@@ -879,6 +942,24 @@ update msg globals postView =
             redirectToLogin globals postView
 
         PostDeleted (Err _) ->
+            noCmd globals postView
+
+        SpaceUserFetched (Ok ( newSession, response )) ->
+            let
+                newRepo =
+                    case response of
+                        GetSpaceUser.Success spaceUser ->
+                            Repo.setSpaceUser spaceUser globals.repo
+
+                        _ ->
+                            globals.repo
+            in
+            noCmd { globals | session = newSession, repo = newRepo } postView
+
+        SpaceUserFetched (Err Session.Expired) ->
+            redirectToLogin globals postView
+
+        SpaceUserFetched (Err _) ->
             noCmd globals postView
 
         InternalLinkClicked pathname ->

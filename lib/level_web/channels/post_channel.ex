@@ -13,12 +13,7 @@ defmodule LevelWeb.PostChannel do
   ]
 
   def join("posts:" <> post_id, _payload, socket) do
-    if authorized?(socket, post_id) do
-      send(self(), :after_join)
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+    join_if_authorized(socket, post_id)
   end
 
   def handle_info(:after_join, socket) do
@@ -30,6 +25,15 @@ defmodule LevelWeb.PostChannel do
       })
 
     {:noreply, socket}
+  end
+
+  defp join_if_authorized(socket, post_id) do
+    if authorized?(socket, post_id) do
+      send(self(), :after_join)
+      {:ok, socket}
+    else
+      {:error, %{reason: "unauthorized"}}
+    end
   end
 
   defp authorized?(%{assigns: %{current_user: user}}, post_id) do
