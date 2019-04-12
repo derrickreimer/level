@@ -28,6 +28,15 @@ defmodule LevelWeb.PostChannel do
     {:noreply, socket}
   end
 
+  def handle_in("meta:update", %{"typing" => typing}, socket) do
+    {:ok, _} =
+      Presence.update(socket, socket.assigns.current_user.id, fn meta ->
+        Map.put(meta, :typing, typing)
+      end)
+
+    {:noreply, socket}
+  end
+
   defp join_if_authorized(socket, post_id) do
     if authorized?(socket, post_id) do
       send(self(), :after_join)

@@ -1,7 +1,8 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive, setTyping)
 
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
+import Json.Encode as Encode
 import Ports
 
 
@@ -55,12 +56,30 @@ receive toMsg =
 
 join : String -> Cmd msg
 join topic =
-    Ports.presenceOut { method = "join", topic = topic }
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "join" )
+            , ( "topic", Encode.string topic )
+            ]
 
 
 leave : String -> Cmd msg
 leave topic =
-    Ports.presenceOut { method = "leave", topic = topic }
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "leave" )
+            , ( "topic", Encode.string topic )
+            ]
+
+
+setTyping : String -> Bool -> Cmd msg
+setTyping topic val =
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "update" )
+            , ( "topic", Encode.string topic )
+            , ( "data", Encode.object [ ( "typing", Encode.bool val ) ] )
+            ]
 
 
 
@@ -116,11 +135,9 @@ metaDecoder =
 
 aggregateIncomingData : IncomingData -> AggregateData
 aggregateIncomingData incoming =
-    let
-        typing =
-            List.any (\meta -> meta.typing) incoming.metas
-    in
-    AggregateData incoming.userId typing
+    AggregateData
+        incoming.userId
+        (List.any (\meta -> meta.typing) incoming.metas)
 
 
 aggregateDataDecoder : Decoder AggregateData

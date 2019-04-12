@@ -379,10 +379,10 @@ update msg globals postView =
 
                 indicatorCmd =
                     if val == "" then
-                        Presence.leave (channelTopic postView)
+                        Presence.setTyping (channelTopic postView) False
 
                     else if PostEditor.getBody postView.replyComposer == "" then
-                        Presence.join (channelTopic postView)
+                        Presence.setTyping (channelTopic postView) True
 
                     else
                         Cmd.none
