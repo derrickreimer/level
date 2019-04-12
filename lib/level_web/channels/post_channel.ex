@@ -21,6 +21,7 @@ defmodule LevelWeb.PostChannel do
 
     {:ok, _} =
       Presence.track(socket, socket.assigns.current_user.id, %{
+        typing: false,
         online_at: inspect(System.system_time(:seconds))
       })
 

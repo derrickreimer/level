@@ -6,12 +6,23 @@ import Ports
 
 
 type Presence
-    = Presence PresenceData
+    = Presence AggregateData
 
 
-type alias PresenceData =
+type alias AggregateData =
     { userId : Id
+    , typing : Bool
     }
+
+
+type alias IncomingData =
+    { userId : Id
+    , metas : List Meta
+    }
+
+
+type alias Meta =
+    { typing : Bool }
 
 
 type alias Topic =
@@ -90,10 +101,36 @@ eventDecoder callback =
             Decode.succeed Unknown
 
 
+incomingDataDecoder : Decoder IncomingData
+incomingDataDecoder =
+    Decode.map2 IncomingData
+        (field "userId" Id.decoder)
+        (Decode.at [ "presence", "metas" ] (list metaDecoder))
+
+
+metaDecoder : Decoder Meta
+metaDecoder =
+    Decode.map Meta
+        (field "typing" Decode.bool)
+
+
+aggregateIncomingData : IncomingData -> AggregateData
+aggregateIncomingData incoming =
+    let
+        typing =
+            List.any (\meta -> meta.typing) incoming.metas
+    in
+    AggregateData incoming.userId typing
+
+
+aggregateDataDecoder : Decoder AggregateData
+aggregateDataDecoder =
+    Decode.map aggregateIncomingData incomingDataDecoder
+
+
 presenceDecoder : Decoder Presence
 presenceDecoder =
-    Decode.map Presence <|
-        Decode.map PresenceData (field "userId" Id.decoder)
+    Decode.map Presence aggregateDataDecoder
 
 
 
