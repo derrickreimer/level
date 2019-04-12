@@ -466,7 +466,7 @@ update msg globals postView =
                     [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                     , cmd
                     , recordView newGlobals newPostView
-                    , Presence.leave (channelTopic postView)
+                    , Presence.setTyping (channelTopic postView) False
                     ]
               )
             , newGlobals
@@ -1372,20 +1372,19 @@ repliesView config postView data =
 
 replyComposerView : ViewConfig -> PostView -> Data -> Html Msg
 replyComposerView viewConfig postView data =
-    let
-        post =
-            data.post
-    in
     if PostEditor.isExpanded postView.replyComposer then
-        expandedReplyComposerView viewConfig postView.replyComposer
+        expandedReplyComposerView viewConfig postView
 
     else
         replyPromptView viewConfig postView data
 
 
-expandedReplyComposerView : ViewConfig -> PostEditor -> Html Msg
-expandedReplyComposerView viewConfig editor =
+expandedReplyComposerView : ViewConfig -> PostView -> Html Msg
+expandedReplyComposerView viewConfig postView =
     let
+        editor =
+            postView.replyComposer
+
         config =
             { editor = editor
             , spaceId = Space.id viewConfig.space
@@ -1421,7 +1420,8 @@ expandedReplyComposerView viewConfig editor =
                             []
                         , PostEditor.filesView editor
                         , div [ class "flex items-baseline justify-end" ]
-                            [ viewIf (PostEditor.isUnsubmittable editor) <|
+                            [ typingIndicatorView viewConfig postView
+                            , viewIf (PostEditor.isUnsubmittable editor) <|
                                 button
                                     [ class "mr-2 btn btn-grey-outline btn-sm"
                                     , onClick ClosePostClicked
@@ -1447,6 +1447,42 @@ expandedReplyComposerView viewConfig editor =
         ]
 
 
+typingIndicatorView : ViewConfig -> PostView -> Html Msg
+typingIndicatorView config postView =
+    case postView.presenceState of
+        Loaded presenceState ->
+            let
+                userIds =
+                    presenceState
+                        |> List.filter Presence.isTyping
+                        |> List.map Presence.getUserId
+
+                spaceUsers =
+                    config.globals.repo
+                        |> Repo.getSpaceUsersByUserIds (Space.id config.space) userIds
+                        |> List.filter (\su -> SpaceUser.id su /= SpaceUser.id config.currentUser)
+                        |> List.sortBy SpaceUser.lastName
+
+                label =
+                    case spaceUsers of
+                        [] ->
+                            ""
+
+                        [ spaceUser1 ] ->
+                            SpaceUser.displayName spaceUser1 ++ " is typing..."
+
+                        [ spaceUser1, spaceUser2 ] ->
+                            SpaceUser.displayName spaceUser1 ++ " and " ++ SpaceUser.displayName spaceUser2 ++ " are typing..."
+
+                        _ ->
+                            "Several people are typing..."
+            in
+            div [ class "px-1 mr-2 flex-grow text-dusty-blue" ] [ text label ]
+
+        NotLoaded ->
+            text ""
+
+
 replyPromptView : ViewConfig -> PostView -> Data -> Html Msg
 replyPromptView config postView data =
     let
@@ -1467,9 +1503,7 @@ replyPromptView config postView data =
             , onClick msg
             ]
             [ div [ class "flex-no-shrink mr-3" ] [ SpaceUser.avatar Avatar.Small config.currentUser ]
-            , div [ class "flex-grow leading-semi-loose text-dusty-blue" ]
-                [ text prompt
-                ]
+            , div [ class "flex-grow leading-semi-loose text-dusty-blue" ] [ text prompt ]
             ]
 
     else

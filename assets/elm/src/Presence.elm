@@ -1,4 +1,4 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive, setTyping)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isTyping, join, leave, receive, setTyping)
 
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
@@ -162,3 +162,8 @@ getUserId (Presence { userId }) =
 getUserIds : PresenceList -> List String
 getUserIds list =
     List.map getUserId list
+
+
+isTyping : Presence -> Bool
+isTyping (Presence { typing }) =
+    typing
