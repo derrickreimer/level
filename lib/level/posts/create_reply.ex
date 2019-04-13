@@ -131,7 +131,7 @@ defmodule Level.Posts.CreateReply do
 
     mark_as_unread(post, reply, subscribers)
     record_notifications(reply, subscribers)
-    send_push_notifications(post, reply, subscribers, author, opts)
+    send_push_notifications(post, reply, author, opts)
 
     send_events(post, result, opts)
 
@@ -205,32 +205,20 @@ defmodule Level.Posts.CreateReply do
     end)
   end
 
-  defp send_push_notifications(post, reply, subscribers, author, opts) do
+  defp send_push_notifications(post, reply, author, opts) do
     presence = Keyword.get(opts, :presence)
     web_push = Keyword.get(opts, :web_push)
 
-    present_user_ids =
-      ("posts:" <> post.id)
-      |> presence.list()
-      |> Map.keys()
-      |> MapSet.new()
-
-    subscribed_user_ids =
-      subscribers
-      |> Enum.map(fn subscriber -> subscriber.user_id end)
-      |> MapSet.new()
-
-    notifiable_ids =
-      present_user_ids
-      |> MapSet.intersection(subscribed_user_ids)
-      |> MapSet.delete(author.user_id)
-      |> MapSet.to_list()
-
     payload = build_push_payload(reply, author)
 
-    notifiable_ids
+    ("posts:" <> post.id)
+    |> presence.list()
+    |> Enum.filter(fn {_, value} -> Enum.any?(value.metas, fn meta -> meta.expanded end) end)
+    |> Enum.map(fn {key, _} -> key end)
     |> Enum.each(fn user_id ->
-      web_push.send_web_push(user_id, payload)
+      if user_id != author.user_id do
+        web_push.send_web_push(user_id, payload)
+      end
     end)
   end
 
