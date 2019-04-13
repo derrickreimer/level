@@ -5,7 +5,7 @@ module Post exposing
     , fragment
     , decoder, decoderWithReplies
     , asc, desc
-    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients
+    , withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients, notDeleted
     )
 
 {-| A post represents a message posted to group.
@@ -43,7 +43,7 @@ module Post exposing
 
 # Filtering
 
-@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients
+@docs withSpace, withGroup, withInboxState, withAnyGroups, withFollowing, withAuthor, withRecipients, notDeleted
 
 -}
 
@@ -493,3 +493,8 @@ withRecipients maybeMatchingIds post =
 
         Nothing ->
             True
+
+
+notDeleted : Post -> Bool
+notDeleted (Post data) =
+    not (data.state == Deleted)

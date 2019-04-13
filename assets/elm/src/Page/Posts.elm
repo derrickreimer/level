@@ -289,6 +289,7 @@ filterPosts repo spaceId params posts =
         |> List.filter (Post.withFollowing subscribedGroupIds)
         |> List.filter (Post.withAuthor authorFilter)
         |> List.filter (Post.withRecipients recipientFilter)
+        |> List.filter Post.notDeleted
 
 
 isMemberPost : Repo -> Model -> Post -> Bool

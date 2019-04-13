@@ -272,6 +272,7 @@ filterPosts spaceId groupId params posts =
         |> List.filter (Post.withSpace spaceId)
         |> List.filter (Post.withGroup groupId)
         |> List.filter (Post.withInboxState (Route.Group.getInboxState params))
+        |> List.filter Post.notDeleted
 
 
 isMemberPost : Model -> Post -> Bool
