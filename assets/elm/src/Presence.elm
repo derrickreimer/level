@@ -1,4 +1,4 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isTyping, join, leave, receive, setExpanded, setTyping)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isExpanded, isTyping, join, leave, receive, setExpanded, setTyping)
 
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
@@ -182,3 +182,8 @@ getUserIds list =
 isTyping : Presence -> Bool
 isTyping (Presence { typing }) =
     typing
+
+
+isExpanded : Presence -> Bool
+isExpanded (Presence { expanded }) =
+    expanded

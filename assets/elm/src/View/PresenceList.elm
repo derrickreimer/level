@@ -15,9 +15,14 @@ import SpaceUser exposing (SpaceUser)
 view : Repo -> Space -> PresenceList -> Html msg
 view repo space list =
     let
+        userIds =
+            list
+                |> List.filter Presence.isExpanded
+                |> List.map Presence.getUserId
+
         spaceUsers =
             repo
-                |> Repo.getSpaceUsersByUserIds (Space.id space) (Presence.getUserIds list)
+                |> Repo.getSpaceUsersByUserIds (Space.id space) userIds
                 |> List.sortBy SpaceUser.lastName
     in
     if List.isEmpty spaceUsers then

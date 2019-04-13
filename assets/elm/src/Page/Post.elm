@@ -628,7 +628,7 @@ sidebarView repo model data =
                     View.PresenceList.view repo data.space state
 
                 NotLoaded ->
-                    div [ class "pb-4 text-sm" ] [ text "Loading..." ]
+                    div [ class "pb-4 text-md" ] [ text "Loading..." ]
     in
     [ h3 [ class "mb-2 text-base font-bold" ] [ text "Who’s Here" ]
     , listView
