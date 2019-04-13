@@ -109,6 +109,13 @@ export const attachPorts = app => {
     delete channels[topic];
   };
 
+  const updatePresence = (topic, data) => {
+    let channel = channels[topic];
+    if (!channel) return;
+
+    channel.push("meta:update", data);
+  };
+
   app.ports.updateToken.subscribe(newToken => {
     token = newToken;
     logEvent("updateToken")(token);
@@ -164,6 +171,10 @@ export const attachPorts = app => {
 
       case "leave":
         leaveChannel(topic);
+        break;
+
+      case "update":
+        updatePresence(topic, arg.data);
         break;
     }
 

@@ -61,7 +61,7 @@ port requestFile : String -> Cmd msg
 port serviceWorkerOut : String -> Cmd msg
 
 
-port presenceOut : { method : String, topic : String } -> Cmd msg
+port presenceOut : Encode.Value -> Cmd msg
 
 
 port postEditorOut : Encode.Value -> Cmd msg

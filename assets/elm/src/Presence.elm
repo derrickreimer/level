@@ -1,17 +1,32 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, join, leave, receive)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isExpanded, isTyping, join, leave, receive, setExpanded, setTyping)
 
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
+import Json.Encode as Encode
 import Ports
 
 
-type alias PresenceData =
+type Presence
+    = Presence AggregateData
+
+
+type alias AggregateData =
     { userId : Id
+    , typing : Bool
+    , expanded : Bool
     }
 
 
-type Presence
-    = Presence PresenceData
+type alias IncomingData =
+    { userId : Id
+    , metas : List Meta
+    }
+
+
+type alias Meta =
+    { typing : Bool
+    , expanded : Bool
+    }
 
 
 type alias Topic =
@@ -44,12 +59,40 @@ receive toMsg =
 
 join : String -> Cmd msg
 join topic =
-    Ports.presenceOut { method = "join", topic = topic }
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "join" )
+            , ( "topic", Encode.string topic )
+            ]
 
 
 leave : String -> Cmd msg
 leave topic =
-    Ports.presenceOut { method = "leave", topic = topic }
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "leave" )
+            , ( "topic", Encode.string topic )
+            ]
+
+
+setTyping : String -> Bool -> Cmd msg
+setTyping topic val =
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "update" )
+            , ( "topic", Encode.string topic )
+            , ( "data", Encode.object [ ( "typing", Encode.bool val ) ] )
+            ]
+
+
+setExpanded : String -> Bool -> Cmd msg
+setExpanded topic val =
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "update" )
+            , ( "topic", Encode.string topic )
+            , ( "data", Encode.object [ ( "expanded", Encode.bool val ) ] )
+            ]
 
 
 
@@ -90,10 +133,36 @@ eventDecoder callback =
             Decode.succeed Unknown
 
 
+incomingDataDecoder : Decoder IncomingData
+incomingDataDecoder =
+    Decode.map2 IncomingData
+        (field "userId" Id.decoder)
+        (Decode.at [ "presence", "metas" ] (list metaDecoder))
+
+
+metaDecoder : Decoder Meta
+metaDecoder =
+    Decode.map2 Meta
+        (field "typing" Decode.bool)
+        (field "expanded" Decode.bool)
+
+
+aggregateIncomingData : IncomingData -> AggregateData
+aggregateIncomingData incoming =
+    AggregateData
+        incoming.userId
+        (List.any (\meta -> meta.typing) incoming.metas)
+        (List.any (\meta -> meta.expanded) incoming.metas)
+
+
+aggregateDataDecoder : Decoder AggregateData
+aggregateDataDecoder =
+    Decode.map aggregateIncomingData incomingDataDecoder
+
+
 presenceDecoder : Decoder Presence
 presenceDecoder =
-    Decode.map Presence <|
-        Decode.map PresenceData (field "userId" Id.decoder)
+    Decode.map Presence aggregateDataDecoder
 
 
 
@@ -108,3 +177,13 @@ getUserId (Presence { userId }) =
 getUserIds : PresenceList -> List String
 getUserIds list =
     List.map getUserId list
+
+
+isTyping : Presence -> Bool
+isTyping (Presence { typing }) =
+    typing
+
+
+isExpanded : Presence -> Bool
+isExpanded (Presence { expanded }) =
+    expanded

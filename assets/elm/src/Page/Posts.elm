@@ -1,4 +1,4 @@
-module Page.Posts exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, setup, subscriptions, teardown, title, update, view)
+module Page.Posts exposing (Model, Msg(..), consumeEvent, consumeKeyboardEvent, init, receivePresence, setup, subscriptions, teardown, title, update, view)
 
 import Avatar exposing (personAvatar)
 import Browser.Navigation as Nav
@@ -33,6 +33,7 @@ import PostEditor exposing (PostEditor)
 import PostSet exposing (PostSet)
 import PostStateFilter exposing (PostStateFilter)
 import PostView exposing (PostView)
+import Presence
 import PushStatus exposing (PushStatus)
 import Query.Posts as Posts
 import Regex exposing (Regex)
@@ -257,7 +258,9 @@ setup globals model =
 
 teardown : Globals -> Model -> Cmd Msg
 teardown globals model =
-    Cmd.none
+    model.postViews
+        |> PostSet.mapList (\postView -> Cmd.map (PostViewMsg postView.id) (PostView.teardown globals postView))
+        |> Cmd.batch
 
 
 filterPosts : Repo -> Id -> Params -> List Post -> List Post
@@ -304,7 +307,7 @@ type Msg
     | InternalLinkClicked String
     | LoadMoreClicked
     | PostsFetched String Int (Result Session.Error ( Session, Posts.Response ))
-    | PostViewMsg String PostView.Msg
+    | PostViewMsg Id PostView.Msg
     | ExpandSearchEditor
     | CollapseSearchEditor
     | SearchEditorChanged String
@@ -934,6 +937,26 @@ consumeKeyboardEvent globals event model =
 
         _ ->
             ( ( model, Cmd.none ), globals )
+
+
+receivePresence : Presence.Event -> Globals -> Model -> ( Model, Cmd Msg )
+receivePresence event globals model =
+    let
+        viewsAndCmds =
+            PostSet.mapList (PostView.receivePresence event globals) model.postViews
+
+        reducer ( postView, cmd ) ( postSet, cmdBatch ) =
+            ( PostSet.update postView postSet
+            , Cmd.batch [ Cmd.map (PostViewMsg postView.id) cmd, cmdBatch ]
+            )
+
+        ( newPostViews, cmds ) =
+            List.foldr reducer ( model.postViews, Cmd.none ) viewsAndCmds
+
+        newModel =
+            { model | postViews = newPostViews }
+    in
+    ( newModel, cmds )
 
 
 

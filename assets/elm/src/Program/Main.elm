@@ -1907,6 +1907,16 @@ sendPresenceToPage event model =
                 |> Page.Post.receivePresence event (buildGlobals model)
                 |> updatePage Post PostMsg model
 
+        Posts pageModel ->
+            pageModel
+                |> Page.Posts.receivePresence event (buildGlobals model)
+                |> updatePage Posts PostsMsg model
+
+        Group pageModel ->
+            pageModel
+                |> Page.Group.receivePresence event (buildGlobals model)
+                |> updatePage Group GroupMsg model
+
         _ ->
             ( model, Cmd.none )
 
