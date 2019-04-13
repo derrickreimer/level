@@ -22,6 +22,7 @@ defmodule LevelWeb.PostChannel do
     {:ok, _} =
       Presence.track(socket, socket.assigns.current_user.id, %{
         typing: false,
+        expanded: false,
         online_at: inspect(System.system_time(:seconds))
       })
 
@@ -32,6 +33,15 @@ defmodule LevelWeb.PostChannel do
     {:ok, _} =
       Presence.update(socket, socket.assigns.current_user.id, fn meta ->
         Map.put(meta, :typing, typing)
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_in("meta:update", %{"expanded" => expanded}, socket) do
+    {:ok, _} =
+      Presence.update(socket, socket.assigns.current_user.id, fn meta ->
+        Map.put(meta, :expanded, expanded)
       end)
 
     {:noreply, socket}

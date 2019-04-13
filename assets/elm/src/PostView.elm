@@ -221,6 +221,7 @@ expandReplyComposer globals postView =
             Cmd.batch
                 [ setFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                 , recordView globals newPostView
+                , Presence.setExpanded (channelTopic postView) True
                 ]
     in
     ( ( newPostView, cmd ), globals )
@@ -484,6 +485,7 @@ update msg globals postView =
                   , Cmd.batch
                         [ unsetFocus (PostEditor.getTextareaId postView.replyComposer) NoOp
                         , recordView globals postView
+                        , Presence.setExpanded (channelTopic postView) False
                         ]
                   )
                 , globals

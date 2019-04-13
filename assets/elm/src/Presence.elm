@@ -1,4 +1,4 @@
-module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isTyping, join, leave, receive, setTyping)
+module Presence exposing (Event(..), Presence, PresenceList, Topic, decode, getUserId, getUserIds, isTyping, join, leave, receive, setExpanded, setTyping)
 
 import Id exposing (Id)
 import Json.Decode as Decode exposing (Decoder, field, list, string)
@@ -13,6 +13,7 @@ type Presence
 type alias AggregateData =
     { userId : Id
     , typing : Bool
+    , expanded : Bool
     }
 
 
@@ -23,7 +24,9 @@ type alias IncomingData =
 
 
 type alias Meta =
-    { typing : Bool }
+    { typing : Bool
+    , expanded : Bool
+    }
 
 
 type alias Topic =
@@ -82,6 +85,16 @@ setTyping topic val =
             ]
 
 
+setExpanded : String -> Bool -> Cmd msg
+setExpanded topic val =
+    Ports.presenceOut <|
+        Encode.object
+            [ ( "method", Encode.string "update" )
+            , ( "topic", Encode.string topic )
+            , ( "data", Encode.object [ ( "expanded", Encode.bool val ) ] )
+            ]
+
+
 
 -- DECODERS
 
@@ -129,8 +142,9 @@ incomingDataDecoder =
 
 metaDecoder : Decoder Meta
 metaDecoder =
-    Decode.map Meta
+    Decode.map2 Meta
         (field "typing" Decode.bool)
+        (field "expanded" Decode.bool)
 
 
 aggregateIncomingData : IncomingData -> AggregateData
@@ -138,6 +152,7 @@ aggregateIncomingData incoming =
     AggregateData
         incoming.userId
         (List.any (\meta -> meta.typing) incoming.metas)
+        (List.any (\meta -> meta.expanded) incoming.metas)
 
 
 aggregateDataDecoder : Decoder AggregateData
