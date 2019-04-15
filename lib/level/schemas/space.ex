@@ -16,6 +16,7 @@ defmodule Level.Schemas.Space do
 
   schema "spaces" do
     field :state, :string, read_after_writes: true
+    field :is_demo, :boolean, read_after_writes: true
     field :name, :string, default: ""
     field :slug, :string, default: ""
     field :avatar, :string

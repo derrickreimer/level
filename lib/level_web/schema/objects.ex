@@ -200,6 +200,7 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:space_state)
     field :name, non_null(:string)
     field :slug, non_null(:string)
+    field :is_demo, non_null(:boolean)
     field :inserted_at, non_null(:timestamp)
     field :updated_at, non_null(:timestamp)
 
