@@ -29,11 +29,11 @@ defmodule LevelWeb.UserController do
       user_params
       |> Map.put("has_password", true)
 
-    case Users.create_user(params) do
-      {:ok, user} ->
+    case Users.create_user_with_demo(params) do
+      {:ok, %{user: user, space: space}} ->
         conn
         |> LevelWeb.Auth.sign_in(user)
-        |> redirect(to: main_path(conn, :index, ["teams", "new"]))
+        |> redirect(to: main_path(conn, :index, [space.slug]))
 
       {:error, changeset} ->
         conn

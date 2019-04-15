@@ -21,6 +21,7 @@ defmodule Level.Spaces do
   alias Level.Schemas.SpaceSetupStep
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
+  alias Level.Spaces.CreateDemo
   alias Level.Spaces.JoinSpace
 
   @typedoc "The result of creating a space"
@@ -161,6 +162,14 @@ defmodule Level.Spaces do
   end
 
   defp after_create_space(err, _), do: err
+
+  @doc """
+  Creates a demo space.
+  """
+  @spec create_demo_space(User.t()) :: {:ok, Space.t()}
+  def create_demo_space(user) do
+    CreateDemo.perform(user)
+  end
 
   @doc """
   Updates a space.

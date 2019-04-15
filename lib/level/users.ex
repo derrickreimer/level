@@ -64,6 +64,25 @@ defmodule Level.Users do
   end
 
   @doc """
+  Creates a new user with a demo space.
+  """
+  @spec create_user_with_demo(map()) ::
+          {:ok, %{user: User.t(), space: Space.t()}} | {:error, Ecto.Changeset.t()}
+  def create_user_with_demo(params) do
+    %User{}
+    |> create_user_changeset(params)
+    |> Repo.insert()
+    |> create_demo_space_after_user()
+  end
+
+  defp create_demo_space_after_user({:ok, user}) do
+    {:ok, %{space: demo_space}} = Spaces.create_demo_space(user)
+    {:ok, %{user: user, space: demo_space}}
+  end
+
+  defp create_demo_space_after_user(err), do: err
+
+  @doc """
   Creates a reservation.
   """
   @spec create_reservation(map()) :: {:ok, Reservation.t()} | {:error, Ecto.Changeset.t()}

@@ -34,7 +34,7 @@ defmodule LevelWeb.UserControllerTest do
         |> post("/signup", %{"user" => params})
 
       user = conn.assigns[:current_user]
-      assert redirected_to(conn, 302) =~ "/teams/new"
+      assert redirected_to(conn, 302) =~ "/coffeekit-"
       assert user.first_name == "Derrick"
     end
 

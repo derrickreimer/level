@@ -31,7 +31,7 @@ defmodule Level.Schemas.Space do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:name, :slug, :is_demo])
+    |> cast(attrs, [:name, :slug, :avatar, :is_demo])
     |> validate_required([:name, :slug])
     |> validate_format(
       :slug,
