@@ -1,10 +1,11 @@
-module User exposing (User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, id, lastName, timeZone)
+module User exposing (User, avatar, avatarUrl, decoder, displayName, email, firstName, fragment, handle, hasChosenHandle, hasPassword, id, isDemo, lastName, timeZone)
 
 import Avatar
 import GraphQL exposing (Fragment)
 import Html exposing (Html)
 import Id exposing (Id)
-import Json.Decode as Decode exposing (Decoder, fail, field, int, maybe, string, succeed)
+import Json.Decode as Decode exposing (Decoder, bool, fail, field, int, maybe, string, succeed)
+import Json.Decode.Pipeline as Pipeline exposing (required)
 
 
 
@@ -23,6 +24,9 @@ type alias Data =
     , handle : String
     , avatarUrl : Maybe String
     , timeZone : String
+    , isDemo : Bool
+    , hasPassword : Bool
+    , hasChosenHandle : Bool
     , fetchedAt : Int
     }
 
@@ -39,6 +43,9 @@ fragment =
           handle
           avatarUrl
           timeZone
+          isDemo
+          hasPassword
+          hasChosenHandle
           fetchedAt
         }
         """
@@ -94,19 +101,38 @@ avatar size (User data) =
     Avatar.personAvatar size data
 
 
+isDemo : User -> Bool
+isDemo (User data) =
+    data.isDemo
+
+
+hasPassword : User -> Bool
+hasPassword (User data) =
+    data.hasPassword
+
+
+hasChosenHandle : User -> Bool
+hasChosenHandle (User data) =
+    data.hasChosenHandle
+
+
 
 -- DECODERS
 
 
 decoder : Decoder User
 decoder =
-    Decode.map User <|
-        Decode.map8 Data
-            (field "id" Id.decoder)
-            (field "email" string)
-            (field "firstName" string)
-            (field "lastName" string)
-            (field "handle" string)
-            (field "avatarUrl" (maybe string))
-            (field "timeZone" string)
-            (field "fetchedAt" int)
+    Decode.map User
+        (Decode.succeed Data
+            |> required "id" Id.decoder
+            |> required "email" string
+            |> required "firstName" string
+            |> required "lastName" string
+            |> required "handle" string
+            |> required "avatarUrl" (maybe string)
+            |> required "timeZone" string
+            |> required "isDemo" bool
+            |> required "hasPassword" bool
+            |> required "hasChosenHandle" bool
+            |> required "fetchedAt" int
+        )

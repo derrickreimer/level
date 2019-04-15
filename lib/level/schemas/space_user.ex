@@ -28,6 +28,7 @@ defmodule Level.Schemas.SpaceUser do
     field :last_name, :string
     field :handle, :string
     field :avatar, :string
+    field :is_demo, :boolean, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :user, User

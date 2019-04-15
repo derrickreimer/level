@@ -33,6 +33,9 @@ defmodule Level.Schemas.User do
     field :password_hash, :string
     field :session_salt, :string
     field :avatar, :string
+    field :is_demo, :boolean, read_after_writes: true
+    field :has_password, :boolean, read_after_writes: true
+    field :has_chosen_handle, :boolean, read_after_writes: true
     has_many :space_users, SpaceUser
     has_many :push_subscriptions, PushSubscription
 
