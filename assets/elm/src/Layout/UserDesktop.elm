@@ -187,6 +187,17 @@ spacesSidebar config =
 
 spaceLink : Config msg -> Space -> Html msg
 spaceLink config space =
+    let
+        avatar =
+            if Space.isDemo space then
+                div [ class "relative inline-block" ]
+                    [ Space.avatar Avatar.Small space
+                    , div [ class "absolute px-1 pin-b -mb-2 shadow-white rounded-full bg-green text-xxs font-bold text-white uppercase" ] [ text "Demo" ]
+                    ]
+
+            else
+                Space.avatar Avatar.Small space
+    in
     a
         [ Route.href (Route.Root (Space.slug space))
         , classList
@@ -194,7 +205,7 @@ spaceLink config space =
             , ( "opacity-50", True )
             ]
         ]
-        [ Space.avatar Avatar.Small space ]
+        [ avatar ]
 
 
 fullSidebar : Config msg -> Html msg
