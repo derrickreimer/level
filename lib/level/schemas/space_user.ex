@@ -62,7 +62,8 @@ defmodule Level.Schemas.SpaceUser do
       :last_name,
       :handle,
       :avatar,
-      :is_digest_enabled
+      :is_digest_enabled,
+      :is_demo
     ])
     |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)

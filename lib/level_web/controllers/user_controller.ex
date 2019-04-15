@@ -25,7 +25,11 @@ defmodule LevelWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    case Users.create_user(user_params) do
+    params =
+      user_params
+      |> Map.put("has_password", true)
+
+    case Users.create_user(params) do
       {:ok, user} ->
         conn
         |> LevelWeb.Auth.sign_in(user)

@@ -60,8 +60,20 @@ defmodule Level.Schemas.User do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone])
-    |> validate_required([:first_name, :last_name, :handle, :email, :password])
+    |> cast(attrs, [
+      :email,
+      :handle,
+      :first_name,
+      :last_name,
+      :password,
+      :time_zone,
+      :avatar,
+      :is_demo,
+      :has_password,
+      :has_chosen_handle
+    ])
+    |> validate_required([:first_name, :last_name, :handle, :email])
+    |> validate_password_presence()
     |> put_default_time_zone()
     |> validate()
     |> put_password_hash()
@@ -71,7 +83,17 @@ defmodule Level.Schemas.User do
   @doc false
   def update_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:email, :handle, :first_name, :last_name, :password, :time_zone, :avatar])
+    |> cast(attrs, [
+      :email,
+      :handle,
+      :first_name,
+      :last_name,
+      :password,
+      :time_zone,
+      :avatar,
+      :has_password,
+      :has_chosen_handle
+    ])
     |> validate_required([:email, :handle, :first_name, :last_name])
     |> validate()
     |> put_password_hash()
@@ -108,6 +130,12 @@ defmodule Level.Schemas.User do
       message: dgettext("errors", "is already taken")
     )
   end
+
+  defp validate_password_presence(%Changeset{changes: %{has_password: true}} = changeset) do
+    validate_required(changeset, [:password])
+  end
+
+  defp validate_password_presence(changeset), do: changeset
 
   defp generate_salt do
     16
