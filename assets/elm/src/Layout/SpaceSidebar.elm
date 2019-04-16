@@ -100,7 +100,7 @@ view config =
                 , sidebarLink "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                 ]
             ]
-        , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]
+        , div [ class "absolute", style "bottom" "0.75rem", style "left" "0.75rem", style "right" "0.75rem" ]
             [ a [ Route.href Route.UserSettings, class "flex items-center p-2 no-underline border-turquoise hover:bg-grey rounded transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
                 , div [ class "flex-grow ml-2 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]
