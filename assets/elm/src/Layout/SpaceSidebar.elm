@@ -79,10 +79,10 @@ view config =
         [ div [ class "p-4 pt-1" ]
             [ a [ Route.href (Route.Posts (Route.Posts.init spaceSlug)), class "block p-2 rounded no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                , div [ class "font-headline font-bold text-lg text-dusty-blue-darkest truncate" ]
-                    [ text (Space.name config.space)
+                , div [ class "flex items-center font-headline font-bold text-lg text-dusty-blue-darkest truncate" ]
+                    [ div [] [ text (Space.name config.space) ]
                     , viewIf (Space.isDemo config.space) <|
-                        span [ class "ml-2 px-2 text-xs font-bold text-white rounded-full bg-green" ] [ text "Demo" ]
+                        div [ class "ml-2 px-2 py-px text-xs font-bold text-white rounded-full bg-green" ] [ text "Demo" ]
                     ]
                 ]
             ]
