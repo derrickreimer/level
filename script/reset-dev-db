@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# script/reset-dev-db: Drops and re-creates the development database.
+
+dropdb level_dev && mix ecto.create && mix ecto.load && mix run priv/repo/seeds.exs

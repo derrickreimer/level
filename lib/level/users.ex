@@ -46,6 +46,15 @@ defmodule Level.Users do
   end
 
   @doc """
+  Fetches users by handles.
+  """
+  @spec get_users_by_handle([String.t()]) :: [User.t()]
+  def get_users_by_handle(handles) do
+    query = from u in User, where: u.handle in ^handles
+    Repo.all(query)
+  end
+
+  @doc """
   Generates a changeset for creating a user.
   """
   @spec create_user_changeset(User.t(), map()) :: Ecto.Changeset.t()

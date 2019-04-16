@@ -132,15 +132,15 @@ defmodule Level.Spaces do
   @doc """
   Creates a new space.
   """
-  @spec create_space(User.t(), map()) :: create_space_result()
-  def create_space(user, params) do
+  @spec create_space(User.t(), map(), list()) :: create_space_result()
+  def create_space(user, params, opts \\ []) do
     Multi.new()
     |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
     |> Repo.transaction()
-    |> after_create_space(user)
+    |> after_create_space(user, opts)
   end
 
   defp create_everyone_group(space_user) do
@@ -153,15 +153,15 @@ defmodule Level.Spaces do
     end
   end
 
-  defp after_create_space({:ok, %{space: space} = data}, user) do
-    {:ok, owner} = create_owner(user, space)
+  defp after_create_space({:ok, %{space: space} = data}, user, opts) do
+    {:ok, owner} = create_owner(user, space, opts)
     {:ok, default_group} = create_everyone_group(owner)
     Events.space_joined(user.id, space, owner)
 
     {:ok, Map.merge(data, %{space_user: owner, default_group: default_group})}
   end
 
-  defp after_create_space(err, _), do: err
+  defp after_create_space(err, _, _), do: err
 
   @doc """
   Creates a demo space.
@@ -300,17 +300,19 @@ defmodule Level.Spaces do
   @doc """
   Establishes a user as an owner of space.
   """
-  @spec create_owner(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
-  def create_owner(user, space) do
-    JoinSpace.perform(user, space, "OWNER")
+  @spec create_owner(User.t(), Space.t(), list()) ::
+          {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def create_owner(user, space, opts \\ []) do
+    JoinSpace.perform(user, space, "OWNER", opts)
   end
 
   @doc """
   Establishes a user as a member of a space.
   """
-  @spec create_member(User.t(), Space.t()) :: {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
-  def create_member(user, space) do
-    JoinSpace.perform(user, space, "MEMBER")
+  @spec create_member(User.t(), Space.t(), list()) ::
+          {:ok, SpaceUser.t()} | {:error, Ecto.Changeset.t()}
+  def create_member(user, space, opts \\ []) do
+    JoinSpace.perform(user, space, "MEMBER", opts)
   end
 
   @doc """
