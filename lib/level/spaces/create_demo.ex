@@ -13,7 +13,8 @@ defmodule Level.Spaces.CreateDemo do
 
   @spec perform(User.t()) :: {:ok, %{space: Space.t(), space_user: SpaceUser.t()}} | no_return()
   def perform(%User{} = user) do
-    {:ok, %{space: space, space_user: space_user, default_group: everyone_group}} =
+    {:ok,
+     %{space: space, space_user: space_user, default_group: everyone_group, levelbot: levelbot}} =
       create_space(user)
 
     # Add CoffeeKit staff to the space
@@ -38,6 +39,9 @@ defmodule Level.Spaces.CreateDemo do
     create_retreat_post(space_users, groups)
     create_redesign_post(space_users, groups)
     create_watercooler_post(space_users, groups)
+
+    # Create levelbot welcome message
+    create_welcome_message(levelbot, space_user)
 
     {:ok, %{space: space, space_user: space_user}}
   end
@@ -163,5 +167,23 @@ defmodule Level.Spaces.CreateDemo do
     Posts.create_reply_reaction(space_users["kevincortado"], post, reply4, "😆")
     Posts.create_reply_reaction(space_users["lisalatte"], post, reply4, "😆")
     Posts.create_reply_reaction(space_users["joegibraltar"], post, reply4, "😆")
+  end
+
+  defp create_welcome_message(levelbot, owner) do
+    body = """
+    Hi @#{owner.handle} 👋
+
+    Welcome to the CoffeeKit team, a fictitious software company. Feel free to explore around to get a feel for Level!
+
+    If you're coming from real-time chat, there are a few key differences to note:
+
+    - Conversations are always threaded.
+    - The Inbox queues up important messages for you until you take action.
+    - Push notifications are batched up to protect your focus.
+
+    When you're ready, **[create your own team →](/teams/new)**
+    """
+
+    Posts.create_post(levelbot, %{body: body, display_name: "Level"})
   end
 end
