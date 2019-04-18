@@ -503,7 +503,7 @@ postResultView repo params now data resolvedResult =
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand postRoute
-                [ div [ class "markdown mb-3/2 break-words" ]
+                [ div [ class "markdown mb-3/2 break-words fs-block" ]
                     [ RenderedHtml.node
                         { html = PostSearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked
@@ -530,7 +530,7 @@ replyResultView repo params now data resolvedResult =
                 ]
             , groupsLabel data.space resolvedResult.resolvedPost.groups
             , clickToExpand replyRoute
-                [ div [ class "markdown mb-3/2 break-words" ]
+                [ div [ class "markdown mb-3/2 break-words fs-block" ]
                     [ RenderedHtml.node
                         { html = ReplySearchResult.preview resolvedResult.result
                         , onInternalLinkClicked = InternalLinkClicked

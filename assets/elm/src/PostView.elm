@@ -1272,7 +1272,7 @@ bodyView space post =
     div []
         [ div
             [ classList
-                [ ( "markdown break-words", True )
+                [ ( "markdown break-words fs-block", True )
                 ]
             ]
             [ RenderedHtml.node
@@ -1303,7 +1303,7 @@ editorView viewConfig editor =
         [ label [ class "composer my-2 p-3 bg-grey-light rounded-xl" ]
             [ textarea
                 [ id (PostEditor.getTextareaId editor)
-                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal fs-block"
                 , placeholder "Edit post..."
                 , onInput PostEditorBodyChanged
                 , readonly (PostEditor.isSubmitting editor)
@@ -1407,7 +1407,7 @@ expandedReplyComposerView viewConfig postView =
                     , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                         [ textarea
                             [ id (PostEditor.getTextareaId editor)
-                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                            , class "p-1 w-full h-10 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal fs-block"
                             , placeholder "Write a reply..."
                             , onInput NewReplyBodyChanged
                             , onKeydown preventDefault

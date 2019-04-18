@@ -1139,7 +1139,7 @@ desktopPostComposerView globals model data =
                 , div [ class "flex-grow -ml-6 pl-6 pr-3 py-3 bg-grey-light w-full rounded-xl" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal fs-block"
                         , placeholder placeholderText
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault

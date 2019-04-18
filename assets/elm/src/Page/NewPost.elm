@@ -434,7 +434,7 @@ desktopPostComposerView globals model data =
                 , div [ class "flex-grow pl-2 pt-2" ]
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
-                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal"
+                        , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal fs-block"
                         , placeholder "Compose a new post..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault

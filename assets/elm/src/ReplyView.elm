@@ -388,7 +388,7 @@ resolvedView config replyView data =
                 div []
                     [ div
                         [ classList
-                            [ ( "markdown pb-1 break-words", True )
+                            [ ( "markdown pb-1 break-words fs-block", True )
                             ]
                         ]
                         [ RenderedHtml.node
@@ -443,7 +443,7 @@ editorView viewConfig editor =
         [ label [ class "composer my-2 p-0" ]
             [ textarea
                 [ id (PostEditor.getTextareaId editor)
-                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal"
+                , class "w-full no-outline text-dusty-blue-darkest bg-transparent resize-none leading-normal fs-block"
                 , placeholder "Edit reply..."
                 , onInput EditorBodyChanged
                 , readonly (PostEditor.isSubmitting editor)
