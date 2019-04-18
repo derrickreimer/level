@@ -23,15 +23,11 @@ defmodule Level.Spaces.CreateDemo do
 
     # Create some groups
     {:ok, %{group: engineering_group}} = Groups.create_group(space_user, %{name: "engineering"})
-    {:ok, %{group: marketing_group}} = Groups.create_group(space_user, %{name: "marketing"})
-    {:ok, %{group: sales_group}} = Groups.create_group(space_user, %{name: "sales"})
     {:ok, %{group: watercooler_group}} = Groups.create_group(space_user, %{name: "watercooler"})
 
     groups = %{
       "everyone" => everyone_group,
       "engineering" => engineering_group,
-      "marketing" => marketing_group,
-      "sales" => sales_group,
       "watercooler" => watercooler_group
     }
 
@@ -39,6 +35,7 @@ defmodule Level.Spaces.CreateDemo do
     create_retreat_post(space_users, groups)
     create_redesign_post(space_users, groups)
     create_watercooler_post(space_users, groups)
+    create_engineering_proposal_post(space_users, groups)
 
     # Create levelbot welcome message
     create_welcome_message(levelbot, space_user)
@@ -167,6 +164,50 @@ defmodule Level.Spaces.CreateDemo do
     Posts.create_reply_reaction(space_users["kevincortado"], post, reply4, "😆")
     Posts.create_reply_reaction(space_users["lisalatte"], post, reply4, "😆")
     Posts.create_reply_reaction(space_users["joegibraltar"], post, reply4, "😆")
+  end
+
+  defp create_engineering_proposal_post(space_users, groups) do
+    {:ok, %{post: post}} =
+      Posts.create_post(space_users["kevincortado"], groups["engineering"], %{
+        body: """
+        ## Caching expensive queries to improve performance
+
+        @sarahsinglepour and I have been digging into New Relic to identify areas of the app that are particularly slow.
+
+        In the process, we identified a number of queries hitting Postgres that have 6+ JOINs and can take up to 10s to run. Yikes.
+
+        The good news is I believe the results of these particular queries could be cached in Redis (or some other in-memory store?) pretty easily. The results can be up to ~1 hour stale without violating user expectations.
+
+        Rough estimate is 1 week to stand up some new caching infrastructure and implementing the domain logic.
+
+        Some open questions at this point:
+
+        - Anyone have strong preferences on the data store we use?
+        - Customers are definitely feeling the pain. How high should we prioritize this? (/cc @lisalatte)
+        """
+      })
+
+    {:ok, %{reply: reply}} =
+      Posts.create_reply(space_users["lisalatte"], post, %{
+        body:
+          "Customer impact is indeed high. My sense is that this should come first in our next work cycle. I will defer to others on the question of data store."
+      })
+
+    {:ok, %{reply: reply2}} =
+      Posts.create_reply(space_users["joegibraltar"], post, %{
+        body:
+          "Re: datastore, I come down between Redis and Memcached. I'm partial to Redis because it has a pretty big library of data structures that might be useful (e.g. sets)."
+      })
+
+    Posts.create_reply_reaction(space_users["sarahsinglepour"], post, reply2, "👍")
+
+    {:ok, %{reply: reply3}} =
+      Posts.create_reply(space_users["sarahsinglepour"], post, %{
+        body:
+          "Agreed on Redis. There are variety of hosted options too (Redis Labs, AWS, Compose, etc.)"
+      })
+
+    Posts.create_reply_reaction(space_users["joegibraltar"], post, reply3, "👍")
   end
 
   defp create_welcome_message(levelbot, owner) do
