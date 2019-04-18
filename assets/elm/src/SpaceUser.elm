@@ -1,4 +1,4 @@
-module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, avatarUrl, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, initials, lastName, role, roleDecoder, roleEncoder, spaceId, state, userId)
+module SpaceUser exposing (Role(..), SpaceUser, State(..), avatar, avatarUrl, canManageMembers, canManageOwners, decoder, displayName, firstName, fragment, handle, id, initials, isDemo, lastName, role, roleDecoder, roleEncoder, spaceId, state, userId)
 
 import Avatar
 import GraphQL exposing (Fragment)
@@ -30,6 +30,7 @@ type alias Data =
     , avatarUrl : Maybe String
     , canManageMembers : Bool
     , canManageOwners : Bool
+    , isDemo : Bool
     , fetchedAt : Int
     }
 
@@ -63,6 +64,7 @@ fragment =
           avatarUrl
           canManageMembers
           canManageOwners
+          isDemo
           fetchedAt
         }
         """
@@ -155,6 +157,11 @@ canManageOwners (SpaceUser data) =
     data.canManageOwners
 
 
+isDemo : SpaceUser -> Bool
+isDemo (SpaceUser data) =
+    data.isDemo
+
+
 
 -- DECODERS
 
@@ -213,6 +220,7 @@ decoder =
             |> required "avatarUrl" (maybe string)
             |> required "canManageMembers" bool
             |> required "canManageOwners" bool
+            |> required "isDemo" bool
             |> required "fetchedAt" int
         )
 

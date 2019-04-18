@@ -79,7 +79,11 @@ view config =
         [ div [ class "p-4 pt-1" ]
             [ a [ Route.href (Route.Posts (Route.Posts.init spaceSlug)), class "block p-2 rounded no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
-                , div [ class "font-headline font-bold text-lg text-dusty-blue-darkest truncate" ] [ text (Space.name config.space) ]
+                , div [ class "flex items-center font-headline font-bold text-lg text-dusty-blue-darkest truncate" ]
+                    [ div [] [ text (Space.name config.space) ]
+                    , viewIf (Space.isDemo config.space) <|
+                        div [ class "ml-2 px-2 py-px text-xs font-bold text-white rounded-full bg-green" ] [ text "Demo" ]
+                    ]
                 ]
             ]
         , div [ class "absolute px-3 w-full overflow-y-auto", style "top" "102px", style "bottom" "70px" ]
@@ -96,7 +100,7 @@ view config =
                 , sidebarLink "Help" Nothing (Route.Help (Route.Help.init spaceSlug)) config.globals.currentRoute
                 ]
             ]
-        , div [ class "absolute w-full", style "bottom" "0.75rem", style "left" "0.75rem" ]
+        , div [ class "absolute", style "bottom" "0.75rem", style "left" "0.75rem", style "right" "0.75rem" ]
             [ a [ Route.href Route.UserSettings, class "flex items-center p-2 no-underline border-turquoise hover:bg-grey rounded transition-bg" ]
                 [ div [ class "flex-no-shrink" ] [ SpaceUser.avatar Avatar.Small config.spaceUser ]
                 , div [ class "flex-grow ml-2 text-sm text-dusty-blue-darker leading-normal overflow-hidden" ]

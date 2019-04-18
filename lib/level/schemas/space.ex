@@ -16,6 +16,7 @@ defmodule Level.Schemas.Space do
 
   schema "spaces" do
     field :state, :string, read_after_writes: true
+    field :is_demo, :boolean, read_after_writes: true
     field :name, :string, default: ""
     field :slug, :string, default: ""
     field :avatar, :string
@@ -30,7 +31,7 @@ defmodule Level.Schemas.Space do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:name, :slug])
+    |> cast(attrs, [:name, :slug, :avatar, :is_demo])
     |> validate_required([:name, :slug])
     |> validate_format(
       :slug,

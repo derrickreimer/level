@@ -70,7 +70,8 @@ defmodule Level.Schemas.Post do
       :is_urgent,
       :display_name,
       :initials,
-      :avatar_color
+      :avatar_color,
+      :inserted_at
     ])
     |> validate_required([:body])
     |> shared_validations()
@@ -86,7 +87,8 @@ defmodule Level.Schemas.Post do
       :is_urgent,
       :display_name,
       :initials,
-      :avatar_color
+      :avatar_color,
+      :inserted_at
     ])
     |> validate_required([:body, :display_name])
     |> shared_validations()

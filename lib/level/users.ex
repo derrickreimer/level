@@ -46,6 +46,15 @@ defmodule Level.Users do
   end
 
   @doc """
+  Fetches users by handles.
+  """
+  @spec get_users_by_handle([String.t()]) :: [User.t()]
+  def get_users_by_handle(handles) do
+    query = from u in User, where: u.handle in ^handles
+    Repo.all(query)
+  end
+
+  @doc """
   Generates a changeset for creating a user.
   """
   @spec create_user_changeset(User.t(), map()) :: Ecto.Changeset.t()
@@ -62,6 +71,25 @@ defmodule Level.Users do
     |> create_user_changeset(params)
     |> Repo.insert()
   end
+
+  @doc """
+  Creates a new user with a demo space.
+  """
+  @spec create_user_with_demo(map()) ::
+          {:ok, %{user: User.t(), space: Space.t()}} | {:error, Ecto.Changeset.t()}
+  def create_user_with_demo(params) do
+    %User{}
+    |> create_user_changeset(params)
+    |> Repo.insert()
+    |> create_demo_space_after_user()
+  end
+
+  defp create_demo_space_after_user({:ok, user}) do
+    {:ok, %{space: demo_space}} = Spaces.create_demo_space(user)
+    {:ok, %{user: user, space: demo_space}}
+  end
+
+  defp create_demo_space_after_user(err), do: err
 
   @doc """
   Creates a reservation.

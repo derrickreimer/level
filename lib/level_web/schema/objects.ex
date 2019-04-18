@@ -48,6 +48,9 @@ defmodule LevelWeb.Schema.Objects do
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
     field :time_zone, :string
+    field :is_demo, non_null(:boolean)
+    field :has_password, non_null(:boolean)
+    field :has_chosen_handle, non_null(:boolean)
     field :inserted_at, non_null(:timestamp)
     field :updated_at, non_null(:timestamp)
 
@@ -96,6 +99,7 @@ defmodule LevelWeb.Schema.Objects do
     field :first_name, non_null(:string)
     field :last_name, non_null(:string)
     field :handle, non_null(:string)
+    field :is_demo, non_null(:boolean)
 
     field :digest_settings, :digest_settings do
       resolve fn space_user, _, %{context: %{current_user: user}} ->
@@ -200,6 +204,7 @@ defmodule LevelWeb.Schema.Objects do
     field :state, non_null(:space_state)
     field :name, non_null(:string)
     field :slug, non_null(:string)
+    field :is_demo, non_null(:boolean)
     field :inserted_at, non_null(:timestamp)
     field :updated_at, non_null(:timestamp)
 

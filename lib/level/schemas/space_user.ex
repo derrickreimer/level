@@ -28,6 +28,7 @@ defmodule Level.Schemas.SpaceUser do
     field :last_name, :string
     field :handle, :string
     field :avatar, :string
+    field :is_demo, :boolean, read_after_writes: true
 
     belongs_to :space, Space
     belongs_to :user, User
@@ -61,7 +62,8 @@ defmodule Level.Schemas.SpaceUser do
       :last_name,
       :handle,
       :avatar,
-      :is_digest_enabled
+      :is_digest_enabled,
+      :is_demo
     ])
     |> validate_required([:role, :first_name, :last_name, :handle])
     |> Handles.validate_format(:handle)

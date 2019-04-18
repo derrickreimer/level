@@ -16,8 +16,9 @@ defmodule Level.Spaces.JoinSpace do
   @doc """
   Adds a user as a member of a space.
   """
-  @spec perform(User.t(), Space.t(), String.t()) :: {:ok, SpaceUser.t()} | {:error, Changeset.t()}
-  def perform(user, space, role) do
+  @spec perform(User.t(), Space.t(), String.t(), list()) ::
+          {:ok, SpaceUser.t()} | {:error, Changeset.t()}
+  def perform(user, space, role, opts \\ []) do
     params = %{
       user_id: user.id,
       space_id: space.id,
@@ -31,20 +32,23 @@ defmodule Level.Spaces.JoinSpace do
     %SpaceUser{}
     |> SpaceUser.create_changeset(params)
     |> Repo.insert()
-    |> after_create(space)
+    |> after_create(space, opts)
   end
 
-  defp after_create({:ok, space_user}, space) do
+  defp after_create({:ok, space_user}, space, opts) do
     levelbot = Levelbot.get_space_bot!(space)
 
     _ = subscribe_to_default_groups(space, space_user)
     _ = create_default_nudges(space_user)
-    _ = create_welcome_message(levelbot, space_user)
+
+    if !opts[:skip_welcome_message] do
+      _ = create_welcome_message(levelbot, space_user)
+    end
 
     {:ok, space_user}
   end
 
-  defp after_create(err, _), do: err
+  defp after_create(err, _, _), do: err
 
   defp subscribe_to_default_groups(space, space_user) do
     space

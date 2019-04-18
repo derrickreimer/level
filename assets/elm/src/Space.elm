@@ -1,4 +1,4 @@
-module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, groupIds, id, name, openInvitationUrl, postbotUrl, slug, spaceUserIds)
+module Space exposing (Space, avatar, avatarUrl, canUpdate, decoder, fragment, groupIds, id, isDemo, name, openInvitationUrl, postbotUrl, slug, spaceUserIds)
 
 import Avatar
 import Connection exposing (Connection)
@@ -25,6 +25,7 @@ type alias Data =
     { id : Id
     , name : String
     , slug : String
+    , isDemo : Bool
     , avatarUrl : Maybe String
     , openInvitationUrl : Maybe String
     , postbotUrl : String
@@ -43,6 +44,7 @@ fragment =
           id
           name
           slug
+          isDemo
           avatarUrl
           openInvitationUrl
           postbotUrl
@@ -78,6 +80,11 @@ name (Space data) =
 slug : Space -> String
 slug (Space data) =
     data.slug
+
+
+isDemo : Space -> Bool
+isDemo (Space data) =
+    data.isDemo
 
 
 avatarUrl : Space -> Maybe String
@@ -126,6 +133,7 @@ decoder =
             |> required "id" Id.decoder
             |> required "name" string
             |> required "slug" string
+            |> required "isDemo" bool
             |> required "avatarUrl" (maybe string)
             |> required "openInvitationUrl" (maybe string)
             |> required "postbotUrl" string
