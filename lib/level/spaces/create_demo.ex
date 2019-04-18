@@ -171,17 +171,22 @@ defmodule Level.Spaces.CreateDemo do
 
   defp create_welcome_message(levelbot, owner) do
     body = """
+    # Welcome to the CoffeeKit demo team
+
     Hi @#{owner.handle} 👋
 
-    Welcome to the CoffeeKit team, a fictitious software company. Feel free to explore around to get a feel for Level!
+    CoffeeKit is a fictitious software company using Level to organize their communication.
+
+    Feel free to click around a bit to get a feel for the product!
 
     If you're coming from real-time chat, there are a few key differences to note:
 
     - Conversations are always threaded.
     - The Inbox queues up important messages for you until you take action.
     - Push notifications are batched up to protect your focus.
+    - There are no presence indicators falsely indicating someone is available.
 
-    When you're ready, **[create your own team →](/teams/new)**
+    When you're ready, **[click here to create your own team →](/teams/new)**
     """
 
     Posts.create_post(levelbot, %{body: body, display_name: "Level"})
