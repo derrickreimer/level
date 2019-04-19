@@ -159,14 +159,15 @@ defmodule Level.Spaces do
     {:ok, default_group} = create_everyone_group(owner)
     Events.space_joined(user.id, space, owner)
 
-    Task.start(fn ->
-      Analytics.track(user.email, "Created a team", %{
-        team_id: space.id,
-        team_name: space.name,
-        team_slug: space.slug,
-        is_demo: space.is_demo
-      })
-    end)
+    if !space.is_demo do
+      Task.start(fn ->
+        Analytics.track(user.email, "Created a team", %{
+          team_id: space.id,
+          team_name: space.name,
+          team_slug: space.slug
+        })
+      end)
+    end
 
     {:ok, Map.merge(data, %{space_user: owner, default_group: default_group})}
   end

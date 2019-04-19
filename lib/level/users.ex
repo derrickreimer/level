@@ -161,6 +161,7 @@ defmodule Level.Users do
   end
 
   defp handle_user_update({:ok, %{user: user}}) do
+    identify_user(user)
     {:ok, user}
   end
 
