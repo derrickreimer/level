@@ -191,6 +191,10 @@ The following variables are for non-essential external services.
       <td><code>DRIP_ACCOUNT_ID</code></td>
       <td>The account ID for Drip.</td>
     </tr>
+    <tr>
+      <td><code>DRIP_API_KEY</code></td>
+      <td>The personal api key for Drip.</td>
+    </tr>
   </tbody>
 
   <tbody>

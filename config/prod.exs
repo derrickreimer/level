@@ -45,6 +45,9 @@ config :level, Level.WebPush,
   retry_timeout: 1000,
   max_attempts: 5
 
+# Analytics
+config :level, Level.Analytics, adapter: Level.Analytics.LiveAdapter
+
 # Signup-related configuration
 config :level, :signups,
   enabled: System.get_env("LEVEL_SIGNUPS_ENABLED") == "1",

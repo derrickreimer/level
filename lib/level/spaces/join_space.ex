@@ -4,6 +4,7 @@ defmodule Level.Spaces.JoinSpace do
   import Ecto.Query
 
   alias Ecto.Changeset
+  alias Level.Analytics
   alias Level.Groups
   alias Level.Levelbot
   alias Level.Nudges
@@ -32,23 +33,33 @@ defmodule Level.Spaces.JoinSpace do
     %SpaceUser{}
     |> SpaceUser.create_changeset(params)
     |> Repo.insert()
-    |> after_create(space, opts)
+    |> after_create(user, space, opts)
   end
 
-  defp after_create({:ok, space_user}, space, opts) do
+  defp after_create({:ok, space_user}, user, space, opts) do
     levelbot = Levelbot.get_space_bot!(space)
 
-    _ = subscribe_to_default_groups(space, space_user)
-    _ = create_default_nudges(space_user)
+    subscribe_to_default_groups(space, space_user)
+    create_default_nudges(space_user)
 
     if !opts[:skip_welcome_message] do
-      _ = create_welcome_message(levelbot, space_user)
+      create_welcome_message(levelbot, space_user)
     end
+
+    Task.start(fn ->
+      Analytics.track(user.email, "Joined a team", %{
+        team_id: space.id,
+        team_name: space.name,
+        team_slug: space.slug,
+        is_demo: space.is_demo,
+        role: space_user.role
+      })
+    end)
 
     {:ok, space_user}
   end
 
-  defp after_create(err, _, _), do: err
+  defp after_create(err, _, _, _), do: err
 
   defp subscribe_to_default_groups(space, space_user) do
     space

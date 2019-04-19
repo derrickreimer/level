@@ -8,6 +8,7 @@ defmodule Level.Spaces do
 
   alias Ecto.Changeset
   alias Ecto.Multi
+  alias Level.Analytics
   alias Level.AssetStore
   alias Level.Events
   alias Level.Groups
@@ -157,6 +158,15 @@ defmodule Level.Spaces do
     {:ok, owner} = create_owner(user, space, opts)
     {:ok, default_group} = create_everyone_group(owner)
     Events.space_joined(user.id, space, owner)
+
+    Task.start(fn ->
+      Analytics.track(user.email, "Created a team", %{
+        team_id: space.id,
+        team_name: space.name,
+        team_slug: space.slug,
+        is_demo: space.is_demo
+      })
+    end)
 
     {:ok, Map.merge(data, %{space_user: owner, default_group: default_group})}
   end

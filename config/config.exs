@@ -29,7 +29,10 @@ config :level, :generators,
   sample_binary_id: "11111111-1111-1111-1111-111111111111"
 
 # Configure external services
-config :level, :drip, account_id: System.get_env("DRIP_ACCOUNT_ID")
+config :level, :drip,
+  account_id: System.get_env("DRIP_ACCOUNT_ID"),
+  api_key: System.get_env("DRIP_API_KEY")
+
 config :level, :fathom, site_id: System.get_env("FATHOM_SITE_ID")
 config :level, :fullstory, org: System.get_env("FULLSTORY_ORG")
 config :level, :heap_analytics, app_id: System.get_env("HEAP_ANALYTICS_APP_ID")

@@ -7,6 +7,7 @@ defmodule Level.Users do
   import Level.Gettext
 
   alias Ecto.Multi
+  alias Level.Analytics
   alias Level.AssetStore
   alias Level.Email
   alias Level.Mailer
@@ -70,7 +71,16 @@ defmodule Level.Users do
     %User{}
     |> create_user_changeset(params)
     |> Repo.insert()
+    |> after_create_user()
   end
+
+  defp after_create_user({:ok, user}) do
+    identify_user(user)
+    track_event(user, "User created")
+    {:ok, user}
+  end
+
+  defp after_create_user(err), do: err
 
   @doc """
   Creates a new user with a demo space.
@@ -86,6 +96,8 @@ defmodule Level.Users do
 
   defp create_demo_space_after_user({:ok, user}) do
     {:ok, %{space: demo_space}} = Spaces.create_demo_space(user)
+    identify_user(user)
+    track_event(user, "User created")
     {:ok, %{user: user, space: demo_space}}
   end
 
@@ -266,5 +278,24 @@ defmodule Level.Users do
     reset.user
     |> reset_password_changeset(%{password: new_password})
     |> Repo.update()
+  end
+
+  # Send user data to external providers asynchronously
+  defp identify_user(user) do
+    Task.start(fn ->
+      Analytics.identify(user.email, %{
+        user_id: user.id,
+        custom_fields: %{
+          first_name: user.first_name,
+          last_name: user.last_name
+        }
+      })
+    end)
+  end
+
+  defp track_event(user, action, props \\ %{}) do
+    Task.start(fn ->
+      Analytics.track(user.email, action, props)
+    end)
   end
 end
