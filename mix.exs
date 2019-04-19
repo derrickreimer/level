@@ -76,6 +76,7 @@ defmodule Level.Mixfile do
       {:honeybadger, "~> 0.1"},
       {:quantum, "~> 2.3"},
       {:premailex, "~> 0.3.3"},
+      {:tesla, "~> 1.2.1"},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},
