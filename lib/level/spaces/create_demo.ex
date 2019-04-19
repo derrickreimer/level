@@ -187,7 +187,7 @@ defmodule Level.Spaces.CreateDemo do
         """
       })
 
-    {:ok, %{reply: reply}} =
+    {:ok, %{reply: _reply}} =
       Posts.create_reply(space_users["lisalatte"], post, %{
         body:
           "Customer impact is indeed high. My sense is that this should come first in our next work cycle. I will defer to others on the question of data store."
@@ -214,11 +214,7 @@ defmodule Level.Spaces.CreateDemo do
     body = """
     # Welcome to the CoffeeKit demo team
 
-    Hi @#{owner.handle} 👋
-
-    CoffeeKit is a fictitious software company using Level to organize their communication.
-
-    Feel free to click around a bit to get a feel for the product!
+    Hello @#{owner.handle}! CoffeeKit is a fictitious software company using Level to organize their communication. Feel free to click around a bit to get a feel for the product.
 
     If you're coming from real-time chat, there are a few key differences to note:
 

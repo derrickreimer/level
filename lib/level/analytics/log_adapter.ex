@@ -6,12 +6,12 @@ defmodule Level.Analytics.LogAdapter do
   @behaviour Level.Analytics.Adapter
 
   @impl Level.Analytics.Adapter
-  def identify(email, properties) do
+  def identify(email, _properties) do
     Logger.info("identify email=#{email}")
   end
 
   @impl Level.Analytics.Adapter
-  def track(email, action, properties) do
+  def track(email, action, _properties) do
     Logger.info("track email=#{email} action=#{action}")
   end
 end
