@@ -1,4 +1,6 @@
 defmodule Level.Analytics.LiveAdapter do
+  @moduledoc false
+
   require Logger
 
   @behaviour Level.Analytics.Adapter

@@ -57,7 +57,7 @@ config :level, Level.WebPush,
   max_attempts: 5
 
 # Analytics
-config :level, Level.Analytics, adapter: Level.Analytics.LiveAdapter
+config :level, Level.Analytics, adapter: Level.Analytics.LogAdapter
 
 # Signup-related configuration
 config :level, :signups,
