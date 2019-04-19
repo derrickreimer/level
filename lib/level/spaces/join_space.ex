@@ -27,7 +27,8 @@ defmodule Level.Spaces.JoinSpace do
       first_name: user.first_name,
       last_name: user.last_name,
       handle: user.handle,
-      avatar: user.avatar
+      avatar: user.avatar,
+      is_demo: user.is_demo
     }
 
     %SpaceUser{}
@@ -46,15 +47,17 @@ defmodule Level.Spaces.JoinSpace do
       create_welcome_message(levelbot, space_user)
     end
 
-    Task.start(fn ->
-      Analytics.track(user.email, "Joined a team", %{
-        team_id: space.id,
-        team_name: space.name,
-        team_slug: space.slug,
-        is_demo: space.is_demo,
-        role: space_user.role
-      })
-    end)
+    if !user.is_demo do
+      Task.start(fn ->
+        Analytics.track(user.email, "Joined a team", %{
+          team_id: space.id,
+          team_name: space.name,
+          team_slug: space.slug,
+          is_demo: space.is_demo,
+          role: space_user.role
+        })
+      end)
+    end
 
     {:ok, space_user}
   end
