@@ -5,6 +5,7 @@ defmodule Level.Mutations do
 
   import Level.Gettext
 
+  alias Level.Analytics
   alias Level.Groups
   alias Level.Notifications
   alias Level.Nudges
@@ -185,6 +186,13 @@ defmodule Level.Mutations do
     resp =
       case Spaces.create_space(user, args) do
         {:ok, %{space: space}} ->
+          Task.start(fn ->
+            Analytics.track(user.email, "Created a team", %{
+              name: space.name,
+              slug: space.slug
+            })
+          end)
+
           %{success: true, space: space, errors: []}
 
         {:error, :space, changeset, _} ->
