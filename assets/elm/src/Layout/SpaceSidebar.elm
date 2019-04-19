@@ -164,13 +164,7 @@ peopleList config recipientsWithoutUnreads =
                 ]
                 [ text "People" ]
             ]
-        , viewUnless (List.isEmpty listItems) <|
-            ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
-
-        -- This is kind of a hack, we should clean it up.
-        , viewIf (List.isEmpty listItems) <|
-            ul [ class "mb-6 list-reset leading-semi-loose select-none" ]
-                [ directMessageLink config False [ SpaceUser.id config.spaceUser ] ]
+        , ul [ class "mb-6 list-reset leading-semi-loose select-none" ] listItems
         ]
 
 
