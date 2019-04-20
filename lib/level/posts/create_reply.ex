@@ -15,7 +15,6 @@ defmodule Level.Posts.CreateReply do
   alias Level.Schemas.Reply
   alias Level.Schemas.SpaceUser
   alias Level.StringHelpers
-  alias Level.TaggedGroups
   alias Level.WebPush
 
   @typedoc "Dependencies injected in the perform function"
@@ -37,7 +36,6 @@ defmodule Level.Posts.CreateReply do
     |> do_insert(build_params(author, post, params))
     |> check_privacy(post)
     |> record_mentions(post, author)
-    |> detect_tagged_groups(post, author)
     |> attach_files(author, params)
     |> log(post, author)
     |> record_post_view(post, author)
@@ -75,25 +73,6 @@ defmodule Level.Posts.CreateReply do
   defp record_mentions(multi, post, author) do
     Multi.run(multi, :mentions, fn %{reply: reply} ->
       Mentions.record(author, post, reply)
-    end)
-  end
-
-  defp detect_tagged_groups(multi, post, author) do
-    Multi.run(multi, :tagged_groups, fn
-      # Skip detecting tagged groups when the post is private
-      %{is_private: true} ->
-        {:ok, []}
-
-      %{reply: reply} ->
-        groups =
-          author
-          |> TaggedGroups.get_tagged_groups(reply.body)
-          |> Enum.map(fn group ->
-            Posts.publish_to_group(post, group)
-            group
-          end)
-
-        {:ok, groups}
     end)
   end
 
