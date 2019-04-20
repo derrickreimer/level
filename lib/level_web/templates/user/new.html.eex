@@ -54,7 +54,7 @@
           <%= error_tag f, :password, class: "form-errors" %>
         </div>
 
-        <%= submit gettext("Create my free account"), class: "btn btn-blue" %>
+        <%= submit gettext("Get started"), class: "btn btn-blue" %>
       </div>
 
       <p class="text-sm">

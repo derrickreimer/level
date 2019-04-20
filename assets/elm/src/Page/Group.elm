@@ -1389,7 +1389,8 @@ resolvedDesktopView globals model data =
                     ]
                 , desktopFlushQueueButton model
                 ]
-            , PushStatus.bannerView globals.pushStatus PushSubscribeClicked
+            , viewUnless (Space.isDemo data.space) <|
+                PushStatus.bannerView globals.pushStatus PushSubscribeClicked
             , desktopPostsView globals model data
             , viewIf (PostSet.isLoaded model.postViews && PostSet.hasMore model.postViews) <|
                 div [ class "py-8 text-center" ]
