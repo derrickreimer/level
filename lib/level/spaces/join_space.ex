@@ -13,6 +13,7 @@ defmodule Level.Spaces.JoinSpace do
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
+  alias Level.Spaces
 
   @doc """
   Adds a user as a member of a space.
@@ -44,6 +45,10 @@ defmodule Level.Spaces.JoinSpace do
     create_default_nudges(space_user)
 
     if !opts[:skip_welcome_message] do
+      if space_user.role == "OWNER" do
+        create_invite_message(levelbot, space, space_user)
+      end
+
       create_welcome_message(levelbot, space_user)
     end
 
@@ -80,6 +85,31 @@ defmodule Level.Spaces.JoinSpace do
     |> Ecto.assoc(:groups)
     |> where([g], g.is_default == true)
     |> Repo.all()
+  end
+
+  defp create_invite_message(levelbot, space, space_user) do
+    case Spaces.get_open_invitation(space) do
+      {:ok, invitation} ->
+        invite_url =
+          LevelWeb.Router.Helpers.open_invitation_url(LevelWeb.Endpoint, :show, invitation.token)
+
+        body = """
+        Level is better with other people!
+
+        Share this link with your teammates to grant them access to this team:
+
+            #{invite_url}
+
+        You can also find this link by clicking "People" in the left sidebar.
+
+        @#{space_user.handle}
+        """
+
+        create_bot_post(levelbot, body)
+
+      :revoked ->
+        nil
+    end
   end
 
   defp create_welcome_message(levelbot, space_user) do
