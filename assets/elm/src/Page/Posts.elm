@@ -41,6 +41,7 @@ import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
 import Route exposing (Route)
+import Route.NewPost
 import Route.Posts exposing (Params(..))
 import Route.Search
 import Route.SpaceUser
@@ -1304,6 +1305,13 @@ resolvedMobileView globals model data =
                         [ text "Loading..." ]
                     ]
             ]
+        , a
+            [ Route.href <| Route.NewPost (Route.NewPost.init (Route.Posts.getSpaceSlug model.params))
+            , class "flex items-center justify-center fixed w-16 h-16 bg-turquoise rounded-full shadow"
+            , style "bottom" "25px"
+            , style "right" "25px"
+            ]
+            [ Icons.commentWhite ]
         ]
 
 

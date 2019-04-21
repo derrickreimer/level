@@ -203,7 +203,7 @@ reply =
 sendWhite : Html msg
 sendWhite =
     iconView <|
-        svg [ width "18px", height "18px", viewBox "0 0 18 18", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "send", transform "translate(0.000000, -5.000000)", fill "#FFFFFF", fillRule "nonzero" ] [ Svg.path [ d "M3.30681649,3.30681649 L19.3068165,11.3068165 L3.30681649,19.3068165 L3.30681649,3.30681649 Z M3.30681649,9.70681649 L3.30681649,12.9068165 L11.3068165,11.3068165 L3.30681649,9.70681649 Z", id "Shape", transform "translate(11.306816, 11.306816) rotate(-43.000000) translate(-11.306816, -11.306816) " ] [] ] ] ]
+        svg [ width "17px", height "17px", viewBox "0 0 17 17", version "1.1" ] [ g [ id "Page-1", stroke "none", strokeWidth "1", fill "none", fillRule "evenodd" ] [ g [ id "send", fill "#FFFFFF", fillRule "nonzero" ] [ Svg.path [ d "M0.306816493,0.306816493 L16.3068165,8.30681649 L0.306816493,16.3068165 L0.306816493,0.306816493 Z M0.306816493,6.70681649 L0.306816493,9.90681649 L8.30681649,8.30681649 L0.306816493,6.70681649 Z", id "Shape" ] [] ] ] ]
 
 
 thumbs : Toggle -> Html msg

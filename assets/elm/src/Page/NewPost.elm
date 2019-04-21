@@ -435,7 +435,7 @@ desktopPostComposerView globals model data =
                     [ textarea
                         [ id (PostEditor.getTextareaId editor)
                         , class "w-full h-8 no-outline bg-transparent text-dusty-blue-darkest resize-none leading-normal fs-block"
-                        , placeholder "Compose a new post..."
+                        , placeholder "Tag a channel or @mention someone..."
                         , onInput NewPostBodyChanged
                         , onKeydown preventDefault
                             [ ( [ Keys.Meta ], enter, \event -> NewPostSubmit )
@@ -493,7 +493,13 @@ resolvedMobileView globals model data =
             , onSidebarToggled = SidebarToggled
             , onScrollTopClicked = ScrollTopClicked
             , onNoOp = NoOp
-            , leftControl = Layout.SpaceMobile.ShowNav
+            , leftControl =
+                Layout.SpaceMobile.Custom <|
+                    a
+                        [ Route.href (Route.Posts (Route.Posts.init (Route.NewPost.getSpaceSlug model.params)))
+                        , class "flex items-center justify-center w-9 h-9 p-0"
+                        ]
+                        [ Icons.arrowLeft Icons.On ]
             , rightControl =
                 Layout.SpaceMobile.Custom <|
                     button
@@ -520,15 +526,11 @@ resolvedMobileView globals model data =
             }
     in
     Layout.SpaceMobile.layout layoutConfig
-        [ p [ class "px-3 py-3 text-sm text-dusty-blue-dark" ]
-            [ span [ class "-mt-1 mr-2 inline-block align-middle" ] [ Icons.hash ]
-            , text "Hashtag one or more Channels in your message."
-            ]
-        , PostEditor.wrapper composerConfig
+        [ PostEditor.wrapper composerConfig
             [ textarea
                 [ id (PostEditor.getTextareaId editor)
                 , class "w-full p-4 no-outline bg-transparent text-dusty-blue-darkest text-lg resize-none leading-normal"
-                , placeholder "Compose a new post..."
+                , placeholder "Tag a channel or @mention someone..."
                 , onInput NewPostBodyChanged
                 , readonly (PostEditor.isSubmitting editor)
                 , value (PostEditor.getBody editor)

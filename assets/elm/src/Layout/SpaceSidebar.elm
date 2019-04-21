@@ -77,7 +77,7 @@ view config =
     in
     div []
         [ div [ class "p-4 pt-1" ]
-            [ a [ Route.href (Route.Posts (Route.Posts.init spaceSlug)), class "block p-2 rounded no-underline" ]
+            [ a [ Route.href Route.Spaces, class "block p-2 rounded no-underline" ]
                 [ div [ class "mb-2" ] [ Space.avatar Avatar.Small config.space ]
                 , div [ class "flex items-center font-headline font-bold text-lg text-dusty-blue-darkest truncate" ]
                     [ div [] [ text (Space.name config.space) ]

@@ -96,7 +96,7 @@ title : Repo -> Model -> String
 title repo model =
     case Repo.getGroup model.groupId repo of
         Just group ->
-            "Post to " ++ Group.name group
+            "Post to #" ++ Group.name group
 
         Nothing ->
             "Post to Group"
@@ -398,7 +398,7 @@ resolvedMobileView globals model data =
             { globals = globals
             , space = data.space
             , spaceUser = data.viewer
-            , title = "Post to " ++ Group.name data.group
+            , title = title globals.repo model
             , showNav = model.showNav
             , onNavToggled = NavToggled
             , onSidebarToggled = SidebarToggled
