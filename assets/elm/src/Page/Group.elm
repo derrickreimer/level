@@ -1584,13 +1584,13 @@ subscriptionDropdown model data =
             , viewIf (currentState /= GroupMembership.NotSubscribed) <|
                 transitionButton UnsubscribeClicked "Unsubscribe" "Posts will not appear in your Home timelime."
             , viewIf (currentState == GroupMembership.Subscribed) <|
-                currentItem "Subscribed" "Posts appear in your Home timelime."
+                currentItem "Subscribed" "Posts appear in your Home timelime, but not in your Inbox unless you are mentioned."
             , viewIf (currentState /= GroupMembership.Subscribed) <|
-                transitionButton SubscribeClicked "Subscribe" "Posts will appear in your Home timelime."
+                transitionButton SubscribeClicked "Subscribe" "Posts will appear in your Home timelime, but not in your Inbox unless you are mentioned."
             , viewIf (currentState == GroupMembership.Watching) <|
-                currentItem "Watching" "Posts appear in your Home timelime and in your Inbox (regardless of whether you are @-mentioned)."
+                currentItem "Watching" "Posts appear in your Home timelime and in your Inbox (regardless of whether you are mentioned)."
             , viewIf (currentState /= GroupMembership.Watching) <|
-                transitionButton WatchClicked "Watch" "Posts will appear in your Home timelime and in your Inbox (regardless of whether you are @-mentioned)."
+                transitionButton WatchClicked "Watch" "Posts will appear in your Home timelime and in your Inbox (regardless of whether you are mentioned)."
             ]
         ]
 
