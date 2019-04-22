@@ -466,8 +466,8 @@ nudgesView device model data =
             View.Nudges.Config NudgeToggled model.nudges model.timeZone
     in
     div [ class "mb-8" ]
-        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Notifications" ]
-        , p [ class "mb-4" ] [ text "Configure when Level should email you about new messages in your Inbox." ]
+        [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Batched Notifications" ]
+        , p [ class "mb-4" ] [ text "Configure the times of day when Level should notify you about new Inbox activity." ]
         , viewIf (device == Device.Desktop) (View.Nudges.desktopView config)
         , viewIf (device == Device.Mobile) (View.Nudges.mobileView config)
         ]
@@ -477,7 +477,7 @@ digestsView : Model -> Data -> Html Msg
 digestsView model data =
     div []
         [ h2 [ class "mb-2 text-dusty-blue-darker text-xl font-bold" ] [ text "Daily Summary" ]
-        , p [ class "mb-6" ] [ text "This email reminds you what's in your Inbox and summarizes your Feed." ]
+        , p [ class "mb-6" ] [ text "This email reminds you what's in your Inbox and summarizes recent activity in the channels you follow." ]
         , label [ class "control checkbox pb-6" ]
             [ input
                 [ type_ "checkbox"
