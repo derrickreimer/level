@@ -12,7 +12,7 @@
       <div class="pb-4 max-w-xs <%= error_shake(@changeset) %>">
         <h1 class="mb-6 text-3xl tracking-semi-tight font-bold">Sign up for Level</h1>
 
-        <p class="mb-6 leading-normal">Once you create your Level user account, you can create your own team or join other teams.</p>
+        <p class="mb-6 leading-normal">After you sign up, you can create your own Level team or join other teams.</p>
 
         <div class="pb-6">
           <%= label f, :email, gettext("Email address"), class: "input-label" %>

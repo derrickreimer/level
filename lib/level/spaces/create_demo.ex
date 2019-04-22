@@ -2,6 +2,7 @@ defmodule Level.Spaces.CreateDemo do
   @moduledoc false
 
   alias Level.Groups
+  alias Level.Notifications
   alias Level.Posts
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceUser
@@ -32,10 +33,13 @@ defmodule Level.Spaces.CreateDemo do
     }
 
     # Create some posts
-    create_retreat_post(space_users, groups)
+    create_retreat_post(space_user, space_users, groups)
     create_redesign_post(space_users, groups)
     create_watercooler_post(space_users, groups)
     create_engineering_proposal_post(space_users, groups)
+
+    # Dismiss all notifications
+    Notifications.dismiss_topic(user, nil)
 
     # Create levelbot welcome message
     create_welcome_message(levelbot, space_user)
@@ -72,7 +76,7 @@ defmodule Level.Spaces.CreateDemo do
     |> String.downcase()
   end
 
-  defp create_retreat_post(space_users, groups) do
+  defp create_retreat_post(current_user, space_users, groups) do
     {:ok, %{post: post}} =
       Posts.create_post(space_users["joegibraltar"], groups["everyone"], %{
         body: """
@@ -103,6 +107,7 @@ defmodule Level.Spaces.CreateDemo do
       })
 
     Posts.create_reply_reaction(space_users["lisalatte"], post, reply, "👍")
+    Posts.mark_as_read(current_user, [post])
   end
 
   defp create_redesign_post(space_users, groups) do
@@ -143,7 +148,7 @@ defmodule Level.Spaces.CreateDemo do
 
     {:ok, %{reply: reply2}} =
       Posts.create_reply(space_users["kevincortado"], post, %{
-        body: "Dog, because you're pretty much automatically everyone's friend."
+        body: "A dog, because they're automatically everyone's friend."
       })
 
     Posts.create_reply_reaction(space_users["sarahsinglepour"], post, reply2, "🐶")
@@ -172,9 +177,7 @@ defmodule Level.Spaces.CreateDemo do
         body: """
         ## Caching expensive queries to improve performance
 
-        @sarahsinglepour and I have been digging into New Relic to identify areas of the app that are particularly slow.
-
-        In the process, we identified a number of queries hitting Postgres that have 6+ JOINs and can take up to 10s to run. Yikes.
+        @sarahsinglepour and I have been digging into New Relic to identify areas of the app that are particularly slow. In the process, we identified a number of queries hitting Postgres that have 6+ JOINs and can take up to 10s to run. Yikes.
 
         The good news is I believe the results of these particular queries could be cached in Redis (or some other in-memory store?) pretty easily. The results can be up to ~1 hour stale without violating user expectations.
 
