@@ -278,7 +278,7 @@ resolvedDesktopView globals model data =
             ]
             [ div [ class "pb-6" ]
                 [ h1 [ class "pb-4 font-bold tracking-semi-tight text-3xl" ] [ text "Create a team" ]
-                , p [] [ text "A team in Level can represent a company or an organization. Once you create your team, you can invite your teammates to join." ]
+                , p [] [ text "Try Level free for 30 days. Once you create your team, you can invite your teammates to join you!" ]
                 ]
             , formFields model
             , button
@@ -324,7 +324,7 @@ resolvedMobileView globals model data =
                 ]
             ]
             [ div [ class "pb-6" ]
-                [ p [] [ text "A team in Level can represent a company or an organization. Once you create your team, you can invite your teammates to join." ]
+                [ p [] [ text "Try Level free for 30 days. Once you create your team, you can invite your teammates to join you!" ]
                 ]
             , formFields model
             ]
