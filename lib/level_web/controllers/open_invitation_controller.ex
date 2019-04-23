@@ -24,6 +24,14 @@ defmodule LevelWeb.OpenInvitationController do
   def accept(conn, %{"signup" => user_params}) do
     with {:ok, user} <- Users.create_user(user_params),
          {:ok, _space_user} <- Spaces.accept_open_invitation(user, conn.assigns.invitation) do
+      space = conn.assigns.space
+
+      Users.track_analytics_event(user, "Signed up via team invitation", %{
+        team_id: space.id,
+        team_name: space.name,
+        team_slug: space.slug
+      })
+
       conn
       |> LevelWeb.Auth.sign_in(user)
       |> redirect(to: main_path(conn, :index, [conn.assigns.space.slug, "welcome", "1"]))

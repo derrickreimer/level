@@ -154,7 +154,7 @@ view : Model -> Html Msg
 view model =
     case model.formState of
         PostSubmit ->
-            div []
+            div [ class "text-xl" ]
                 [ p [ class "mb-6" ]
                     [ span [] [ text "🎉 " ]
                     , strong [] [ text "Sweet! " ]

@@ -3,13 +3,24 @@ defmodule LevelWeb.API.ReservationController do
 
   use LevelWeb, :controller
 
+  alias Level.Analytics
   alias Level.Users
 
   plug :protect_from_forgery
 
   def create(conn, %{"reservation" => params}) do
     case Users.create_reservation(params) do
-      {:ok, _} ->
+      {:ok, reservation} ->
+        Analytics.identify(reservation.email, %{
+          custom_fields: %{
+            reserved_handle: reservation.handle
+          }
+        })
+
+        Analytics.track(reservation.email, "Reserved a handle", %{
+          handle: reservation.handle
+        })
+
         send_resp(conn, :no_content, "")
 
       {:error, changeset} ->

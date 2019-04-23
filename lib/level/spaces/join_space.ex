@@ -4,7 +4,6 @@ defmodule Level.Spaces.JoinSpace do
   import Ecto.Query
 
   alias Ecto.Changeset
-  alias Level.Analytics
   alias Level.Groups
   alias Level.Levelbot
   alias Level.Nudges
@@ -14,6 +13,7 @@ defmodule Level.Spaces.JoinSpace do
   alias Level.Schemas.SpaceUser
   alias Level.Schemas.User
   alias Level.Spaces
+  alias Level.Users
 
   @doc """
   Adds a user as a member of a space.
@@ -53,14 +53,12 @@ defmodule Level.Spaces.JoinSpace do
     end
 
     if !user.is_demo && !space.is_demo do
-      Task.start(fn ->
-        Analytics.track(user.email, "Joined a team", %{
-          team_id: space.id,
-          team_name: space.name,
-          team_slug: space.slug,
-          role: space_user.role
-        })
-      end)
+      Users.track_analytics_event(user, "Joined a team", %{
+        team_id: space.id,
+        team_name: space.name,
+        team_slug: space.slug,
+        role: space_user.role
+      })
     end
 
     {:ok, space_user}

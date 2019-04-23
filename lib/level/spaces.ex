@@ -8,7 +8,6 @@ defmodule Level.Spaces do
 
   alias Ecto.Changeset
   alias Ecto.Multi
-  alias Level.Analytics
   alias Level.AssetStore
   alias Level.Events
   alias Level.Groups
@@ -24,6 +23,7 @@ defmodule Level.Spaces do
   alias Level.Schemas.User
   alias Level.Spaces.CreateDemo
   alias Level.Spaces.JoinSpace
+  alias Level.Users
 
   @typedoc "The result of creating a space"
   @type create_space_result ::
@@ -160,13 +160,11 @@ defmodule Level.Spaces do
     Events.space_joined(user.id, space, owner)
 
     if !space.is_demo do
-      Task.start(fn ->
-        Analytics.track(user.email, "Created a team", %{
-          team_id: space.id,
-          team_name: space.name,
-          team_slug: space.slug
-        })
-      end)
+      Users.track_analytics_event(user, "Created a team", %{
+        team_id: space.id,
+        team_name: space.name,
+        team_slug: space.slug
+      })
     end
 
     {:ok, Map.merge(data, %{space_user: owner, default_group: default_group})}

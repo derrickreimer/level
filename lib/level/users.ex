@@ -75,8 +75,7 @@ defmodule Level.Users do
   end
 
   defp after_create_user({:ok, user}) do
-    identify_user(user)
-    track_event(user, "User created")
+    send_identity_to_analytics(user)
     {:ok, user}
   end
 
@@ -96,8 +95,7 @@ defmodule Level.Users do
 
   defp create_demo_space_after_user({:ok, user}) do
     {:ok, %{space: demo_space}} = Spaces.create_demo_space(user)
-    identify_user(user)
-    track_event(user, "User created")
+    send_identity_to_analytics(user)
     {:ok, %{user: user, space: demo_space}}
   end
 
@@ -161,7 +159,7 @@ defmodule Level.Users do
   end
 
   defp handle_user_update({:ok, %{user: user}}) do
-    identify_user(user)
+    send_identity_to_analytics(user)
     {:ok, user}
   end
 
@@ -281,22 +279,25 @@ defmodule Level.Users do
     |> Repo.update()
   end
 
-  # Send user data to external providers asynchronously
-  defp identify_user(user) do
-    Task.start(fn ->
-      Analytics.identify(user.email, %{
-        user_id: user.id,
-        custom_fields: %{
-          first_name: user.first_name,
-          last_name: user.last_name
-        }
-      })
-    end)
+  @doc """
+  Send user data to external providers asynchronously.
+  """
+  @spec send_identity_to_analytics(User.t()) :: any()
+  def send_identity_to_analytics(user) do
+    Analytics.identify(user.email, %{
+      user_id: user.id,
+      custom_fields: %{
+        first_name: user.first_name,
+        last_name: user.last_name
+      }
+    })
   end
 
-  defp track_event(user, action, props \\ %{}) do
-    Task.start(fn ->
-      Analytics.track(user.email, action, props)
-    end)
+  @doc """
+  Tracks an event with external providers.
+  """
+  @spec track_analytics_event(User.t(), String.t(), map()) :: any()
+  def track_analytics_event(user, action, props \\ %{}) do
+    Analytics.track(user.email, action, props)
   end
 end

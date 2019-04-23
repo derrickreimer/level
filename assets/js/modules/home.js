@@ -20,16 +20,7 @@ export function initialize() {
     window._dcq.push([
       "identify",
       {
-        email: args.email,
-        reserved_handle: args.handle
-      }
-    ]);
-
-    window._dcq.push([
-      "track",
-      "Reserved a handle",
-      {
-        handle: args.handle
+        email: args.email
       }
     ]);
   });

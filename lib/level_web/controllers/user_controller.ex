@@ -31,6 +31,8 @@ defmodule LevelWeb.UserController do
 
     case Users.create_user_with_demo(params) do
       {:ok, %{user: user, space: space}} ->
+        Users.track_analytics_event(user, "Signed up via marketing site")
+
         conn
         |> LevelWeb.Auth.sign_in(user)
         |> redirect(to: main_path(conn, :index, [space.slug]))
