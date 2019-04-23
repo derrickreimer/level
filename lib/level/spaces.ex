@@ -17,6 +17,7 @@ defmodule Level.Spaces do
   alias Level.Schemas.Bot
   alias Level.Schemas.OpenInvitation
   alias Level.Schemas.Org
+  alias Level.Schemas.OrgUser
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceSetupStep
@@ -31,6 +32,7 @@ defmodule Level.Spaces do
           {:ok,
            %{
              org: Org.t(),
+             org_user: OrgUser.t(),
              space: Space.t(),
              space_user: SpaceUser.t(),
              open_invitation: OpenInvitation.t(),
@@ -40,6 +42,7 @@ defmodule Level.Spaces do
            }}
           | {:error,
              :org
+             | :org_user
              | :space
              | :space_user
              | :open_invitation
@@ -49,6 +52,7 @@ defmodule Level.Spaces do
              %{
                optional(
                  :org
+                 | :org_user
                  | :space
                  | :space_user
                  | :open_invitation
@@ -144,13 +148,26 @@ defmodule Level.Spaces do
   @spec create_space(User.t(), map(), list()) :: create_space_result()
   def create_space(user, params, opts \\ []) do
     Multi.new()
-    |> Multi.insert(:org, Org.create_changeset(%Org{}, %{name: params.name, seat_quantity: 1}))
+    |> Multi.run(:org, fn _ -> insert_org(%{name: params.name, seat_quantity: 1}) end)
+    |> Multi.run(:org_user, fn %{org: org} -> insert_org_owner(org, user) end)
     |> Multi.run(:space, fn %{org: org} -> insert_space(org, params) end)
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
     |> Repo.transaction()
     |> after_create_space(user, opts)
+  end
+
+  defp insert_org(params) do
+    %Org{}
+    |> Org.create_changeset(params)
+    |> Repo.insert()
+  end
+
+  defp insert_org_owner(org, user) do
+    %OrgUser{}
+    |> Ecto.Changeset.change(org_id: org.id, user_id: user.id, role: "OWNER")
+    |> Repo.insert()
   end
 
   defp insert_space(org, params) do
