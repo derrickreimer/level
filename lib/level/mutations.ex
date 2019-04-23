@@ -187,6 +187,9 @@ defmodule Level.Mutations do
         {:ok, %{space: space}} ->
           %{success: true, space: space, errors: []}
 
+        {:error, :org, changeset, _} ->
+          %{success: false, space: nil, errors: format_errors(changeset)}
+
         {:error, :space, changeset, _} ->
           %{success: false, space: nil, errors: format_errors(changeset)}
 

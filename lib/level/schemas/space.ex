@@ -8,6 +8,7 @@ defmodule Level.Schemas.Space do
   import Level.Gettext
 
   alias Level.Schemas.Group
+  alias Level.Schemas.Org
   alias Level.Schemas.SpaceUser
 
   @type t :: %__MODULE__{}
@@ -22,6 +23,7 @@ defmodule Level.Schemas.Space do
     field :avatar, :string
     field :postbot_key, :string
 
+    belongs_to :org, Org
     has_many :space_users, SpaceUser
     has_many :groups, Group
 
@@ -31,7 +33,7 @@ defmodule Level.Schemas.Space do
   @doc false
   def create_changeset(struct, attrs \\ %{}) do
     struct
-    |> cast(attrs, [:name, :slug, :avatar, :is_demo])
+    |> cast(attrs, [:org_id, :name, :slug, :avatar, :is_demo])
     |> validate_required([:name, :slug])
     |> validate_format(
       :slug,

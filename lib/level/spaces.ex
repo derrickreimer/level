@@ -16,6 +16,7 @@ defmodule Level.Spaces do
   alias Level.Repo
   alias Level.Schemas.Bot
   alias Level.Schemas.OpenInvitation
+  alias Level.Schemas.Org
   alias Level.Schemas.Space
   alias Level.Schemas.SpaceBot
   alias Level.Schemas.SpaceSetupStep
@@ -29,6 +30,7 @@ defmodule Level.Spaces do
   @type create_space_result ::
           {:ok,
            %{
+             org: Org.t(),
              space: Space.t(),
              space_user: SpaceUser.t(),
              open_invitation: OpenInvitation.t(),
@@ -37,11 +39,17 @@ defmodule Level.Spaces do
              default_group: Group.t()
            }}
           | {:error,
-             :space | :space_user | :open_invitation | :levelbot | :postbot | :default_group,
-             any(),
+             :org
+             | :space
+             | :space_user
+             | :open_invitation
+             | :levelbot
+             | :postbot
+             | :default_group, any(),
              %{
                optional(
-                 :space
+                 :org
+                 | :space
                  | :space_user
                  | :open_invitation
                  | :levelbot
@@ -136,12 +144,19 @@ defmodule Level.Spaces do
   @spec create_space(User.t(), map(), list()) :: create_space_result()
   def create_space(user, params, opts \\ []) do
     Multi.new()
-    |> Multi.insert(:space, Space.create_changeset(%Space{}, params))
+    |> Multi.insert(:org, Org.create_changeset(%Org{}, %{name: params.name, seat_quantity: 1}))
+    |> Multi.run(:space, fn %{org: org} -> insert_space(org, params) end)
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
     |> Repo.transaction()
     |> after_create_space(user, opts)
+  end
+
+  defp insert_space(org, params) do
+    %Space{}
+    |> Space.create_changeset(Map.put(params, :org_id, org.id))
+    |> Repo.insert()
   end
 
   defp create_everyone_group(space_user) do

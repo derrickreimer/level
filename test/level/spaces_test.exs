@@ -120,6 +120,18 @@ defmodule Level.SpacesTest do
       {:ok, %{user: user}}
     end
 
+    test "creates an org", %{user: user} do
+      params =
+        valid_space_params()
+        |> Map.put(:name, "MySpace")
+
+      {:ok, %{org: org, space: space}} = Spaces.create_space(user, params)
+      assert org.name == "MySpace"
+      assert org.subscription_state == "NONE"
+      assert org.seat_quantity == 1
+      assert space.org_id == org.id
+    end
+
     test "creates a new space", %{user: user} do
       params =
         valid_space_params()
