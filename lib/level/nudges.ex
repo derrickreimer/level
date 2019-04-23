@@ -31,6 +31,7 @@ defmodule Level.Nudges do
         on: s.id == n.space_id,
         where: s.state == "ACTIVE",
         where: su.state == "ACTIVE",
+        where: su.is_demo == false,
         select: %DueNudge{
           id: fragment("?::text", n.id),
           space_id: fragment("?::text", n.space_id),

@@ -45,6 +45,7 @@ defmodule Level.DailyDigest do
         where: s.state == "ACTIVE",
         where: su.is_digest_enabled == true,
         where: su.state == "ACTIVE",
+        where: su.is_demo == false,
         select: %DueDigest{
           id: su.id,
           space_id: su.space_id,
