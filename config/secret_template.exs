@@ -46,3 +46,16 @@ config :level, Level.Repo,
 config :ex_aws,
   access_key_id: "REPLACE ME",
   secret_access_key: "REPLACE ME"
+
+# Configuration for Stripe.
+#
+# In production, use the following environment variables:
+#
+#    STRIPE_PUBLIC_KEY
+#    STRIPE_PRIVATE_KEY
+#    STRIPE_PREORDER_SKU
+#
+config :level, :stripe,
+  public_key: "REPLACE ME WITH TEST PUBLIC KEY",
+  private_key: "REPLACE ME WITH TEST PRIVATE KEY",
+  preorder_sku: "REPLACE ME"

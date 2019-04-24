@@ -48,6 +48,11 @@ config :level, Level.WebPush,
 # Analytics
 config :level, Level.Analytics, adapter: Level.Analytics.LiveAdapter
 
+# Billing
+config :level, Level.Billing,
+  adapter: Level.Billing.LiveAdapter,
+  enabled: System.get_env("LEVEL_BILLING_ENABLED") == "1"
+
 # Signup-related configuration
 config :level, :signups,
   enabled: System.get_env("LEVEL_SIGNUPS_ENABLED") == "1",

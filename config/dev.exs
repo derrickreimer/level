@@ -59,6 +59,9 @@ config :level, Level.WebPush,
 # Analytics
 config :level, Level.Analytics, adapter: Level.Analytics.LogAdapter
 
+# Billing
+config :level, Level.Billing, adapter: Level.Billing.LiveAdapter, enabled: true
+
 # Signup-related configuration
 config :level, :signups,
   enabled: true,

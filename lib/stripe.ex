@@ -20,19 +20,14 @@ defmodule Stripe do
   @doc """
   Creates a customer record.
   """
-  def create_customer(client, email) do
-    Tesla.post(client, "/customers", %{"email" => email})
+  def create_customer(client, params) do
+    Tesla.post(client, "/customers", params)
   end
 
   @doc """
   Subscribers a customer to a plan.
   """
-  def create_subscription(client, customer_id, plan_id, quantity) do
-    Tesla.post(client, "/subscriptions", %{
-      "customer" => customer_id,
-      "items[0][plan]" => plan_id,
-      "items[0][quantity]" => quantity,
-      "trial_from_plan" => true
-    })
+  def create_subscription(client, params) do
+    Tesla.post(client, "/subscriptions", params)
   end
 end
