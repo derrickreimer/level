@@ -16,7 +16,7 @@ You'll need to install the following dependencies first:
 
 - [Elixir](https://elixir-lang.org/install.html) ([version](https://github.com/levelhq/level/blob/master/mix.exs#L4))
 - [PostgreSQL](https://postgresapp.com/) 10
-- [Yarn](https://yarnpkg.com/en/docs/install)
+- [Yarn](https://yarnpkg.com/en/docs/install) ([latest](https://yarnpkg.com/en/docs/install#mac-stable))
 - [Node](#nodejs) ([version](https://github.com/levelhq/level/blob/master/.nvmrc))
 
 Run the bootstrap script to install the remaining dependencies and create your
