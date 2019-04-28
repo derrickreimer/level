@@ -2,6 +2,7 @@ defmodule Level.SpacesTest do
   use Level.DataCase, async: true
 
   import Ecto.Query
+  import Mox
 
   alias Level.Groups
   alias Level.Levelbot
@@ -120,7 +121,7 @@ defmodule Level.SpacesTest do
       {:ok, %{user: user}}
     end
 
-    test "creates an org", %{user: user} do
+    test "creates an org if the space is not a demo", %{user: user} do
       params =
         valid_space_params()
         |> Map.put(:name, "MySpace")
@@ -130,6 +131,37 @@ defmodule Level.SpacesTest do
       assert org.subscription_state == "NONE"
       assert org.seat_quantity == 1
       assert space.org_id == org.id
+    end
+
+    test "does not create an org if demo", %{user: user} do
+      params =
+        valid_space_params()
+        |> Map.put(:name, "MySpace")
+        |> Map.put(:is_demo, true)
+
+      {:ok, %{space: space}} = Spaces.create_space(user, params)
+      assert space.org_id == nil
+    end
+
+    test "creates a Stripe subscription if billing is enabled", %{user: user} do
+      opts = [billing_enabled: true, billing_plan_id: "plan_000000"]
+
+      Level.Billing.TestAdapter
+      |> expect(:create_customer, fn _ ->
+        {:ok, %{"id" => "cus_0000000000"}}
+      end)
+      |> expect(:create_subscription, fn "cus_0000000000", "plan_000000", 1 ->
+        {:ok, %{"id" => "sub_0000000000", "status" => "trialing"}}
+      end)
+
+      params =
+        valid_space_params()
+        |> Map.put(:name, "MySpace")
+
+      {:ok, %{org: org}} = Spaces.create_space(user, params, opts)
+      assert org.subscription_state == "TRIALING"
+      assert org.stripe_customer_id == "cus_0000000000"
+      assert org.stripe_subscription_id == "sub_0000000000"
     end
 
     test "creates a new space", %{user: user} do

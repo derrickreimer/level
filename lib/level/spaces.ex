@@ -149,7 +149,7 @@ defmodule Level.Spaces do
   @spec create_space(User.t(), map(), list()) :: create_space_result()
   def create_space(user, params, opts \\ []) do
     Multi.new()
-    |> insert_org_unless_demo(user, params)
+    |> insert_org_unless_demo(user, params, opts)
     |> Multi.run(:space, insert_space(params))
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
@@ -158,24 +158,24 @@ defmodule Level.Spaces do
     |> after_create_space(user, opts)
   end
 
-  defp insert_org_unless_demo(multi, _user, %{is_demo: true}), do: multi
+  defp insert_org_unless_demo(multi, _user, %{is_demo: true}, _opts), do: multi
 
-  defp insert_org_unless_demo(multi, user, params) do
+  defp insert_org_unless_demo(multi, user, params, opts) do
     multi
-    |> Multi.run(:org, fn _ -> insert_org(user, params) end)
+    |> Multi.run(:org, fn _ -> insert_org(user, params, opts) end)
     |> Multi.run(:org_user, fn %{org: org} -> insert_org_owner(org, user) end)
   end
 
-  defp insert_org(user, params) do
+  defp insert_org(user, params, opts) do
     %Org{}
     |> Org.create_changeset(%{name: params.name, seat_quantity: 1})
-    |> do_insert_org(user)
+    |> do_insert_org(user, opts)
   end
 
-  defp do_insert_org(%Ecto.Changeset{valid?: true} = changeset, user) do
+  defp do_insert_org(%Ecto.Changeset{valid?: true} = changeset, user, opts) do
     billing_config = Application.get_env(:level, Billing)
-    billing_enabled = billing_config[:enabled]
-    plan_id = billing_config[:plan_id]
+    billing_enabled = Keyword.get(opts, :billing_enabled) || billing_config[:enabled]
+    plan_id = Keyword.get(opts, :billing_plan_id) || billing_config[:plan_id]
 
     if billing_enabled do
       with {:ok, %{"id" => customer_id}} <- Billing.create_customer(user.email),
@@ -195,7 +195,7 @@ defmodule Level.Spaces do
     end
   end
 
-  defp do_insert_org(changeset, _) do
+  defp do_insert_org(changeset, _, _) do
     {:error, changeset}
   end
 
