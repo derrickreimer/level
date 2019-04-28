@@ -51,6 +51,7 @@ config :level, Level.Analytics, adapter: Level.Analytics.LiveAdapter
 # Billing
 config :level, Level.Billing,
   adapter: Level.Billing.LiveAdapter,
+  plan_id: System.get_env("LEVEL_BILLING_PLAN_ID"),
   enabled: System.get_env("LEVEL_BILLING_ENABLED") == "1"
 
 # Signup-related configuration

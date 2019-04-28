@@ -41,8 +41,7 @@ config :level, :honeybadger_js, api_key: System.get_env("HONEYBADGER_JS_API_KEY"
 
 config :level, :stripe,
   public_key: System.get_env("STRIPE_PUBLIC_KEY"),
-  private_key: System.get_env("STRIPE_PRIVATE_KEY"),
-  plan_id: System.get_env("STRIPE_PLAN_ID")
+  private_key: System.get_env("STRIPE_PRIVATE_KEY")
 
 # Configure the scheduler
 config :level, Level.Scheduler,

@@ -48,7 +48,7 @@ config :level, Level.WebPush,
 config :level, Level.Analytics, adapter: Level.Analytics.LogAdapter
 
 # Billing
-config :level, Level.Billing, adapter: Level.Billing.TestAdapter, enabled: false
+config :level, Level.Billing, adapter: Level.Billing.TestAdapter, enabled: false, plan_id: ""
 
 # Signup-related configuration
 config :level, :signups,

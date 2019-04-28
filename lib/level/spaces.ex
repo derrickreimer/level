@@ -9,6 +9,7 @@ defmodule Level.Spaces do
   alias Ecto.Changeset
   alias Ecto.Multi
   alias Level.AssetStore
+  alias Level.Billing
   alias Level.Events
   alias Level.Groups
   alias Level.Levelbot
@@ -148,9 +149,8 @@ defmodule Level.Spaces do
   @spec create_space(User.t(), map(), list()) :: create_space_result()
   def create_space(user, params, opts \\ []) do
     Multi.new()
-    |> Multi.run(:org, fn _ -> insert_org(%{name: params.name, seat_quantity: 1}) end)
-    |> Multi.run(:org_user, fn %{org: org} -> insert_org_owner(org, user) end)
-    |> Multi.run(:space, fn %{org: org} -> insert_space(org, params) end)
+    |> insert_org_unless_demo(user, params)
+    |> Multi.run(:space, insert_space(params))
     |> Multi.run(:levelbot, fn %{space: space} -> Levelbot.install_bot(space) end)
     |> Multi.run(:postbot, fn %{space: space} -> Postbot.install_bot(space) end)
     |> Multi.run(:open_invitation, fn %{space: space} -> create_open_invitation(space) end)
@@ -158,10 +158,45 @@ defmodule Level.Spaces do
     |> after_create_space(user, opts)
   end
 
-  defp insert_org(params) do
+  defp insert_org_unless_demo(multi, _user, %{is_demo: true}), do: multi
+
+  defp insert_org_unless_demo(multi, user, params) do
+    multi
+    |> Multi.run(:org, fn _ -> insert_org(user, params) end)
+    |> Multi.run(:org_user, fn %{org: org} -> insert_org_owner(org, user) end)
+  end
+
+  defp insert_org(user, params) do
     %Org{}
-    |> Org.create_changeset(params)
-    |> Repo.insert()
+    |> Org.create_changeset(%{name: params.name, seat_quantity: 1})
+    |> do_insert_org(user)
+  end
+
+  defp do_insert_org(%Ecto.Changeset{valid?: true} = changeset, user) do
+    billing_config = Application.get_env(:level, Billing)
+    billing_enabled = billing_config[:enabled]
+    plan_id = billing_config[:plan_id]
+
+    if billing_enabled do
+      with {:ok, %{"id" => customer_id}} <- Billing.create_customer(user.email),
+           {:ok, %{"id" => subscription_id, "status" => subscription_state}} <-
+             Billing.create_subscription(customer_id, plan_id, 1) do
+        changeset
+        |> Ecto.Changeset.put_change(:subscription_state, String.upcase(subscription_state))
+        |> Ecto.Changeset.put_change(:stripe_customer_id, customer_id)
+        |> Ecto.Changeset.put_change(:stripe_subscription_id, subscription_id)
+        |> Repo.insert()
+      else
+        _ ->
+          {:error, nil}
+      end
+    else
+      Repo.insert(changeset)
+    end
+  end
+
+  defp do_insert_org(changeset, _) do
+    {:error, changeset}
   end
 
   defp insert_org_owner(org, user) do
@@ -170,10 +205,18 @@ defmodule Level.Spaces do
     |> Repo.insert()
   end
 
-  defp insert_space(org, params) do
-    %Space{}
-    |> Space.create_changeset(Map.put(params, :org_id, org.id))
-    |> Repo.insert()
+  defp insert_space(params) do
+    fn
+      %{org: org} ->
+        %Space{}
+        |> Space.create_changeset(Map.put(params, :org_id, org.id))
+        |> Repo.insert()
+
+      _ ->
+        %Space{}
+        |> Space.create_changeset(params)
+        |> Repo.insert()
+    end
   end
 
   defp create_everyone_group(space_user) do

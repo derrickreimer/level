@@ -53,9 +53,18 @@ config :ex_aws,
 #
 #    STRIPE_PUBLIC_KEY
 #    STRIPE_PRIVATE_KEY
-#    STRIPE_PLAN_ID
 #
 config :level, :stripe,
   public_key: "REPLACE ME WITH TEST PUBLIC KEY",
-  private_key: "REPLACE ME WITH TEST PRIVATE KEY",
+  private_key: "REPLACE ME WITH TEST PRIVATE KEY"
+
+# Configuration for Billing.
+#
+# In production, use the following environment variables:
+#
+#    LEVEL_BILLING_ENABLED
+#    LEVEL_BILLING_PLAN_ID
+#
+config :level, Level.Billing,
+  enabled: false,
   plan_id: "REPLACE ME"
