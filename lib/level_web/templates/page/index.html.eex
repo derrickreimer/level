@@ -1,76 +1,31 @@
 <article class="marketing-long-form px-8 overflow-x-hidden text-xl sm:text-2xl">
-  <h1 class="marketing-headline sm:text-center">Team chat that respects focus.</h1>
-
-  <div class="mx-auto max-w-md">
-    <blockquote class="mb-6 -mx-12 px-12 py-6 text-dusty-blue-darker text-2xl sm:text-3xl banknote-bg sm:rounded-xl font-serif tracking-semi-tight">
-      &ldquo;Efforts to deepen your focus will struggle if you don&rsquo;t simultaneously wean your mind from a dependence on distraction.&rdquo;
-      <div class="mt-2 text-dusty-blue-dark text-xl text-right">&mdash; Cal Newport, Deep Work</div>
-    </blockquote>
-
+  <div class="pb-16 mx-auto max-w-md">
+    <h1 class="marketing-headline">Stepping Back</h1>
     <p>Hi, I&rsquo;m
       <img src="<%= static_url(@conn, "/images/derrick-500.jpg") %>" alt="Pic" class="ml-1 -mt-1 w-7 h-7 rounded-full align-middle" />
-      Derrick and I have a problem with distraction.</p>
-    <p>There&rsquo;s a good chance you&rsquo;re afflicted too. If you&rsquo;re skeptical, ask yourself:</p>
+      Derrick, the creator of Level, an alternative to real-time chat optimized for deep work.</p>
 
-    <ul>
-      <li>How many times per day do you look at social media?</li>
-      <li>How frequently is work interrupted by non-urgent chat?</li>
-      <li>How often do you pull out your phone to prevent boredom?</li>
-      <li>How long can you read a book without checking your phone?</li>
-    </ul>
+    <p>For the past year, I&rsquo;ve been working on solving the distraction epidemic in the modern workplace.</p>
+    <p>Thousands of folks reserved their username and hundreds of companies I spoke to recognized deep problems with real-time chat. But despite all the positive signals, I&rsquo;ve made the decision to step back from Level.</p>
+    <p>If you&rsquo;re interested, <a class="font-bold text-blue" href="https://www.derrickreimer.com/essays/2019/05/17/im-walking-away-from-the-product-i-spent-a-year-building.html">I wrote an in-depth retrospective to tell the whole story.</a></p>
 
-    <p>When your brain is hooked on distraction, it&rsquo;s constantly seeking the next hit of cheap stimulation, be it from social media, email, or chat. Stanford researcher Clifford Nass puts it this way:</p>
+    <h2 class="pt-6 pb-3 text-3xl sm:text-4xl tracking-semi-tight">What&rsquo;s Next?</h2>
 
-    <blockquote class="mb-6 -mx-12 px-12 py-6 text-dusty-blue-darker text-2xl sm:text-3xl banknote-bg sm:rounded-xl font-serif tracking-semi-tight">
-      &ldquo;People who multitask all the time can&rsquo;t filter out irrelevancy. They&rsquo;re chronically distracted. <strong>They&rsquo;re pretty much mental wrecks</strong>.&rdquo;
-    </blockquote>
+    <p>I&rsquo;m not sure, but I know that I&rsquo;m passionate about serving the needs of makers (developers, designers, founders, indie hackers, and the like). Perhaps there&rsquo;s a way to deliver on the Level vision that is compatible with my goals – I am exploring that as well.</p>
 
-    <p>Yikes.</p>
+    <p>One thing&rsquo;s for sure: I will continue openly documenting what I&rsquo;ve learned, with the hope of helping others achieve their entrepreneurial goals.</p>
 
-    <p>As a recovering &ldquo;mental wreck&rdquo; myself, I can attest to the value of restoring deep work habits.</p>
+    <p>If you&rsquo;d like to join 1,000+ people following along with my journey, drop your email address here &mdash; I promise to keep it interesting.</p>
 
-    <p>Unfortunately, your chances of recovering are slim when your tools are working against you.</p>
-
-    <h2 class="marketing-sub-head">Real-time chat is the enemy of focus.</h2>
-
-    <p>When Slack replaced email at my company, I didn&rsquo;t foresee all the unintended consequences. I bet you didn&rsquo;t either.</p>
-    <p>For us, Slack began to foster a <strong>culture of ASAP</strong> and immediate response became a norm. The fear of appearing negligent was enough to prevent most people from silencing their notifications.</p>
-    <p>The sheer amount of chatter taking place began to engender a <strong>fear of missing out</strong> in those who needed long stretches of deep work time.</p>
-    <p>Work planning became less intentional and more just-in-time, which necessitated more synchronous communication and a <strong>feeling of chaos</strong>.</p>
-    <p>It&rsquo;s unfair to put all the blame on tools like Slack&mdash;we too are at fault for misusing our tools. But the reality is, most of us can&rsquo;t be trusted with tools that are laden with so many traps for our distraction-hungry brains.</p>
-
-    <h2 class="marketing-sub-head">Introducing Level: team chat designed to steer you away from distracting behaviors toward deep work.</h2>
-
-    <p>Think of Level as the best parts of email and real-time chat, combined.</p>
-
-    <p>Email got a few things right:</p>
-
-    <ul>
-      <li class="mb-6"><strong>The Inbox.</strong> Level queues up your important messages in your Inbox until you take action.</li>
-      <li class="mb-6"><strong>Threaded messaging.</strong> Every conversation in Level is threaded so that replies always stay logically grouped together.</li>
-    </ul>
-
-    <p>Real-time chat is not all bad either&mdash;in fact, it shines in many of the areas where email falls short:</p>
-
-    <ul>
-      <li class="mb-6"><strong>A shared repository of knowledge.</strong> Everyone benefits when conversations happen out in the open.</li>
-      <li class="mb-6"><strong>A place to hash things out in real-time</strong>. A Level conversation can easily become a real-time back-and-forth if two or more people happen to be present at the same time.</li>
-    </ul>
-
-    <p>Of course, Level ditches the more problematic parts of chat:</p>
-
-    <ul>
-      <li class="mb-6"><strong>No push notifications (unless it&rsquo;s an emergency).</strong> Messages are rarely so urgent they warrant breaking someone&rsquo;s focus. Instead, Level allows you to specify the times of day to receive batched notifications.</li>
-      <li class="mb-6"><strong>No presence indicators.</strong> The green dot is often abused. Being signed in shouldn&rsquo;t imply that you are available to be interrupted, and it most definitely shouldn&rsquo;t be a proxy for whether someone is doing their job.</li>
-      <li class="mb-6"><strong>Reduced pressure to read everything.</strong> Let&rsquo;s face it, it&rsquo;s not practical or necessary to keep up with every conversation. The aggregated timeline in Level lets you subscribe to channels and sip from the firehose of conversations without pressuring you to &ldquo;catch up&rdquo; on all unreads.</li>
-    </ul>
+    <form action="https://www.getdrip.com/forms/9552982/submissions" method="post">
+      <div class="pb-6 flex">
+        <div class="mr-2 flex-grow">
+          <input type="email" name="fields[email]" value="" class="h-16 px-4 w-full border-grey-dark focus:border-turquoise border-2 focus:outline-none rounded-lg text-dusty-blue-darker" />
+        </div>
+        <div>
+          <input type="submit" value="Join now" class="h-16 px-8 bg-blue hover:bg-blue-dark active:bg-blue-dark rounded-lg text-white font-bold cursor-pointer focus:outline-none focus:shadow-outline" />
+        </div>
+      </div>
+    </form>
   </div>
 </article>
-
-<div id="buy" class="mt-16 mb-16 px-8 py-12 bg-grey-light banknote-bg text-dusty-blue-darker sm:rounded-lg">
-  <div class="mx-auto max-w-md">
-    <h1 class="marketing-headline tracking-tight mb-6 text-5xl sm:text-6xl">Interested?</h1>
-
-    <div id="reservation" data-reservation-count="<%= @reservation_count %>"></div>
-  </div>
-</div>
