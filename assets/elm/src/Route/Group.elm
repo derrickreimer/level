@@ -55,6 +55,7 @@ type alias Internal =
     , state : PostStateFilter
     , inboxState : InboxStateFilter
     , lastActivity : LastActivityFilter
+    , plainText : Bool
     }
 
 
@@ -73,6 +74,7 @@ init spaceSlug groupName =
             PostStateFilter.All
             InboxStateFilter.All
             LastActivityFilter.All
+            False
         )
 
 
@@ -179,8 +181,18 @@ parser =
                 <?> Query.map PostStateFilter.fromQuery (Query.string "state")
                 <?> Query.map InboxStateFilter.fromQuery (Query.string "inbox_state")
                 <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
+                <?> Query.map plainTextQuery (Query.string "text")
             )
 
+
+plainTextQuery : Maybe String -> Bool
+plainTextQuery val =
+    case val of
+        Just "1" ->
+            True
+
+        _ ->
+            False
 
 
 -- SERIALIZATION
