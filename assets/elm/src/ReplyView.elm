@@ -1,4 +1,4 @@
-module ReplyView exposing (Msg(..), ReplyView, init, update, view)
+module ReplyView exposing (Msg(..), ReplyView, init, plainTextView, update, view)
 
 import Actor
 import Avatar
@@ -330,6 +330,39 @@ type alias ViewConfig =
     , groups : List Group
     , showRecipients : Bool
     }
+
+
+plainTextView : ViewConfig -> ReplyView -> Html Msg
+plainTextView config replyView =
+    case resolveData config.globals.repo replyView of
+        Just data ->
+            resolvedPlainTextView config replyView data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedPlainTextView : ViewConfig -> ReplyView -> Data -> Html Msg
+resolvedPlainTextView config replyView data =
+    let
+        indentedBody =
+            data.resolvedReply.reply
+                |> Reply.body
+                |> String.lines
+                |> List.map (\line -> String.concat [ "        ", line ])
+                |> String.join "\n"
+    in
+    div []
+        [ div []
+            [ text "    "
+            , text <| ResolvedAuthor.displayName data.resolvedReply.author
+            , text " ["
+            , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Reply.postedAt data.resolvedReply.reply) config.now) []
+            , text "]"
+            ]
+        , div [] [ text <| indentedBody ]
+        , div [] [ text "\n" ]
+        ]
 
 
 view : ViewConfig -> ReplyView -> Html Msg

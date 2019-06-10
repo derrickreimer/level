@@ -69,7 +69,7 @@ document =
                 ...PostConnectionFields
                 edges {
                   node {
-                    replies(last: 3) {
+                    replies(last: 1000) {
                       ...ReplyConnectionFields
                     }
                   }

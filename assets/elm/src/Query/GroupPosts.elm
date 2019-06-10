@@ -1,6 +1,5 @@
 module Query.GroupPosts exposing (Response, request)
 
-import PostView
 import Connection exposing (Connection)
 import GraphQL exposing (Document)
 import Group exposing (Group)
@@ -13,6 +12,7 @@ import Json.Encode as Encode
 import LastActivityFilter
 import Post exposing (Post)
 import PostStateFilter
+import PostView
 import Reply exposing (Reply)
 import Repo exposing (Repo)
 import ResolvedPostWithReplies exposing (ResolvedPostWithReplies)
@@ -65,7 +65,7 @@ document =
               ...PostConnectionFields
               edges {
                 node {
-                  replies(last: 3) {
+                  replies(last: 1000) {
                     ...ReplyConnectionFields
                   }
                 }

@@ -178,7 +178,7 @@ scaffold globals params viewer space group =
                     |> Repo.getPostsByGroup (Group.id group) Nothing
                     |> filterPosts (Space.id space) (Group.id group) params
                     |> List.sortWith Post.desc
-                    |> List.take 20
+                    |> List.take 1000
 
             else
                 []
@@ -226,8 +226,8 @@ setup globals model =
 
         postsCmd =
             globals.session
-                |> GroupPosts.request model.params 20 Nothing
-                |> Task.attempt (PostsFetched (queryKey model.params) 20)
+                |> GroupPosts.request model.params 1000 Nothing
+                |> Task.attempt (PostsFetched (queryKey model.params) 1000)
 
         featuredMembersCmd =
             globals.session
@@ -1334,12 +1334,51 @@ view globals model =
 
 resolvedView : Globals -> Model -> Data -> Html Msg
 resolvedView globals model data =
-    case globals.device of
-        Device.Desktop ->
+    case ( globals.device, Route.Group.isPlainText model.params ) of
+        ( Device.Desktop, False ) ->
             resolvedDesktopView globals model data
 
-        Device.Mobile ->
+        ( Device.Mobile, False ) ->
             resolvedMobileView globals model data
+
+        ( _, True ) ->
+            plainTextView globals model data
+
+
+
+-- PLAIN TEXT
+
+
+plainTextView : Globals -> Model -> Data -> Html Msg
+plainTextView globals model data =
+    let
+        spaceUsers =
+            Repo.getSpaceUsers (Space.spaceUserIds data.space) globals.repo
+
+        groups =
+            Repo.getGroups (Space.groupIds data.space) globals.repo
+    in
+    div [ class "p-8" ]
+        (PostSet.mapList (plainTextPostView globals spaceUsers groups model data) model.postViews)
+
+
+plainTextPostView : Globals -> List SpaceUser -> List Group -> Model -> Data -> PostView -> Html Msg
+plainTextPostView globals spaceUsers groups model data postView =
+    let
+        config =
+            { globals = globals
+            , space = data.space
+            , currentUser = data.viewer
+            , now = globals.now
+            , spaceUsers = spaceUsers
+            , groups = groups
+            , showRecipients = False
+            , isSelected = PostSet.selected model.postViews == Just postView
+            }
+    in
+    postView
+        |> PostView.plainTextView config
+        |> Html.map (PostViewMsg postView.id)
 
 
 

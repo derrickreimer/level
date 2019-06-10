@@ -3,7 +3,7 @@ module PostView exposing
     , init, setup, teardown
     , postNodeId, recordView, expandReplyComposer, refreshFromCache, receivePresence
     , Msg(..), update
-    , ViewConfig, view
+    , ViewConfig, view, plainTextView
     )
 
 {-| The post view.
@@ -31,7 +31,7 @@ module PostView exposing
 
 # View
 
-@docs ViewConfig, view
+@docs ViewConfig, view, plainTextView
 
 -}
 
@@ -1038,6 +1038,63 @@ type alias ViewConfig =
     , showRecipients : Bool
     , isSelected : Bool
     }
+
+
+plainTextView : ViewConfig -> PostView -> Html Msg
+plainTextView config postView =
+    case resolveData config.globals.repo postView of
+        Just data ->
+            resolvedPlainTextView config postView data
+
+        Nothing ->
+            text "Something went wrong."
+
+
+resolvedPlainTextView : ViewConfig -> PostView -> Data -> Html Msg
+resolvedPlainTextView config postView data =
+    pre [ class "font-mono" ]
+        [ div []
+            [ text <| ResolvedAuthor.displayName data.author
+            , text " ["
+            , View.Helpers.timeTag config.now (TimeWithZone.setPosix (Post.postedAt data.post) config.now) []
+            , text "]"
+            ]
+        , div [] [ text "\n" ]
+        , div [] [ text <| Post.body data.post ]
+        , div [] [ text "\n" ]
+        , div [] [ plainTextRepliesView config postView data ]
+        , div [] [ text "----------------------------------------" ]
+        , div [] [ text "\n" ]
+        ]
+
+
+plainTextRepliesView : ViewConfig -> PostView -> Data -> Html Msg
+plainTextRepliesView config postView data =
+    let
+        replyViewConfig =
+            { globals = config.globals
+            , space = config.space
+            , currentUser = config.currentUser
+            , now = config.now
+            , spaceUsers = config.spaceUsers
+            , groups = config.groups
+            , showRecipients = config.showRecipients
+            }
+
+        replies =
+            ReplySet.map
+                (\replyView ->
+                    ReplyView.plainTextView replyViewConfig replyView
+                        |> Html.map (ReplyViewMsg replyView.id)
+                )
+                postView.replyViews
+    in
+    viewUnless (ReplySet.isEmpty postView.replyViews) <|
+        div []
+            ([ div [] [ text "\n" ] ]
+                ++ replies
+                ++ [ div [] [ text "\n" ] ]
+            )
 
 
 view : ViewConfig -> PostView -> Html Msg
