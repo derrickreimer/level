@@ -1,6 +1,6 @@
 module Route.Posts exposing
     ( Params
-    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, clearFilters
+    , init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, isPlainText, clearFilters
     , parser
     , toString
     )
@@ -15,7 +15,7 @@ module Route.Posts exposing
 
 # API
 
-@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, clearFilters
+@docs init, getSpaceSlug, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, getAuthor, setAuthor, getRecipients, setRecipients, isPlainText, clearFilters
 
 
 # Parsing
@@ -48,6 +48,7 @@ type alias Internal =
     , lastActivity : LastActivityFilter
     , author : Maybe String
     , recipients : Maybe (List String)
+    , plainText : Bool
     }
 
 
@@ -65,6 +66,7 @@ init spaceSlug =
             LastActivityFilter.All
             Nothing
             Nothing
+            False
         )
 
 
@@ -123,6 +125,11 @@ setRecipients newRecipients (Params internal) =
     Params { internal | recipients = newRecipients }
 
 
+isPlainText : Params -> Bool
+isPlainText (Params internal) =
+    internal.plainText
+
+
 clearFilters : Params -> Params
 clearFilters params =
     params
@@ -147,9 +154,9 @@ parser =
 feedParser : Parser (Internal -> a) a
 feedParser =
     let
-        toInternal : String -> PostStateFilter -> LastActivityFilter -> Maybe String -> Maybe (List String) -> Internal
-        toInternal spaceSlug state lastActivity author recipients =
-            Internal spaceSlug state InboxStateFilter.All lastActivity author recipients
+        toInternal : String -> PostStateFilter -> LastActivityFilter -> Maybe String -> Maybe (List String) -> Bool -> Internal
+        toInternal spaceSlug state lastActivity author recipients plainText =
+            Internal spaceSlug state InboxStateFilter.All lastActivity author recipients plainText
     in
     map toInternal
         (string
@@ -158,6 +165,7 @@ feedParser =
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
             <?> Query.string "author"
             <?> Query.map parseRecipients (Query.string "recipients")
+            <?> Query.map plainTextQuery (Query.string "text")
         )
 
 
@@ -171,7 +179,18 @@ inboxParser =
             <?> Query.map LastActivityFilter.fromQuery (Query.string "last_activity")
             <?> Query.string "author"
             <?> Query.map parseRecipients (Query.string "recipients")
+            <?> Query.map plainTextQuery (Query.string "text")
         )
+
+
+plainTextQuery : Maybe String -> Bool
+plainTextQuery val =
+    case val of
+        Just "1" ->
+            True
+
+        _ ->
+            False
 
 
 

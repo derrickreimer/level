@@ -1,6 +1,6 @@
 module Route.Group exposing
     ( Params
-    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+    , init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, isPlainText, clearFilters
     , hasSamePath, isEqual
     , parser
     , toString
@@ -16,7 +16,7 @@ module Route.Group exposing
 
 # API
 
-@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, clearFilters
+@docs init, getSpaceSlug, getGroupName, getAfter, getBefore, setCursors, getState, setState, getInboxState, setInboxState, getLastActivity, setLastActivity, isPlainText, clearFilters
 
 
 # Comparison
@@ -133,6 +133,11 @@ setLastActivity newState (Params internal) =
     Params { internal | lastActivity = newState }
 
 
+isPlainText : Params -> Bool
+isPlainText (Params internal) =
+    internal.plainText
+
+
 clearFilters : Params -> Params
 clearFilters params =
     params
@@ -193,6 +198,7 @@ plainTextQuery val =
 
         _ ->
             False
+
 
 
 -- SERIALIZATION
