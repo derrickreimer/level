@@ -1,14 +1,16 @@
-# [<img src="https://user-images.githubusercontent.com/341387/44155659-8193fca4-a073-11e8-8842-0e2f1cd89627.png" width="150" alt="Level">](https://level.app)
+# Level
 
 [![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
 
-Level is team communication software optimized for deep work.
-
-**Sign up at [level.app](https://level.app)** to reserve your handle and get on the updates list.
-
 ## Project Status
 
-Level is currently in the **pre-launch** phase and under active development by [a company of one](https://twitter.com/derrickreimer). Most tasks are being tracked offline as the foundations of the product come together, in the interest of rapid development and reaching an alpha stage for teams to start using it as quickly as possible.
+Level began with the ambitious idea of [solving the problems](https://www.derrickreimer.com/essays/2018/03/02/the-war-on-developer-productivity.html) caused by real-time communication tools. After pouring thousands of hours effort into the cause, I made the tough decision to move on from the project. 
+
+[Read the full story here &rarr;](https://www.derrickreimer.com/essays/2019/05/17/im-walking-away-from-the-product-i-spent-a-year-building.html)
+
+This codebase is a full-scale Elixir/Phoenix SaaS application with a single-page app Elm front-end. I hope it will live on as a helpful resource for the community.
+
+&mdash; Derrick Reimer, Founder
 
 ## Developer Setup
 
