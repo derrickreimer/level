@@ -6,6 +6,8 @@ defmodule LevelWeb.Endpoint do
 
   socket "/socket", LevelWeb.UserSocket, websocket: [timeout: 45_000, check_origin: false]
 
+  plug :canonical_host
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
@@ -48,4 +50,15 @@ defmodule LevelWeb.Endpoint do
     max_age: 31_557_600
 
   plug LevelWeb.Router
+
+  defp canonical_host(conn, _opts) do
+    case Application.get_env(:level, LevelWeb.Endpoint)[:url][:host] do
+      host when is_binary(host) ->
+        opts = PlugCanonicalHost.init(canonical_host: host)
+        PlugCanonicalHost.call(conn, opts)
+
+      _ ->
+        conn
+    end
+  end
 end

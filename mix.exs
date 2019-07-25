@@ -77,6 +77,7 @@ defmodule Level.Mixfile do
       {:quantum, "~> 2.3"},
       {:premailex, "~> 0.3.3"},
       {:tesla, "~> 1.2.1"},
+      {:plug_canonical_host, "~> 1.0"},
 
       # Amazon S3 dependencies
       {:ex_aws, "~> 2.0"},
