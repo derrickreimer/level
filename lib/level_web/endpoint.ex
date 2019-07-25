@@ -52,7 +52,7 @@ defmodule LevelWeb.Endpoint do
   plug LevelWeb.Router
 
   defp canonical_host(conn, _opts) do
-    case Application.get_env(:level, LevelWeb.Endpoint)[:url][:host] do
+    case Application.get_env(:level, :canonical_host) do
       host when is_binary(host) ->
         opts = PlugCanonicalHost.init(canonical_host: host)
         PlugCanonicalHost.call(conn, opts)
