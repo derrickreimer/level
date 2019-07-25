@@ -54,6 +54,6 @@ config :level, :signups,
 
 # Configure web push notifications
 config :web_push_encryption, :vapid_details,
-  subject: "https://level.app",
+  subject: "https://levelteams.com",
   public_key: System.get_env("LEVEL_WEB_PUSH_PUBLIC_KEY"),
   private_key: System.get_env("LEVEL_WEB_PUSH_PRIVATE_KEY")

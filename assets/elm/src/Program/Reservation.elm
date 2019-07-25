@@ -248,7 +248,7 @@ handleField handle errors =
                 [ for "handle"
                 , class "flex-none text-dusty-blue-darker select-none leading-none"
                 ]
-                [ text "level.app/" ]
+                [ text "levelteams.com/" ]
             , div [ class "flex-1 leading-none" ]
                 [ input
                     [ id "handle"

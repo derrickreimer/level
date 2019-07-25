@@ -39,13 +39,13 @@ defmodule Level.Email do
 
   defp base_email do
     new_email()
-    |> from("Level Support <support@level.app>")
+    |> from("Level Support <support@levelteams.com>")
     |> put_html_layout({LayoutView, "plain_text_email.html"})
   end
 
   defp base_digest_email do
     new_email()
-    |> from("Level <support@level.app>")
+    |> from("Level <support@levelteams.com>")
     |> put_html_layout({LayoutView, "branded_email.html"})
   end
 

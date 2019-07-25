@@ -11,7 +11,7 @@ defmodule Drip do
       {Tesla.Middleware.BaseUrl, "https://api.getdrip.com/v2/" <> account_id},
       {Tesla.Middleware.BasicAuth, [username: token, password: ""]},
       {Tesla.Middleware.JSON, [decode_content_types: ["application/vnd.api+json"]]},
-      {Tesla.Middleware.Headers, [{"user-agent", "Level (level.app)"}]}
+      {Tesla.Middleware.Headers, [{"user-agent", "Level (levelteams.com)"}]}
     ]
 
     Tesla.client(middleware)

@@ -37,7 +37,7 @@ defmodule LevelWeb.Util.SvgToElmController do
       description:
         "A free little utility for converting raw SVGs into elm/svg code, from the maker of Level.",
       image: "/images/avatar-light.png",
-      url: "https://level.app/svg-to-elm"
+      url: "https://levelteams.com/svg-to-elm"
     }
   end
 end

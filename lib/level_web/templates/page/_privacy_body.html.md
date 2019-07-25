@@ -2,11 +2,11 @@
 
 Last updated November 01, 2018
 
-Thank you for choosing to be part of our community at Level Technologies, LLC (“Company”, “we”, “us”, or “our”). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us at support@level.app.
+Thank you for choosing to be part of our community at Level Technologies, LLC (“Company”, “we”, “us”, or “our”). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, or our practices with regards to your personal information, please contact us at support@levelteams.com.
 
-When you visit our website https://level.app, and use our services, you trust us with your personal information. We take your privacy very seriously. In this privacy notice, we describe our privacy policy. We seek to explain to you in the clearest way possible what information we collect, how we use it and what rights you have in relation to it. We hope you take some time to read through it carefully, as it is important. If there are any terms in this privacy policy that you do not agree with, please discontinue use of our Sites and our services.
+When you visit our website https://levelteams.com, and use our services, you trust us with your personal information. We take your privacy very seriously. In this privacy notice, we describe our privacy policy. We seek to explain to you in the clearest way possible what information we collect, how we use it and what rights you have in relation to it. We hope you take some time to read through it carefully, as it is important. If there are any terms in this privacy policy that you do not agree with, please discontinue use of our Sites and our services.
 
-This privacy policy applies to all information collected through our website (such as https://level.app), and/or any related services, sales, marketing or events (we refer to them collectively in this privacy policy as the "Sites").
+This privacy policy applies to all information collected through our website (such as https://levelteams.com), and/or any related services, sales, marketing or events (we refer to them collectively in this privacy policy as the "Sites").
 
 Please read this privacy policy carefully as it will help you make informed decisions about sharing your personal information with us.
 
@@ -174,14 +174,14 @@ We have implemented appropriate technical and organizational security measures d
 
 _**In Short:** We do not knowingly collect data from or market to children under 18 years of age._
 
-We do not knowingly solicit data from or market to children under 18 years of age. By using the Sites, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Sites. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we have collected from children under age 18, please contact us at support@level.app.
+We do not knowingly solicit data from or market to children under 18 years of age. By using the Sites, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependent’s use of the Sites. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records. If you become aware of any data we have collected from children under age 18, please contact us at support@levelteams.com.
 
 
 <h2 id="10">10. What Are Your Privacy Rights?</h2>
 
 _**In Short:** In some regions, such as the European Economic Area, you have rights that allow you greater access to and control over your personal information. You may review, change, or terminate your account at any time._
 
-In some regions (like the European Economic Area), you have certain rights under applicable data protection laws. These may include the right (i) to request access and obtain a copy of your personal information, (ii) to request rectification or erasure; (iii) to restrict the processing of your personal information; and (iv) if applicable, to data portability. In certain circumstances, you may also have the right to object to the processing of your personal information. To make such a request, please contact support@level.app. We will consider and act upon any request in accordance with applicable data protection laws.
+In some regions (like the European Economic Area), you have certain rights under applicable data protection laws. These may include the right (i) to request access and obtain a copy of your personal information, (ii) to request rectification or erasure; (iii) to restrict the processing of your personal information; and (iv) if applicable, to data portability. In certain circumstances, you may also have the right to object to the processing of your personal information. To make such a request, please contact support@levelteams.com. We will consider and act upon any request in accordance with applicable data protection laws.
 
 If we are relying on your consent to process your personal information, you have the right to withdraw your consent at any time. Please note however that this will not affect the lawfulness of the processing before its withdrawal.
 
@@ -221,7 +221,7 @@ We may update this privacy policy from time to time. The updated version will be
 
 <h2 id="14">14. How Can You Contact Us About This Policy?</h2>
 
-If you have questions or comments about this policy, you may contact our Data Protection Officer (DPO), Derrick Reimer, by email at support@level.app, or by post to:
+If you have questions or comments about this policy, you may contact our Data Protection Officer (DPO), Derrick Reimer, by email at support@levelteams.com, or by post to:
 
 Level Technologies, LLC<br>
 Derrick Reimer<br>

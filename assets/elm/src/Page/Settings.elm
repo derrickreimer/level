@@ -524,7 +524,7 @@ spaceSettingsView model data =
                     [ for "slug"
                     , class "flex-none text-dusty-blue-darker select-none"
                     ]
-                    [ text "level.app/" ]
+                    [ text "levelteams.com/" ]
                 , div [ class "flex-1" ]
                     [ input
                         [ id "slug"
