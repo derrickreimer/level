@@ -1,6 +1,6 @@
 # Level
 
-[![CircleCI](https://circleci.com/gh/levelhq/level.svg?style=svg)](https://circleci.com/gh/levelhq/level)
+[![CircleCI](https://circleci.com/gh/unstacked/level.svg?style=svg)](https://circleci.com/gh/unstacked/level)
 
 ## Project Status
 
